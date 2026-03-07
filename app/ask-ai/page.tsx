@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { type FormEvent, useEffect, useMemo, useState } from "react";
+import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { usePrivateRoute } from "@/lib/auth/usePrivateRoute";
 import { loadPersistedUserProfile } from "@/lib/persistence/profile-store";
@@ -12,9 +12,7 @@ import type { UserProfile } from "@/types/profile";
 
 const SUGGESTED_PROMPTS: string[] = [
   "Should I open an FHSA or TFSA first?",
-  "Do I need to file taxes if I made little income?",
   "What benefits can I claim as a student?",
-  "How do I start building credit in Canada?",
   "What should I do first based on my profile?",
 ];
 
@@ -42,6 +40,7 @@ export default function AskAIPage() {
   const [question, setQuestion] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!isAuthenticated || !userId) {
@@ -107,6 +106,11 @@ export default function AskAIPage() {
   }, [recommendations]);
 
   const canAsk = isAuthenticated && Boolean(profile && recommendations);
+
+  // Auto-scroll to bottom on new messages
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isSending]);
 
   const submitQuestion = async (prompt?: string) => {
     const nextQuestion = (prompt ?? question).trim();
@@ -197,7 +201,7 @@ export default function AskAIPage() {
   if (isLoading || profile === undefined) {
     return (
       <AppShell activePath="/ask-ai">
-        <div className="rounded-3xl border border-[#e8e1d9] bg-white p-8 text-lg shadow-sm">
+        <div className="rounded-2xl border border-[#e2dbd4] bg-[#faf8f6] p-8 text-[#5f5953]">
           Loading your profile context...
         </div>
       </AppShell>
@@ -211,7 +215,7 @@ export default function AskAIPage() {
   if (profile === null) {
     return (
       <AppShell activePath="/ask-ai">
-        <div className="rounded-3xl border border-[#e8e1d9] bg-white p-8 shadow-sm">
+        <div className="rounded-2xl border border-[#e2dbd4] bg-[#faf8f6] p-8 text-[#5f5953]">
           Redirecting to onboarding...
         </div>
       </AppShell>
@@ -221,19 +225,19 @@ export default function AskAIPage() {
   if (!profile || !recommendations) {
     return (
       <AppShell activePath="/ask-ai">
-        <div className="rounded-3xl border border-[#e8e1d9] bg-white p-8 shadow-sm">
-          <p className="text-sm uppercase tracking-[0.2em] text-[#8a8580]">Ask AI</p>
-          <h1 className="mt-2 text-3xl font-bold">Complete onboarding to open your chat</h1>
-          <p className="mt-3 text-[#6f6a64]">
+        <div className="rounded-2xl border border-[#e2dbd4] bg-[#faf8f6] p-6">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9a7b72]">Ask AI</p>
+          <h1 className="mt-2 text-2xl font-bold text-[#151311]">Complete onboarding to open your chat</h1>
+          <p className="mt-2 text-sm text-[#5f5953]">
             MapleMind AI needs your saved profile to provide grounded, personalized guidance.
           </p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Link href="/onboarding" className="rounded-2xl bg-[#f04d2d] px-6 py-3 font-semibold text-white">
+          <div className="mt-5 flex flex-wrap gap-3">
+            <Link href="/onboarding" className="rounded-xl bg-[#c82233] px-6 py-2.5 text-sm font-semibold text-white shadow-[0_0_16px_rgba(200,34,51,0.2)] transition hover:bg-[#b01e2d]">
               Complete onboarding
             </Link>
             <Link
               href="/dashboard"
-              className="rounded-2xl border border-[#d8d1c8] bg-white px-6 py-3 font-medium text-[#1c1b19]"
+              className="rounded-xl border border-[#e2dbd4] bg-white px-6 py-2.5 text-sm font-medium text-[#151311] transition hover:border-[#d0c9c1]"
             >
               Go to dashboard
             </Link>
@@ -243,126 +247,139 @@ export default function AskAIPage() {
     );
   }
 
+  const hasMessages = messages.length > 0;
+
   return (
-    <AppShell activePath="/ask-ai" maxWidthClassName="max-w-7xl">
-      <section className="rounded-3xl border border-[#e9e2da] bg-white p-5 shadow-[0_12px_30px_rgba(35,31,26,0.06)]">
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-sm uppercase tracking-[0.2em] text-[#8a8580]">Ask AI</p>
-            <h1 className="mt-1 text-2xl font-bold">Chat about your profile and next steps</h1>
-          </div>
-          <p className="rounded-full bg-[#edf5ee] px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] text-[#2f7a47]">
-            {recommendations.matchedBenefits.length} programs in context
-          </p>
+    <AppShell activePath="/ask-ai" maxWidthClassName="max-w-5xl">
+      {/* ── Compact header row ── */}
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9a7b72]">Ask AI</p>
+          <h1 className="mt-0.5 text-xl font-bold text-[#151311]">Chat about your profile and next steps</h1>
         </div>
+        <p className="rounded-full bg-[#eef6ef] px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] text-[#2f7a47]">
+          {recommendations.matchedBenefits.length} programs in context
+        </p>
+      </div>
 
-        <div className="mb-4 flex flex-wrap gap-2">
-          {SUGGESTED_PROMPTS.map((promptText) => (
-            <button
-              key={promptText}
-              type="button"
-              disabled={isSending || !canAsk}
-              onClick={() => {
-                void submitQuestion(promptText);
-              }}
-              className="rounded-xl border border-[#e6dfd8] bg-[#faf7f3] px-4 py-2 text-sm text-[#3f3a35] transition hover:border-[#d7cfc7] disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {promptText}
-            </button>
-          ))}
-        </div>
-
-        <div className="h-[62vh] min-h-[420px] space-y-4 overflow-y-auto rounded-2xl border border-[#ede6dd] bg-[#f9f6f1] p-4">
-          {messages.length === 0 ? (
-            <div className="max-w-2xl rounded-2xl border border-[#e4ddd5] bg-[#f4efe8] p-5 text-[#4b4642]">
-              <p className="font-semibold">Start with a practical question.</p>
-              <p className="mt-2 text-sm text-[#6f6a64]">
-                MapleMind AI uses your profile, matched programs, and trusted source metadata to respond.
-              </p>
-            </div>
-          ) : (
-            messages.map((message) => {
-              const isUser = message.role === "user";
-              return (
-                <div key={message.id} className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
-                  <article
-                    className={`max-w-2xl rounded-2xl p-4 shadow-sm ${
-                      isUser ? "bg-[#163320] text-white" : "border border-[#e5ddd4] bg-white text-[#1c1b19]"
-                    }`}
+      {/* ── Chat container ── */}
+      <div className="flex flex-col rounded-2xl border border-[#e2dbd4] bg-gradient-to-b from-[#faf8f6] to-[#f5f2ee] shadow-[0_4px_16px_rgba(20,15,12,0.06)]">
+        {/* Messages area */}
+        <div className="flex-1 space-y-3 overflow-y-auto p-4" style={{ height: "calc(100vh - 280px)", minHeight: "400px" }}>
+          {/* Empty state with suggested prompts */}
+          {!hasMessages ? (
+            <div className="flex h-full flex-col items-center justify-center px-4 py-8">
+              <div className="mb-6 text-center">
+                <p className="text-lg font-semibold text-[#151311]">What can I help with?</p>
+                <p className="mt-1 text-sm text-[#5f5953]">
+                  Ask about taxes, benefits, savings, or your personalized next steps.
+                </p>
+              </div>
+              <div className="flex flex-wrap justify-center gap-2">
+                {SUGGESTED_PROMPTS.map((promptText) => (
+                  <button
+                    key={promptText}
+                    type="button"
+                    disabled={isSending || !canAsk}
+                    onClick={() => {
+                      void submitQuestion(promptText);
+                    }}
+                    className="rounded-xl border border-[#e2dbd4] bg-white px-4 py-2.5 text-sm text-[#3f3a35] transition hover:border-[#c82233] hover:text-[#c82233] disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    <p className={`text-xs uppercase tracking-[0.12em] ${isUser ? "text-white/70" : "text-[#8a8580]"}`}>
-                      {isUser ? "You" : "MapleMind AI"}
-                    </p>
-                    <p className="mt-2 whitespace-pre-wrap">{message.content}</p>
-                    {!isUser && message.metaLabel ? (
-                      <p className="mt-3 text-xs uppercase tracking-[0.1em] text-[#7b756f]">{message.metaLabel}</p>
-                    ) : null}
-
-                    {!isUser && sourcePills.length > 0 ? (
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {sourcePills.map((source) =>
-                          source.url ? (
-                            <a
-                              key={source.label}
-                              href={source.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="rounded-full border border-[#ddd4cb] bg-[#f8f3ed] px-2.5 py-1 text-[11px] font-medium text-[#5e5852]"
-                            >
-                              {source.label}
-                            </a>
-                          ) : (
-                            <span
-                              key={source.label}
-                              className="rounded-full border border-[#ddd4cb] bg-[#f8f3ed] px-2.5 py-1 text-[11px] font-medium text-[#5e5852]"
-                            >
-                              {source.label}
-                            </span>
-                          )
-                        )}
-                      </div>
-                    ) : null}
-                  </article>
-                </div>
-              );
-            })
-          )}
-
-          {isSending ? (
-            <div className="flex justify-start">
-              <div className="max-w-2xl rounded-2xl border border-[#e5ddd4] bg-white p-4 text-[#6f6a64] shadow-sm">
-                <p className="text-xs uppercase tracking-[0.12em] text-[#8a8580]">MapleMind AI</p>
-                <span className="mt-2 inline-block animate-pulse">
-                  Reviewing your profile and matched programs...
-                </span>
+                    {promptText}
+                  </button>
+                ))}
               </div>
             </div>
-          ) : null}
+          ) : (
+            <>
+              {messages.map((message) => {
+                const isUser = message.role === "user";
+                return (
+                  <div key={message.id} className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
+                    <article
+                      className={`max-w-[75%] rounded-2xl p-4 ${
+                        isUser
+                          ? "bg-[#c82233] text-white"
+                          : "border border-[#e2dbd4] bg-white text-[#151311]"
+                      }`}
+                    >
+                      <p className={`text-[10px] font-semibold uppercase tracking-[0.12em] ${isUser ? "text-white/70" : "text-[#9a7b72]"}`}>
+                        {isUser ? "You" : "MapleMind AI"}
+                      </p>
+                      <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed">{message.content}</p>
+                      {!isUser && message.metaLabel ? (
+                        <p className="mt-2 text-[10px] uppercase tracking-[0.1em] text-[#9a7b72]">{message.metaLabel}</p>
+                      ) : null}
+
+                      {!isUser && sourcePills.length > 0 ? (
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {sourcePills.map((source) =>
+                            source.url ? (
+                              <a
+                                key={source.label}
+                                href={source.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="rounded-full border border-[#e2dbd4] bg-[#faf8f6] px-2 py-0.5 text-[10px] font-medium text-[#5f5953] transition hover:border-[#d0c9c1]"
+                              >
+                                {source.label}
+                              </a>
+                            ) : (
+                              <span
+                                key={source.label}
+                                className="rounded-full border border-[#e2dbd4] bg-[#faf8f6] px-2 py-0.5 text-[10px] font-medium text-[#5f5953]"
+                              >
+                                {source.label}
+                              </span>
+                            )
+                          )}
+                        </div>
+                      ) : null}
+                    </article>
+                  </div>
+                );
+              })}
+
+              {isSending ? (
+                <div className="flex justify-start">
+                  <div className="max-w-[75%] rounded-2xl border border-[#e2dbd4] bg-white p-4">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#9a7b72]">MapleMind AI</p>
+                    <span className="mt-1.5 inline-block animate-pulse text-sm text-[#5f5953]">
+                      Reviewing your profile and matched programs...
+                    </span>
+                  </div>
+                </div>
+              ) : null}
+              <div ref={chatEndRef} />
+            </>
+          )}
         </div>
 
-        <form onSubmit={onSubmit} className="mt-4 flex flex-col gap-3 sm:flex-row">
+        {/* ── Input bar ── */}
+        <form onSubmit={onSubmit} className="flex gap-2 border-t border-[#e2dbd4] bg-white p-3" style={{ borderRadius: "0 0 1rem 1rem" }}>
           <input
             value={question}
             onChange={(event) => setQuestion(event.target.value)}
             disabled={!canAsk || isSending}
-            className="flex-1 rounded-2xl border border-[#ddd6cf] bg-[#faf7f3] px-5 py-4 outline-none transition focus:border-[#f04d2d] disabled:cursor-not-allowed disabled:opacity-60"
+            className="flex-1 rounded-xl border border-[#e2dbd4] bg-[#faf8f6] px-4 py-2.5 text-sm outline-none transition focus:border-[#c82233] focus:ring-1 focus:ring-[#c82233]/20 disabled:cursor-not-allowed disabled:opacity-60"
             placeholder="Ask about taxes, benefits, savings, rent, debt, or next steps..."
           />
           <button
             type="submit"
             disabled={!question.trim() || !canAsk || isSending}
-            className="rounded-2xl bg-[#f04d2d] px-6 py-4 font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-xl bg-[#c82233] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#b01e2d] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isSending ? "Thinking..." : "Send"}
+            {isSending ? "..." : "Send"}
           </button>
         </form>
 
         {error ? (
-          <p className="mt-3 rounded-xl border border-[#f2d4cd] bg-[#fff2ef] px-3 py-2 text-sm text-[#b14634]">
+          <p className="border-t border-[#f0cfd3] bg-[#fff1f2] px-4 py-2 text-sm text-[#c82233]" style={{ borderRadius: "0 0 1rem 1rem" }}>
             {error}
           </p>
         ) : null}
-      </section>
+      </div>
     </AppShell>
   );
 }
