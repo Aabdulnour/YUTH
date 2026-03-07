@@ -3,18 +3,18 @@ import Link from "next/link";
 const STEPS = [
   {
     number: "01",
-    title: "Build your profile",
-    body: "Share your age, province, life situation, and financial context in about two minutes.",
+    title: "Install The Chrome Extension",
+    body: "Add YUTH to Chrome and pin it to your browser for instant access while you're online.",
   },
   {
     number: "02",
-    title: "See what applies to you",
-    body: "MapleMind surfaces the Canadian credits, benefits, and programs matched to your situation.",
+    title: "Financial Advice Everywhere",
+    body: "Real-time financial insight to every page you visit. Understand every impact before you commit.",
   },
   {
     number: "03",
-    title: "Take clear next steps",
-    body: "Follow prioritized actions and ask AI follow-up questions when you need more depth.",
+    title: "Take Control",
+    body: "See instantly whether the purchase fits based on your personal budget, spending habits, and goals.",
   },
 ];
 
@@ -83,9 +83,9 @@ export default function HomePage() {
                 AI adulthood assistant · Canada
               </p>
               <h1 className="mt-5 text-4xl font-bold leading-[1.06] tracking-tight text-white sm:text-5xl md:text-6xl xl:text-[68px]">
-                Your benefits, taxes,{" "}
+                Your benefits. <br></br>Your taxes.{" "}
                 <br className="hidden sm:block" />
-                and next steps.{" "}
+                Your next steps.<br></br>{" "}
                 <span className="text-[#e8394c]">All in one place.</span>
               </h1>
               <p className="mt-6 max-w-xl text-lg leading-relaxed text-[#a09890] md:text-xl">
@@ -133,9 +133,7 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-
-        {/* Bottom edge fade into off-white */}
-        <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-b from-transparent to-[#f5f2ee]" />
+      
       </section>
 
       {/* ── WHAT IT DOES (warm off-white) ── */}
@@ -172,7 +170,7 @@ export default function HomePage() {
           <div className="mb-14 text-center">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9a7b72]">How it works</p>
             <h2 className="mt-4 text-3xl font-bold leading-tight text-[#0f0c0a] md:text-4xl">
-              From uncertainty to action in three steps.
+              Control Your Money Before It’s Spent.
             </h2>
           </div>
           <div className="grid gap-6 md:grid-cols-3">
