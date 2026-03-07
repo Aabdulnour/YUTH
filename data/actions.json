@@ -1,0 +1,20 @@
+[
+  {
+    "id": "file_taxes",
+    "title": "File your taxes",
+    "description": "Filing taxes unlocks benefits like the GST/HST Credit.",
+    "priority": "high"
+  },
+  {
+    "id": "open_fhsa",
+    "title": "Open an FHSA",
+    "description": "Start building contribution room for a future home purchase.",
+    "priority": "medium"
+  },
+  {
+    "id": "check_credit_score",
+    "title": "Check your credit score",
+    "description": "Understand your current credit health and track progress.",
+    "priority": "medium"
+  }
+]

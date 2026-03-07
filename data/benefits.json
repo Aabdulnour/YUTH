@@ -1,0 +1,23 @@
+[
+  {
+    "id": "gst_hst_credit",
+    "name": "GST/HST Credit",
+    "description": "Quarterly tax-free payment for eligible Canadians.",
+    "estimated_value": "$519/year",
+    "category": "benefit"
+  },
+  {
+    "id": "canada_workers_benefit",
+    "name": "Canada Workers Benefit",
+    "description": "Refundable tax credit for eligible low-income workers.",
+    "estimated_value": "$1518/year",
+    "category": "benefit"
+  },
+  {
+    "id": "fhsa",
+    "name": "First Home Savings Account",
+    "description": "Tax-advantaged account for saving toward a first home.",
+    "estimated_value": "Varies",
+    "category": "account"
+  }
+]
