@@ -1,7 +1,9 @@
-
 from backboard import BackboardClient
+from dotenv import load_dotenv
+import os
 
-API_KEY = "espr_uErSJzLEMROoc_SSs6GC5zcxAQ2_g1-cfSAQU2nXOkk"
+load_dotenv()
 
 def get_client():
-    return BackboardClient(api_key=API_KEY)
+    api_key = os.getenv("BACKBOARD_API_KEY")
+    return BackboardClient(api_key=api_key)
