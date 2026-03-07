@@ -3,28 +3,31 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>YUTH Side Panel</title>
+    <title>MapleMind Extension</title>
     <link rel="stylesheet" href="sidepanel.css" />
   </head>
   <body>
     <div class="panel">
       <header class="panel-header">
         <div>
-          <p class="eyebrow">YUTH</p>
-          <h1>Smart Spender</h1>
+          <p class="eyebrow">MapleMind</p>
+          <h1>Browser Decision Support</h1>
+          <p id="contextNote" class="panel-subtitle">
+            Preview mode: MapleMind uses a demo spending profile while extension auth sync is in progress.
+          </p>
         </div>
 
         <div class="header-actions">
           <button id="openDashboardBtn" class="btn btn-primary" type="button">
-            Open Dashboard
+            Open MapleMind Dashboard
           </button>
         </div>
       </header>
 
       <main class="panel-body">
         <section id="loadingState" class="state-card" style="display: none;">
-          <p class="state-title">Analyzing page...</p>
-          <p class="muted">Checking this product against budget, goals, and timing.</p>
+          <p class="state-title">Reviewing this page...</p>
+          <p class="muted">Checking budget fit, deadlines, and goal impact.</p>
         </section>
 
         <section id="errorState" class="state-card" style="display: none;">
@@ -35,7 +38,7 @@
         <section id="emptyState" class="state-card" style="display: none;">
           <p class="state-title">No analysis yet</p>
           <p id="emptyStateMessage" class="muted">
-            Open a supported product page to see analysis.
+            Open a supported product page to see MapleMind guidance.
           </p>
         </section>
 
@@ -50,15 +53,23 @@
 
           <div class="grid">
             <section class="info-card">
-              <h2>Purchase Snapshot</h2>
+              <h2>Page Snapshot</h2>
               <div class="metric-list">
                 <div class="metric-row">
+                  <span class="metric-label">Product</span>
+                  <span id="productTitle" class="metric-value">-</span>
+                </div>
+                <div class="metric-row">
+                  <span class="metric-label">Merchant</span>
+                  <span id="merchant" class="metric-value">-</span>
+                </div>
+                <div class="metric-row">
                   <span class="metric-label">Price</span>
-                  <span id="price" class="metric-value">—</span>
+                  <span id="price" class="metric-value">-</span>
                 </div>
                 <div class="metric-row">
                   <span class="metric-label">Category</span>
-                  <span id="category" class="metric-value">—</span>
+                  <span id="category" class="metric-value">-</span>
                 </div>
               </div>
             </section>
@@ -68,29 +79,41 @@
               <div class="metric-list">
                 <div class="metric-row">
                   <span class="metric-label">Projected Spend</span>
-                  <span id="projectedSpend" class="metric-value">—</span>
+                  <span id="projectedSpend" class="metric-value">-</span>
                 </div>
                 <div class="metric-row">
                   <span class="metric-label">Monthly Budget</span>
-                  <span id="budgetCap" class="metric-value">—</span>
+                  <span id="budgetCap" class="metric-value">-</span>
                 </div>
                 <div class="metric-row">
                   <span class="metric-label">Remaining</span>
-                  <span id="remainingBudget" class="metric-value">—</span>
+                  <span id="remainingBudget" class="metric-value">-</span>
                 </div>
                 <div class="metric-row">
                   <span class="metric-label">Budget Fit</span>
-                  <span id="budgetFit" class="metric-value">—</span>
+                  <span id="budgetFit" class="metric-value">-</span>
                 </div>
               </div>
             </section>
 
             <section class="info-card">
-              <h2>Timing</h2>
+              <h2>Timing and Profile</h2>
               <div class="metric-list">
                 <div class="metric-row">
                   <span class="metric-label">Deadline Risk</span>
-                  <span id="deadlineRisk" class="metric-value">—</span>
+                  <span id="deadlineRisk" class="metric-value">-</span>
+                </div>
+                <div class="metric-row">
+                  <span class="metric-label">Upcoming Deadlines</span>
+                  <span id="upcomingDeadlines" class="metric-value">-</span>
+                </div>
+                <div class="metric-row">
+                  <span class="metric-label">Profile Source</span>
+                  <span id="profileSource" class="metric-value">-</span>
+                </div>
+                <div class="metric-row">
+                  <span class="metric-label">Mode</span>
+                  <span id="analysisMode" class="metric-value">-</span>
                 </div>
               </div>
             </section>
@@ -104,7 +127,7 @@
           </div>
 
           <section class="info-card reasoning-card">
-            <h2>Reasoning</h2>
+            <h2>MapleMind Reasoning</h2>
             <div id="reasons">
               <p>No additional reasoning provided.</p>
             </div>
@@ -113,6 +136,7 @@
       </main>
     </div>
 
+    <script src="config.js"></script>
     <script src="sidepanel.js"></script>
   </body>
 </html>

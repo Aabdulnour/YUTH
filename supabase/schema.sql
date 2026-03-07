@@ -91,3 +91,41 @@ create table if not exists public.user_profiles (
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now())
 );
+
+create table if not exists public.extension_decisions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users (id) on delete set null,
+  merchant text not null,
+  page_title text not null,
+  page_url text not null,
+  recommendation text not null,
+  purchase_amount numeric not null default 0,
+  detected_category text not null,
+  deadline_risk text not null default 'none',
+  goal_impact text not null default 'neutral',
+  created_at timestamptz not null default timezone('utc', now())
+);
+
+alter table public.extension_decisions enable row level security;
+
+drop policy if exists "Users can view their own extension decisions" on public.extension_decisions;
+create policy "Users can view their own extension decisions"
+on public.extension_decisions
+for select
+using (auth.uid() = user_id);
+
+drop policy if exists "Users can insert their own extension decisions" on public.extension_decisions;
+create policy "Users can insert their own extension decisions"
+on public.extension_decisions
+for insert
+with check (auth.uid() = user_id);
+
+drop policy if exists "Service role can manage extension decisions" on public.extension_decisions;
+create policy "Service role can manage extension decisions"
+on public.extension_decisions
+for all
+using (auth.role() = 'service_role')
+with check (auth.role() = 'service_role');
+
+create index if not exists extension_decisions_user_id_created_at_idx
+on public.extension_decisions (user_id, created_at desc);

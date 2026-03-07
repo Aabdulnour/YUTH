@@ -50,6 +50,7 @@ export interface RecommendationContext {
 }
 
 export interface AskAIRequestBody {
+  userId?: string;
   profile: UserProfile;
   recommendation: RecommendationContext;
   question: string;
