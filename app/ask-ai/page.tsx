@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { type FormEvent, useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
-import { loadUserProfile } from "@/lib/profile-storage";
+import { usePrivateRoute } from "@/lib/auth/usePrivateRoute";
+import { loadPersistedUserProfile } from "@/lib/persistence/profile-store";
 import { getRecommendations } from "@/lib/recommendation";
 import type { AskAIResponseBody, ChatHistoryMessage } from "@/types/ai";
 import type { UserProfile } from "@/types/profile";
@@ -33,19 +35,44 @@ function createMessageId(): string {
 }
 
 export default function AskAIPage() {
+  const router = useRouter();
+  const { isAuthenticated, isLoading, userId } = usePrivateRoute();
   const [profile, setProfile] = useState<UserProfile | null | undefined>(undefined);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [question, setQuestion] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      setProfile(loadUserProfile());
-    }, 0);
+    if (!isAuthenticated || !userId) {
+      if (!isLoading) {
+        setProfile(null);
+      }
 
-    return () => window.clearTimeout(timeoutId);
-  }, []);
+      return;
+    }
+
+    let isCancelled = false;
+
+    const loadProfile = async () => {
+      const nextProfile = await loadPersistedUserProfile(userId);
+      if (!isCancelled) {
+        setProfile(nextProfile);
+      }
+    };
+
+    void loadProfile();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [isAuthenticated, isLoading, userId]);
+
+  useEffect(() => {
+    if (isAuthenticated && profile === null) {
+      router.replace("/onboarding");
+    }
+  }, [isAuthenticated, profile, router]);
 
   const recommendations = useMemo(() => {
     if (!profile) {
@@ -79,11 +106,11 @@ export default function AskAIPage() {
       .map(([label, url]): SourcePill => ({ label, url }));
   }, [recommendations]);
 
-  const canAsk = Boolean(profile && recommendations);
+  const canAsk = isAuthenticated && Boolean(profile && recommendations);
 
   const submitQuestion = async (prompt?: string) => {
     const nextQuestion = (prompt ?? question).trim();
-    if (!nextQuestion || !profile || !recommendations || isLoading) {
+    if (!nextQuestion || !profile || !recommendations || isSending) {
       return;
     }
 
@@ -101,7 +128,7 @@ export default function AskAIPage() {
     setMessages((currentMessages) => [...currentMessages, userMessage]);
     setQuestion("");
     setError(null);
-    setIsLoading(true);
+    setIsSending(true);
 
     try {
       const response = await fetch("/api/ask-ai", {
@@ -158,7 +185,7 @@ export default function AskAIPage() {
         },
       ]);
     } finally {
-      setIsLoading(false);
+      setIsSending(false);
     }
   };
 
@@ -167,11 +194,25 @@ export default function AskAIPage() {
     void submitQuestion();
   };
 
-  if (profile === undefined) {
+  if (isLoading || profile === undefined) {
     return (
       <AppShell activePath="/ask-ai">
         <div className="rounded-3xl border border-[#e8e1d9] bg-white p-8 text-lg shadow-sm">
           Loading your profile context...
+        </div>
+      </AppShell>
+    );
+  }
+
+  if (!isAuthenticated || !userId) {
+    return null;
+  }
+
+  if (profile === null) {
+    return (
+      <AppShell activePath="/ask-ai">
+        <div className="rounded-3xl border border-[#e8e1d9] bg-white p-8 shadow-sm">
+          Redirecting to onboarding...
         </div>
       </AppShell>
     );
@@ -188,7 +229,7 @@ export default function AskAIPage() {
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link href="/onboarding" className="rounded-2xl bg-[#f04d2d] px-6 py-3 font-semibold text-white">
-              Sign up
+              Complete onboarding
             </Link>
             <Link
               href="/dashboard"
@@ -220,7 +261,7 @@ export default function AskAIPage() {
             <button
               key={promptText}
               type="button"
-              disabled={isLoading || !canAsk}
+              disabled={isSending || !canAsk}
               onClick={() => {
                 void submitQuestion(promptText);
               }}
@@ -287,7 +328,7 @@ export default function AskAIPage() {
             })
           )}
 
-          {isLoading ? (
+          {isSending ? (
             <div className="flex justify-start">
               <div className="max-w-2xl rounded-2xl border border-[#e5ddd4] bg-white p-4 text-[#6f6a64] shadow-sm">
                 <p className="text-xs uppercase tracking-[0.12em] text-[#8a8580]">MapleMind AI</p>
@@ -303,16 +344,16 @@ export default function AskAIPage() {
           <input
             value={question}
             onChange={(event) => setQuestion(event.target.value)}
-            disabled={!canAsk || isLoading}
+            disabled={!canAsk || isSending}
             className="flex-1 rounded-2xl border border-[#ddd6cf] bg-[#faf7f3] px-5 py-4 outline-none transition focus:border-[#f04d2d] disabled:cursor-not-allowed disabled:opacity-60"
             placeholder="Ask about taxes, benefits, savings, rent, debt, or next steps..."
           />
           <button
             type="submit"
-            disabled={!question.trim() || !canAsk || isLoading}
+            disabled={!question.trim() || !canAsk || isSending}
             className="rounded-2xl bg-[#f04d2d] px-6 py-4 font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isLoading ? "Thinking..." : "Send"}
+            {isSending ? "Thinking..." : "Send"}
           </button>
         </form>
 

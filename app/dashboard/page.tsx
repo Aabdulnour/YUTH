@@ -1,9 +1,16 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { AppPageHeader, AppShell } from "@/components/layout/AppShell";
-import { loadUserProfile } from "@/lib/profile-storage";
+import { usePrivateRoute } from "@/lib/auth/usePrivateRoute";
+import {
+  loadPersistedActionCompletion,
+  setPersistedActionCompletion,
+  type ActionCompletionMap,
+} from "@/lib/persistence/action-store";
+import { loadPersistedUserProfile } from "@/lib/persistence/profile-store";
 import { getRecommendations, type RecommendationResult } from "@/lib/recommendation";
 import type { ActionPriority } from "@/types/action";
 import type { BenefitCategory } from "@/types/benefit";
@@ -34,7 +41,8 @@ const categoryLabels: Record<BenefitCategory, string> = {
 interface AdultScoreSummary {
   score: number;
   delta: number;
-  statusText: string;
+  trendText: string;
+  progressText: string;
 }
 
 interface InsightCard {
@@ -71,7 +79,11 @@ function SourceCue({ label, url }: { label?: string; url?: string }) {
   );
 }
 
-function buildAdultScore(profile: UserProfile, recommendations: RecommendationResult): AdultScoreSummary {
+function buildAdultScore(
+  profile: UserProfile,
+  recommendations: RecommendationResult,
+  actionCompletion: ActionCompletionMap
+): AdultScoreSummary {
   let score = 42;
 
   score += profile.filesTaxes ? 15 : -4;
@@ -83,24 +95,33 @@ function buildAdultScore(profile: UserProfile, recommendations: RecommendationRe
   score += recommendations.matchedBenefits.length * 2;
   score += Math.min(recommendations.matchedActions.length, 4);
 
+  const completedActions = recommendations.matchedActions.filter((action) => actionCompletion[action.id]).length;
+  score += Math.min(completedActions * 5, 20);
+
   const delta =
     (profile.filesTaxes ? 3 : 0) +
     (profile.employed ? 1 : 0) +
     (profile.hasDebt ? -1 : 1) +
-    (recommendations.matchedActions.length > 2 ? 1 : 0);
+    (recommendations.matchedActions.length > 2 ? 1 : 0) +
+    Math.min(completedActions, 3);
 
   const scoreDelta = Math.max(-3, Math.min(6, delta));
-  const statusText =
+  const trendText =
     scoreDelta > 0
       ? `Up ${scoreDelta} points this month`
       : scoreDelta < 0
         ? `Down ${Math.abs(scoreDelta)} points this month`
         : "No change this month";
 
+  const progressText = recommendations.matchedActions.length
+    ? `${completedActions}/${recommendations.matchedActions.length} actions completed`
+    : "No actions available yet";
+
   return {
     score: clampScore(score),
     delta: scoreDelta,
-    statusText,
+    trendText,
+    progressText,
   };
 }
 
@@ -162,15 +183,71 @@ function buildInsightCards(profile: UserProfile, recommendations: Recommendation
 }
 
 export default function DashboardPage() {
+  const router = useRouter();
+  const { isAuthenticated, isLoading, userId } = usePrivateRoute();
+
   const [profile, setProfile] = useState<UserProfile | null | undefined>(undefined);
+  const [actionCompletion, setActionCompletion] = useState<ActionCompletionMap>({});
+  const [isActionStateLoading, setIsActionStateLoading] = useState(true);
+  const [savingActionId, setSavingActionId] = useState<string | null>(null);
+  const [actionSaveError, setActionSaveError] = useState<string | null>(null);
 
   useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      setProfile(loadUserProfile());
-    }, 0);
+    if (!isAuthenticated || !userId) {
+      if (!isLoading) {
+        setProfile(null);
+      }
 
-    return () => window.clearTimeout(timeoutId);
-  }, []);
+      return;
+    }
+
+    let isCancelled = false;
+
+    const loadProfile = async () => {
+      const nextProfile = await loadPersistedUserProfile(userId);
+      if (!isCancelled) {
+        setProfile(nextProfile);
+      }
+    };
+
+    void loadProfile();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [isAuthenticated, isLoading, userId]);
+
+  useEffect(() => {
+    if (!isAuthenticated || !userId) {
+      if (!isLoading) {
+        setIsActionStateLoading(false);
+      }
+
+      return;
+    }
+
+    let isCancelled = false;
+
+    const loadActionState = async () => {
+      const completionMap = await loadPersistedActionCompletion(userId);
+      if (!isCancelled) {
+        setActionCompletion(completionMap);
+        setIsActionStateLoading(false);
+      }
+    };
+
+    void loadActionState();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [isAuthenticated, isLoading, userId]);
+
+  useEffect(() => {
+    if (isAuthenticated && profile === null) {
+      router.replace("/onboarding");
+    }
+  }, [isAuthenticated, profile, router]);
 
   const recommendations = useMemo(() => {
     if (!profile) {
@@ -185,8 +262,8 @@ export default function DashboardPage() {
       return null;
     }
 
-    return buildAdultScore(profile, recommendations);
-  }, [profile, recommendations]);
+    return buildAdultScore(profile, recommendations, actionCompletion);
+  }, [actionCompletion, profile, recommendations]);
 
   const insightCards = useMemo(() => {
     if (!profile || !recommendations) {
@@ -196,11 +273,60 @@ export default function DashboardPage() {
     return buildInsightCards(profile, recommendations);
   }, [profile, recommendations]);
 
-  if (profile === undefined) {
+  const completedActionCount = useMemo(() => {
+    if (!recommendations) {
+      return 0;
+    }
+
+    return recommendations.matchedActions.filter((action) => actionCompletion[action.id]).length;
+  }, [actionCompletion, recommendations]);
+
+  const handleSetActionCompletion = async (actionId: string, completed: boolean) => {
+    if (!userId) {
+      return;
+    }
+
+    setActionSaveError(null);
+    setSavingActionId(actionId);
+
+    const previousValue = Boolean(actionCompletion[actionId]);
+    setActionCompletion((currentState) => ({
+      ...currentState,
+      [actionId]: completed,
+    }));
+
+    try {
+      await setPersistedActionCompletion(userId, actionId, completed);
+    } catch {
+      setActionCompletion((currentState) => ({
+        ...currentState,
+        [actionId]: previousValue,
+      }));
+      setActionSaveError("Could not save action progress. Please try again.");
+    } finally {
+      setSavingActionId((currentActionId) => (currentActionId === actionId ? null : currentActionId));
+    }
+  };
+
+  if (isLoading || profile === undefined || isActionStateLoading) {
     return (
       <AppShell activePath="/dashboard">
         <div className="rounded-3xl border border-[#e8e1d9] bg-white p-8 text-lg shadow-sm">
           Loading your recommendations...
+        </div>
+      </AppShell>
+    );
+  }
+
+  if (!isAuthenticated || !userId) {
+    return null;
+  }
+
+  if (profile === null) {
+    return (
+      <AppShell activePath="/dashboard">
+        <div className="rounded-3xl border border-[#e8e1d9] bg-white p-8 text-lg shadow-sm">
+          Redirecting to onboarding...
         </div>
       </AppShell>
     );
@@ -265,14 +391,15 @@ export default function DashboardPage() {
                 adultScore.delta >= 0 ? "bg-[#edf5ee] text-[#2f7a47]" : "bg-[#fff1ec] text-[#b04d36]"
               }`}
             >
-              {adultScore.statusText}
+              {adultScore.trendText}
             </p>
           </div>
           <div className="mt-5 h-2 rounded-full bg-[#efe9e2]">
             <div className="h-2 rounded-full bg-[#163320]" style={{ width: `${adultScore.score}%` }} aria-hidden />
           </div>
-          <p className="mt-4 text-sm text-[#6f6a64]">
-            Score combines profile stability signals and action readiness to help you track monthly progress.
+          <p className="mt-4 text-sm text-[#6f6a64]">{adultScore.progressText}</p>
+          <p className="mt-1 text-sm text-[#6f6a64]">
+            Score blends profile stability and completed action progress to track monthly momentum.
           </p>
         </section>
       </div>
@@ -333,10 +460,21 @@ export default function DashboardPage() {
         </section>
 
         <aside>
-          <div className="mb-4">
-            <h3 className="text-2xl font-bold">Actions this month</h3>
-            <p className="mt-1 text-sm text-[#6f6a64]">Practical next steps ordered by priority.</p>
+          <div className="mb-4 flex items-end justify-between gap-3">
+            <div>
+              <h3 className="text-2xl font-bold">Actions this month</h3>
+              <p className="mt-1 text-sm text-[#6f6a64]">Practical next steps ordered by priority.</p>
+            </div>
+            <p className="rounded-full bg-[#edf5ee] px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] text-[#2f7a47]">
+              {completedActionCount}/{recommendations.matchedActions.length} done
+            </p>
           </div>
+
+          {actionSaveError ? (
+            <p className="mb-4 rounded-xl border border-[#f2d4cd] bg-[#fff2ef] px-3 py-2 text-sm text-[#b14634]">
+              {actionSaveError}
+            </p>
+          ) : null}
 
           {recommendations.matchedActions.length === 0 ? (
             <div className="rounded-2xl border border-[#e9e2da] bg-white p-6 text-[#6f6a64] shadow-sm">
@@ -344,38 +482,65 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {recommendations.matchedActions.map((action) => (
-                <article
-                  key={action.id}
-                  className="rounded-2xl border border-[#ebe4dc] bg-white p-5 shadow-[0_10px_25px_rgba(35,31,26,0.06)]"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <h4 className="text-lg font-semibold">{action.title}</h4>
-                      <p className="mt-2 text-sm text-[#615c56]">{action.description}</p>
-                    </div>
-                    <span
-                      className={`rounded-lg px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.1em] ${priorityClasses[action.priority]}`}
-                    >
-                      {formatPriority(action.priority)}
-                    </span>
-                  </div>
+              {recommendations.matchedActions.map((action) => {
+                const isCompleted = Boolean(actionCompletion[action.id]);
 
-                  <div className="mt-4 flex items-center justify-between gap-3">
-                    <SourceCue label={action.sourceLabel} url={action.sourceUrl} />
-                    {action.externalLink ? (
-                      <a
-                        href={action.externalLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="rounded-xl border border-[#d9d1c8] bg-[#fbf8f4] px-3 py-1.5 text-sm font-medium text-[#1c1b19] transition hover:border-[#cfc5ba]"
+                return (
+                  <article
+                    key={action.id}
+                    className={`rounded-2xl border p-5 shadow-[0_10px_25px_rgba(35,31,26,0.06)] ${
+                      isCompleted ? "border-[#d8e8dc] bg-[#f4faf4]" : "border-[#ebe4dc] bg-white"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h4 className={`text-lg font-semibold ${isCompleted ? "text-[#2f7a47]" : ""}`}>{action.title}</h4>
+                        <p className="mt-2 text-sm text-[#615c56]">{action.description}</p>
+                      </div>
+                      <span
+                        className={`rounded-lg px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.1em] ${priorityClasses[action.priority]}`}
                       >
-                        {action.externalLinkLabel ?? "Get started"}
-                      </a>
-                    ) : null}
-                  </div>
-                </article>
-              ))}
+                        {formatPriority(action.priority)}
+                      </span>
+                    </div>
+
+                    <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <SourceCue label={action.sourceLabel} url={action.sourceUrl} />
+                        <button
+                          type="button"
+                          disabled={savingActionId === action.id}
+                          onClick={() => {
+                            void handleSetActionCompletion(action.id, !isCompleted);
+                          }}
+                          className={`rounded-xl px-3 py-1.5 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-70 ${
+                            isCompleted
+                              ? "border border-[#d5e6d8] bg-[#eaf5ec] text-[#2f7a47]"
+                              : "border border-[#d9d1c8] bg-[#fbf8f4] text-[#1c1b19] hover:border-[#cfc5ba]"
+                          }`}
+                        >
+                          {savingActionId === action.id
+                            ? "Saving..."
+                            : isCompleted
+                              ? "Completed"
+                              : "Mark complete"}
+                        </button>
+                      </div>
+
+                      {action.externalLink ? (
+                        <a
+                          href={action.externalLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="rounded-xl border border-[#d9d1c8] bg-[#fbf8f4] px-3 py-1.5 text-sm font-medium text-[#1c1b19] transition hover:border-[#cfc5ba]"
+                        >
+                          {action.externalLinkLabel ?? "Get started"}
+                        </a>
+                      ) : null}
+                    </div>
+                  </article>
+                );
+              })}
             </div>
           )}
         </aside>

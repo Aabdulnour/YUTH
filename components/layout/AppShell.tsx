@@ -1,7 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
+import { useState } from "react";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 interface AppShellProps {
   activePath: "/dashboard" | "/ask-ai" | "/profile";
@@ -27,6 +30,21 @@ function joinClasses(...classes: Array<string | false | undefined>): string {
 }
 
 export function AppShell({ activePath, children, maxWidthClassName = "max-w-6xl" }: AppShellProps) {
+  const router = useRouter();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+
+    try {
+      const supabase = getSupabaseBrowserClient();
+      await supabase.auth.signOut();
+    } finally {
+      setIsLoggingOut(false);
+      router.replace("/auth?mode=login");
+    }
+  };
+
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,_#fff7ef,_#f7f3ee_48%,_#f3efe9_100%)] text-[#1c1b19]">
       <div className={joinClasses("mx-auto px-6 py-8", maxWidthClassName)}>
@@ -62,9 +80,16 @@ export function AppShell({ activePath, children, maxWidthClassName = "max-w-6xl"
                 })}
               </nav>
 
-              <span className="rounded-xl border border-[#e7e0d9] bg-[#fbf8f4] px-3 py-2 text-xs font-medium text-[#6f6a64]">
-                Demo Account
-              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  void handleLogout();
+                }}
+                disabled={isLoggingOut}
+                className="rounded-xl border border-[#e7e0d9] bg-[#fbf8f4] px-3 py-2 text-xs font-medium text-[#6f6a64] transition hover:border-[#d9d1c8] disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {isLoggingOut ? "Logging out..." : "Log out"}
+              </button>
             </div>
           </div>
         </header>

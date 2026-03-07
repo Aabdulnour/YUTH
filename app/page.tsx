@@ -44,13 +44,13 @@ export default function HomePage() {
           <p className="text-sm font-semibold tracking-[0.16em] text-[#dcebd3] md:text-base">MAPLEMIND</p>
           <div className="flex items-center gap-3">
             <Link
-              href="/onboarding"
+              href="/auth?mode=login"
               className="rounded-lg border border-[#dcebd3]/30 px-4 py-2 text-sm font-medium text-[#f7f0e1] transition hover:bg-[#f7f0e1]/8"
             >
               Log in
             </Link>
             <Link
-              href="/onboarding"
+              href="/auth?mode=signup"
               className="rounded-lg bg-[#f26a2c] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#ea7a45]"
             >
               Sign up
@@ -75,7 +75,7 @@ export default function HomePage() {
 
               <div className="mt-9 flex flex-col gap-3 sm:flex-row">
                 <Link
-                  href="/onboarding"
+                  href="/auth?mode=signup"
                   className="rounded-xl bg-[#f26a2c] px-7 py-3 text-center text-base font-semibold text-white transition hover:bg-[#ea7a45]"
                 >
                   Get started free
@@ -173,13 +173,13 @@ export default function HomePage() {
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link
-              href="/onboarding"
+              href="/auth?mode=signup"
               className="rounded-xl bg-[#f26a2c] px-7 py-3 text-center text-base font-semibold text-white transition hover:bg-[#ea7a45]"
             >
               Sign up free
             </Link>
             <Link
-              href="/onboarding"
+              href="/auth?mode=login"
               className="rounded-xl border border-[#2f5b3d]/30 px-7 py-3 text-center text-base font-medium text-[#173222] transition hover:bg-[#173222]/5"
             >
               Log in
