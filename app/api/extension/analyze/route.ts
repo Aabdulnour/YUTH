@@ -4,6 +4,13 @@ import type { AnalyzeRequest } from "@/types/extension";
 import type { SpendingProfile } from "@/types/spending";
 import { analyzeSpendCheck } from "@/lib/spending/rules";
 
+function withCors(res: NextResponse) {
+  res.headers.set("Access-Control-Allow-Origin", "*");
+  res.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.headers.set("Access-Control-Allow-Headers", "Content-Type");
+  return res;
+}
+
 function validateRequest(body: Partial<AnalyzeRequest>): string | null {
   if (!body.page) return "Missing page object.";
   if (!body.page.url) return "Missing page.url.";
@@ -13,17 +20,16 @@ function validateRequest(body: Partial<AnalyzeRequest>): string | null {
   return null;
 }
 
-// Replace this later with Supabase or your real user profile loader.
 async function loadProfile(body: AnalyzeRequest): Promise<SpendingProfile> {
   if (body.useDemoProfile !== false) {
     return demoProfile as SpendingProfile;
   }
 
-  // Placeholder for real DB lookup:
-  // const profile = await getProfileFromSupabase(body.userId)
-  // return profile
-
   return demoProfile as SpendingProfile;
+}
+
+export async function OPTIONS() {
+  return withCors(new NextResponse(null, { status: 204 }));
 }
 
 export async function POST(req: NextRequest) {
@@ -32,9 +38,11 @@ export async function POST(req: NextRequest) {
     const validationError = validateRequest(body);
 
     if (validationError) {
-      return NextResponse.json(
-        { ok: false, error: validationError },
-        { status: 400 }
+      return withCors(
+        NextResponse.json(
+          { ok: false, error: validationError },
+          { status: 400 }
+        )
       );
     }
 
@@ -42,19 +50,23 @@ export async function POST(req: NextRequest) {
     const profile = await loadProfile(typedBody);
     const result = analyzeSpendCheck(typedBody.page, profile);
 
-    return NextResponse.json({
-      ok: true,
-      result
-    });
+    return withCors(
+      NextResponse.json({
+        ok: true,
+        result
+      })
+    );
   } catch (error) {
     console.error("Extension analyze error:", error);
 
-    return NextResponse.json(
-      {
-        ok: false,
-        error: "Failed to analyze spending context."
-      },
-      { status: 500 }
+    return withCors(
+      NextResponse.json(
+        {
+          ok: false,
+          error: error instanceof Error ? error.message : "Failed to analyze spending context."
+        },
+        { status: 500 }
+      )
     );
   }
 }
