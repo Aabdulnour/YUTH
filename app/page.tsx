@@ -80,29 +80,29 @@ export default function HomePage() {
             {/* Left: headline */}
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#9a6b74]">
-                AI adulthood assistant · Canada
+                CANADA'S AI FINANCIAL ASSISTANT
               </p>
               <h1 className="mt-5 text-4xl font-bold leading-[1.06] tracking-tight text-white sm:text-5xl md:text-6xl xl:text-[68px]">
-                Your benefits. <br></br>Your taxes.{" "}
+                Built by Yuth, <br></br>For youth.{" "}
                 <br className="hidden sm:block" />
                 Your next steps.<br></br>{" "}
                 <span className="text-[#e8394c]">All in one place.</span>
               </h1>
               <p className="mt-6 max-w-xl text-lg leading-relaxed text-[#a09890] md:text-xl">
-                MapleMind matches your Canadian profile to the programs, credits, and actions that matter for your life right now.
+                For young Canadians navigating taxes, benefits, and financial life for the first time.
               </p>
               <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
                 <Link
                   href="/auth?mode=signup"
                   className="rounded-xl bg-[#c82233] px-7 py-3.5 text-center text-base font-bold text-white shadow-[0_0_28px_rgba(200,34,51,0.45)] transition hover:bg-[#af1d2d] hover:shadow-[0_0_36px_rgba(200,34,51,0.55)]"
                 >
-                  Start free. 2 min setup.
+                  Start Here for Free.
                 </Link>
                 <Link
                   href="#how-it-works"
                   className="rounded-xl border border-[#3a3530] px-7 py-3.5 text-center text-base font-semibold text-[#c8c0b8] transition hover:border-[#57504a] hover:text-white"
                 >
-                  How it works
+                  Download Yuth's Chrome Extension
                 </Link>
               </div>
             </div>
