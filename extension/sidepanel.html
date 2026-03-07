@@ -1,54 +1,71 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MapleMind</title>
-    <link rel="stylesheet" href="sidepanel.css" />
+    <link rel="stylesheet" href="/extension/sidepane.css" />
   </head>
   <body>
-    <div class="panel">
-      <div class="header">
-        <h1>MapleMind</h1>
-        <div id="statusBadge" class="badge">Checking...</div>
-      </div>
+    <main class="panel" aria-label="MapleMind purchase analysis panel">
+      <header class="panel-header">
+        <div>
+          <h1 class="panel-title">MapleMind Summary</h1>
+        </div>
+        <div id="statusBadge" class="status-badge">Checking</div>
+      </header>
 
-      <div class="card">
-        <div class="label">Purchase</div>
-        <div id="purchaseAmount" class="value">$0.00</div>
-      </div>
+      <section class="hero-card">
+        <div class="hero-row">
+          <span class="hero-label">Purchase:</span>
+          <span id="purchaseAmount" class="purchase-value">$0.00</span>
+        </div>
+      </section>
 
-      <div class="grid">
-        <div class="mini-card">
-          <div class="label">Budget</div>
-          <div id="budgetFit" class="mini-value">—</div>
+      <section class="metrics-list" aria-label="Purchase analysis metrics">
+        <div class="metric-row">
+          <span class="metric-label">Budget:</span>
+          <span id="budgetFit" class="metric-value">—</span>
         </div>
 
-        <div class="mini-card">
-          <div class="label">Deadline Risk</div>
-          <div id="deadlineRisk" class="mini-value">—</div>
+        <div class="metric-row">
+          <span class="metric-label">Deadline Risk:</span>
+          <span id="deadlineRisk" class="metric-value">—</span>
         </div>
 
-        <div class="mini-card">
-          <div class="label">Category</div>
-          <div id="category" class="mini-value">—</div>
+        <div class="metric-row">
+          <span class="metric-label">Category:</span>
+          <span id="category" class="metric-value">—</span>
         </div>
 
-        <div class="mini-card">
-          <div class="label">Next Step</div>
-          <div id="recommendation" class="mini-value">—</div>
+        <div class="metric-row">
+          <span class="metric-label">Next Step:</span>
+          <span id="recommendation" class="metric-value">—</span>
         </div>
-      </div>
+      </section>
 
-      <div class="summary-card">
-        <div class="label">Quick Summary</div>
-        <div id="summaryText" class="summary-text"></div>
-      </div>
+      <section class="detail-card">
+        <h2 class="detail-title">Analysis</h2>
+        <ul class="detail-list" id="detailList">
+          <li class="detail-item">No analysis yet.</li>
+        </ul>
+      </section>
 
-      <button id="openDashboardBtn" class="primary-btn">
-        Open Full Dashboard
-      </button>
-    </div>
+      <section class="tags-card">
+        <p class="section-label">Signals</p>
+        <div id="tags" class="tags-wrap"></div>
+      </section>
 
-    <script src="sidepanel.js"></script>
+      <section class="footer-card">
+        <p class="footer-text">
+          Open MapleMind for your full financial context and action plan.
+        </p>
+        <button id="openDashboardBtn" class="primary-btn" type="button">
+          Open Full Dashboard
+        </button>
+      </section>
+    </main>
+
+    <script src="./sidepanel.js"></script>
   </body>
 </html>
