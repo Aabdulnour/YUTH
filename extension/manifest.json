@@ -1,10 +1,10 @@
 {
   "manifest_version": 3,
-  "name": "YUTH Smart Spender",
+  "name": "MapleMind Browser Decision Support",
   "version": "0.1.0",
-  "description": "Analyze purchases against your budget and goals.",
+  "description": "Get MapleMind spending guidance while browsing supported product pages.",
   "action": {
-    "default_title": "Open MapleMind"
+    "default_title": "Open MapleMind Side Panel"
   },
   "permissions": ["activeTab", "storage", "sidePanel", "scripting"],
   "host_permissions": [
@@ -12,6 +12,7 @@
     "*://*.amazon.com/*",
     "*://*.bestbuy.ca/*",
     "*://*.sephora.ca/*",
+    "*://*.sephora.com/*",
     "http://localhost:3000/*"
   ],
   "background": {
@@ -23,9 +24,15 @@
         "*://*.amazon.ca/*",
         "*://*.amazon.com/*",
         "*://*.bestbuy.ca/*",
-        "*://*.sephora.ca/*"
+        "*://*.sephora.ca/*",
+        "*://*.sephora.com/*"
       ],
-      "js": ["content-script.js"],
+      "js": ["config.js", "content-script.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["http://localhost:3000/*"],
+      "js": ["app-user-sync.js"],
       "run_at": "document_idle"
     }
   ],

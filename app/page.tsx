@@ -4,7 +4,7 @@ const STEPS = [
   {
     number: "01",
     title: "Install The Chrome Extension",
-    body: "Add YUTH to Chrome and pin it to your browser for instant access while you're online.",
+    body: "Add MapleMind to Chrome and pin it for instant decision support while you browse.",
   },
   {
     number: "02",
@@ -128,7 +128,7 @@ export default function HomePage() {
               <div className="mt-5 rounded-xl border border-[#3d1a20] bg-[#1e1214] px-4 py-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[#9f4a57]">Setup time</p>
                 <p className="mt-1 text-2xl font-bold text-white">About 2 minutes</p>
-                <p className="mt-1 text-xs text-[#7a6e68]">Age, province, situation. That's it.</p>
+                <p className="mt-1 text-xs text-[#7a6e68]">Age, province, situation. That&apos;s it.</p>
               </div>
             </div>
           </div>
@@ -265,7 +265,7 @@ export default function HomePage() {
             <div className="pointer-events-none absolute -top-20 -left-20 h-64 w-64 rounded-full bg-white opacity-[0.04] blur-[60px]" />
             <p className="relative text-xs font-semibold uppercase tracking-[0.22em] text-[#f5c0c7]">Get started</p>
             <h2 className="relative mt-4 text-3xl font-bold leading-tight text-white md:text-4xl lg:text-[46px]">
-              Know what you're entitled to in Canada.
+              Know what you&apos;re entitled to in Canada.
             </h2>
             <p className="relative mx-auto mt-4 max-w-lg text-base text-[#f5c0c7]">
               Create a free account, complete your profile, and see your personalized dashboard in minutes.

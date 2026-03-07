@@ -27,6 +27,12 @@ export interface AnalyzeRequest {
   page: ShoppingPageContext;
 }
 
+export type ExtensionProfileSource =
+  | "demo_profile"
+  | "authenticated_user_profile";
+
+export type ExtensionDecisionStorageMode = "supabase" | "local";
+
 export type Recommendation =
   | "buy_now"
   | "wait"
@@ -52,7 +58,40 @@ export interface AnalyzeResult {
   tags: string[];
 }
 
+export interface AnalyzeResponseMetadata {
+  profileSource: ExtensionProfileSource;
+  mode: "preview" | "live";
+  note: string;
+  requestedUserId: string | null;
+  decisionHistoryStorage?: ExtensionDecisionStorageMode;
+}
+
+export interface ExtensionDecision {
+  id: string;
+  userId: string | null;
+  merchant: string;
+  pageTitle: string;
+  pageUrl: string;
+  recommendation: Recommendation;
+  purchaseAmount: number;
+  detectedCategory: string;
+  deadlineRisk: AnalyzeResult["deadlineRisk"];
+  goalImpact: AnalyzeResult["goalImpact"];
+  createdAt: string;
+}
+
+export interface ExtensionDecisionsResponse {
+  ok: boolean;
+  decisions: ExtensionDecision[];
+  storage: ExtensionDecisionStorageMode;
+  error?: string;
+}
+
 export interface AnalyzeResponse {
   ok: boolean;
-  result: AnalyzeResult;
+  analysis?: AnalyzeResult;
+  // Backward-compatible alias for earlier prototype clients.
+  result?: AnalyzeResult;
+  metadata?: AnalyzeResponseMetadata;
+  error?: string;
 }

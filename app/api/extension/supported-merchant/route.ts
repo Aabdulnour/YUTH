@@ -1,11 +1,22 @@
 import { NextResponse } from "next/server";
+import { SUPPORTED_EXTENSION_MERCHANTS } from "@/lib/extension/supportedMerchants";
+
+function withCors(response: NextResponse): NextResponse {
+  response.headers.set("Access-Control-Allow-Origin", "*");
+  response.headers.set("Access-Control-Allow-Methods", "GET, OPTIONS");
+  return response;
+}
+
+export async function OPTIONS() {
+  return withCors(new NextResponse(null, { status: 204 }));
+}
 
 export async function GET() {
-  return NextResponse.json({
-    merchants: [
-      { id: "amazon", hosts: ["amazon.ca", "www.amazon.ca"] },
-      { id: "bestbuy", hosts: ["bestbuy.ca", "www.bestbuy.ca"] },
-      { id: "sephora", hosts: ["sephora.ca", "www.sephora.ca", "sephora.com", "www.sephora.com"] }
-    ]
-  });
+  return withCors(
+    NextResponse.json({
+      ok: true,
+      mode: "preview",
+      merchants: SUPPORTED_EXTENSION_MERCHANTS,
+    })
+  );
 }

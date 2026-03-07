@@ -9,6 +9,7 @@ import {
   sanitizeHistory,
   sanitizeRecommendationContext,
 } from "@/lib/ai/grounding";
+import { loadRecentExtensionDecisions } from "@/lib/extension/decisionHistory";
 import { normalizeUserProfile } from "@/lib/profile-utils";
 import type { AskAIResponseBody } from "@/types/ai";
 import type { ActionItem } from "@/types/action";
@@ -21,6 +22,7 @@ const benefitCatalog: Benefit[] = benefitsData as Benefit[];
 const actionCatalog: ActionItem[] = actionsData as ActionItem[];
 
 interface AskAIRawBody {
+  userId?: unknown;
   profile?: unknown;
   recommendation?: unknown;
   question?: unknown;
@@ -59,6 +61,7 @@ export async function POST(request: NextRequest) {
   }
 
   const recommendation = sanitizeRecommendationContext(body.recommendation);
+  const userId = typeof body.userId === "string" && body.userId.trim() ? body.userId.trim() : null;
 
   const question = typeof body.question === "string" ? body.question.trim() : "";
   if (!question) {
@@ -70,6 +73,21 @@ export async function POST(request: NextRequest) {
   }
 
   const history = sanitizeHistory(body.history);
+  let extensionDecisionContext: Awaited<ReturnType<typeof loadRecentExtensionDecisions>> = {
+    decisions: [],
+    storage: "local",
+  };
+
+  if (userId) {
+    try {
+      extensionDecisionContext = await loadRecentExtensionDecisions({
+        userId,
+        limit: 5,
+      });
+    } catch (decisionError) {
+      console.warn("ask-ai route could not load extension decision context:", decisionError);
+    }
+  }
 
   try {
     const response = await client.responses.create({
@@ -79,7 +97,16 @@ export async function POST(request: NextRequest) {
       input: [
         {
           role: "system",
-          content: [{ type: "input_text", text: buildSystemPrompt({ profile, recommendation }) }],
+          content: [
+            {
+              type: "input_text",
+              text: buildSystemPrompt({
+                profile,
+                recommendation,
+                recentExtensionDecisions: extensionDecisionContext.decisions,
+              }),
+            },
+          ],
         },
         {
           role: "user",
@@ -91,6 +118,7 @@ export async function POST(request: NextRequest) {
                 profile,
                 recommendation,
                 history,
+                recentExtensionDecisions: extensionDecisionContext.decisions,
                 benefitCatalog,
                 actionCatalog,
               }),
@@ -107,7 +135,10 @@ export async function POST(request: NextRequest) {
 
     const payload: AskAIResponseBody = {
       answer,
-      metaLabel: "Based on your profile and matched programs",
+      metaLabel:
+        extensionDecisionContext.decisions.length > 0
+          ? "Based on your profile, matched programs, and recent browser decisions"
+          : "Based on your profile and matched programs",
     };
 
     return NextResponse.json(payload);
