@@ -46,16 +46,16 @@ export function AppShell({ activePath, children, maxWidthClassName = "max-w-6xl"
   };
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,_#fff7ef,_#f7f3ee_48%,_#f3efe9_100%)] text-[#1c1b19]">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top,_#faf8f6,_#f5f2ee_48%,_#f3efe9_100%)] text-[#151311]">
       <div className={joinClasses("mx-auto px-6 py-8", maxWidthClassName)}>
-        <header className="sticky top-4 z-20 mb-8 rounded-2xl border border-[#e6dfd8] bg-white/92 px-4 py-3 shadow-[0_10px_30px_rgba(34,32,29,0.08)] backdrop-blur">
+        <header className="sticky top-0 z-50 mb-8 rounded-b-2xl border-b border-x border-[#e2dbd4] bg-white/92 px-4 py-3 shadow-[0_10px_30px_rgba(20,15,12,0.07)] backdrop-blur">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <Link href="/" className="text-base font-semibold tracking-[0.08em] text-[#163320]">
-                MAPLEMIND APP
+              <Link href="/" className="text-sm font-bold tracking-[0.18em] text-[#151311]">
+                YUTH
               </Link>
-              <span className="rounded-full bg-[#edf5ee] px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] text-[#2f7a47]">
-                Private Preview
+              <span className="rounded-full bg-[#fff1f2] px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] text-[#c82233]">
+                Preview
               </span>
             </div>
 
@@ -70,8 +70,8 @@ export function AppShell({ activePath, children, maxWidthClassName = "max-w-6xl"
                       className={joinClasses(
                         "rounded-xl px-4 py-2 text-sm font-medium transition",
                         isActive
-                          ? "bg-[#163320] text-white"
-                          : "border border-[#e7e0d9] bg-[#fbf8f4] text-[#4d473f] hover:border-[#d9d1c8]"
+                          ? "bg-[#c82233] text-white"
+                          : "border border-[#e2dbd4] bg-[#faf8f6] text-[#4d473f] hover:border-[#d0c9c1]"
                       )}
                     >
                       {item.label}
@@ -86,7 +86,7 @@ export function AppShell({ activePath, children, maxWidthClassName = "max-w-6xl"
                   void handleLogout();
                 }}
                 disabled={isLoggingOut}
-                className="rounded-xl border border-[#e7e0d9] bg-[#fbf8f4] px-3 py-2 text-xs font-medium text-[#6f6a64] transition hover:border-[#d9d1c8] disabled:cursor-not-allowed disabled:opacity-70"
+                className="rounded-xl border border-[#e2dbd4] bg-[#faf8f6] px-3 py-2 text-xs font-medium text-[#5f5953] transition hover:border-[#d0c9c1] disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {isLoggingOut ? "Logging out..." : "Log out"}
               </button>
