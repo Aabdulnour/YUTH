@@ -169,7 +169,7 @@ export default function OnboardingPage() {
       <div className="mx-auto max-w-5xl">
         {/* ── Header ── */}
         <header className="flex items-center justify-between">
-          <p className="text-sm font-bold uppercase tracking-[0.18em] text-[#151311]">MAPLEMIND</p>
+          <p className="text-sm font-bold uppercase tracking-[0.18em] text-[#151311]">YUTH</p>
           <p className="rounded-full bg-[#fff1f2] px-4 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-[#c82233]">
             Profile setup
           </p>
@@ -192,7 +192,7 @@ export default function OnboardingPage() {
         {/* ── Main card ── */}
         <section className="mt-6 rounded-2xl border border-[#e2dbd4] bg-white p-7 shadow-[0_12px_36px_rgba(20,15,12,0.06)] sm:p-8 lg:p-10">
           <h1 className="text-3xl font-bold leading-tight text-[#151311] sm:text-4xl">
-            Set up your MapleMind profile
+            Set up your YUTH profile
           </h1>
           <p className="mt-3 max-w-3xl text-base leading-relaxed text-[#5f5953]">
             This takes about two minutes. Your answers personalize recommendations, action priorities, and AI guidance.
@@ -386,7 +386,7 @@ export default function OnboardingPage() {
                   Trust and privacy
                 </p>
                 <p className="mt-3 text-sm leading-relaxed text-[#5f5953]">
-                  MapleMind uses this information to tailor guidance. You can update your profile any time in settings.
+                  YUTH uses this information to tailor guidance. You can update your profile any time in settings.
                 </p>
               </div>
             </aside>
