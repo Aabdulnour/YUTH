@@ -1,6 +1,6 @@
-# YUTH.
+# MapleMind
 
-YUTH is an AI-powered assistant that helps the next generation of young Canadian adults discover government benefits, financial opportunities, and important next steps based on their life situation. By combining structured program data with personalized profiles and AI guidance, YUTH helps users understand what money they may be missing and what financial actions they should take — from filing taxes and building credit to choosing between accounts like a TFSA or FHSA.
+MapleMind is an AI-powered assistant that helps young Canadian adults discover government benefits, financial opportunities, and important next steps based on their life situation. By combining structured program data with personalized profiles and AI guidance, MapleMind helps users understand what money they may be missing and what financial actions they should take.
 
 ## Features
 add all features
@@ -18,16 +18,16 @@ add project architecture
 | Browser Extension | Chrome Extension (Manifest v3) |
 | UI Integration | Chrome Side Panel API |
 
-## Smart Spend Chrome Extension
+## Chrome Extension Preview
 
-The YUTH. Chrome Extension provides **real-time financial context while users shop online**.  
+The MapleMind Chrome Extension provides **real-time financial context while users shop online**.  
 When a supported product page is opened, the extension analyzes the purchase against the user's financial profile and displays a quick recommendation in the browser side panel.
 
 This enables users to understand how a purchase fits into their financial plan **before completing the transaction**.
 
 ### Overview
 
-YUTH's Smart Spender brings financial intelligence directly into your browser. As you browse the web, it understands the financial context of the page. From purchases and subscriptions to travel and everyday spending, it provides instant insights to help you make smarter decisions before money leaves your account.
+MapleMind's browser decision support brings financial context directly into your browser. As you browse, it checks purchase fit against budget, goals, and deadlines so you can make better decisions before money leaves your account.
 
 The result is presented in a **lightweight side panel dashboard** that summarizes whether the purchase fits the user’s financial plan.
 

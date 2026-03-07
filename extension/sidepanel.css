@@ -106,6 +106,14 @@ button {
   color: var(--text);
 }
 
+.panel-subtitle {
+  margin: 10px 0 0;
+  max-width: 330px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 .label {
   display: inline-block;
   font-size: 12px;
@@ -304,6 +312,8 @@ button {
   font-weight: 800;
   color: var(--text);
   text-align: right;
+  max-width: 60%;
+  word-break: break-word;
 }
 
 .tags-wrap {

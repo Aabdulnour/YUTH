@@ -19,6 +19,11 @@ import {
 } from "@/lib/recommendations/engine";
 import type { ActionPriority } from "@/types/action";
 import type { BenefitCategory } from "@/types/benefit";
+import type {
+  ExtensionDecision,
+  ExtensionDecisionsResponse,
+  Recommendation,
+} from "@/types/extension";
 import type { UserProfile } from "@/types/profile";
 
 /* ── Visual tokens ── */
@@ -59,8 +64,53 @@ const scoreTierClasses: Record<AdultScoreTier, string> = {
   Optimized: "bg-[#edf3f9] text-[#345d81]",
 };
 
+const extensionRecommendationLabels: Record<Recommendation, string> = {
+  buy_now: "On Track",
+  wait: "Pause",
+  find_cheaper_option: "Cheaper Option",
+  save_for_later: "Save for Later",
+  review_budget: "Review Budget",
+};
+
+const extensionRecommendationClasses: Record<Recommendation, string> = {
+  buy_now: "bg-[#eef6ef] text-[#2f7a47]",
+  wait: "bg-[#fef8ec] text-[#92620a]",
+  find_cheaper_option: "bg-[#fef8ec] text-[#92620a]",
+  save_for_later: "bg-[#fff1f2] text-[#c82233]",
+  review_budget: "bg-[#edf3f9] text-[#345d81]",
+};
+
 function formatPriority(priority: ActionPriority): string {
   return priority.toUpperCase();
+}
+
+function formatDecisionTimestamp(value: string): string {
+  const timestamp = new Date(value);
+  if (Number.isNaN(timestamp.getTime())) {
+    return "Recently";
+  }
+
+  return new Intl.DateTimeFormat("en-CA", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(timestamp);
+}
+
+function formatDecisionMerchant(merchant: string): string {
+  if (merchant.toLowerCase() === "bestbuy") {
+    return "Best Buy";
+  }
+
+  return merchant.charAt(0).toUpperCase() + merchant.slice(1);
+}
+
+function formatDecisionCategory(category: string): string {
+  return category
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/_/g, " ")
+    .replace(/^./, (value) => value.toUpperCase());
 }
 
 /* ── Score ring ── */
@@ -157,6 +207,10 @@ export default function DashboardPage() {
   const [isActionStateLoading, setIsActionStateLoading] = useState(true);
   const [savingActionId, setSavingActionId] = useState<string | null>(null);
   const [actionSaveError, setActionSaveError] = useState<string | null>(null);
+  const [recentExtensionDecisions, setRecentExtensionDecisions] = useState<ExtensionDecision[]>([]);
+  const [isDecisionHistoryLoading, setIsDecisionHistoryLoading] = useState(true);
+  const [decisionHistoryStorage, setDecisionHistoryStorage] = useState<"supabase" | "local">("local");
+  const [decisionHistoryError, setDecisionHistoryError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated || !userId) {
@@ -203,6 +257,65 @@ export default function DashboardPage() {
     };
 
     void loadActionState();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [isAuthenticated, isLoading, userId]);
+
+  useEffect(() => {
+    if (!isAuthenticated || !userId) {
+      if (!isLoading) {
+        setRecentExtensionDecisions([]);
+        setIsDecisionHistoryLoading(false);
+      }
+
+      return;
+    }
+
+    let isCancelled = false;
+
+    const loadDecisionHistory = async () => {
+      setDecisionHistoryError(null);
+      setIsDecisionHistoryLoading(true);
+
+      try {
+        const params = new URLSearchParams({
+          userId,
+          limit: "5",
+        });
+
+        const response = await fetch(`/api/extension/decisions?${params.toString()}`, {
+          cache: "no-store",
+        });
+
+        const payload = (await response.json().catch(() => null)) as
+          | Partial<ExtensionDecisionsResponse>
+          | null;
+
+        if (!response.ok || !payload?.ok || !Array.isArray(payload.decisions)) {
+          throw new Error(payload?.error ?? "Could not load recent extension decisions.");
+        }
+
+        if (!isCancelled) {
+          setRecentExtensionDecisions(payload.decisions as ExtensionDecision[]);
+          if (payload.storage === "supabase" || payload.storage === "local") {
+            setDecisionHistoryStorage(payload.storage);
+          }
+        }
+      } catch {
+        if (!isCancelled) {
+          setRecentExtensionDecisions([]);
+          setDecisionHistoryError("Could not load recent browser decisions.");
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsDecisionHistoryLoading(false);
+        }
+      }
+    };
+
+    void loadDecisionHistory();
 
     return () => {
       isCancelled = true;
@@ -479,7 +592,156 @@ export default function DashboardPage() {
         )}
       </section>
 
-      {/* ── Row 3: Benefits You May Qualify For ── */}
+      {/* ── Row 3: MapleMind Chrome Extension ── */}
+      <section className="mb-5 rounded-2xl border border-[#e2dbd4] bg-gradient-to-b from-[#faf8f6] to-[#f5f2ee] p-5 shadow-[0_4px_16px_rgba(20,15,12,0.05)]">
+        <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h3 className="text-lg font-bold text-[#151311]">Chrome Extension</h3>
+            <p className="mt-0.5 text-sm text-[#5f5953]">
+              MapleMind in your browser for quick purchase decisions while shopping.
+            </p>
+          </div>
+          <p className="rounded-full bg-[#fef8ec] px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] text-[#92620a]">
+            Preview
+          </p>
+        </div>
+
+        <div className="grid gap-3 lg:grid-cols-2">
+          <article className="rounded-xl border border-[#e2dbd4] bg-white p-4">
+            <h4 className="text-base font-semibold text-[#151311]">
+              Decision support while you browse
+            </h4>
+            <p className="mt-1.5 text-sm leading-relaxed text-[#5f5953]">
+              On supported product pages, MapleMind checks budget fit, category pressure, and
+              deadline risk before you buy.
+            </p>
+
+            <ul className="mt-3 space-y-1.5 text-sm text-[#5f5953]">
+              <li>Instant recommendation directly in the browser side panel.</li>
+              <li>Budget context tied to MapleMind spending rules.</li>
+              <li>Guidance you can bring back into Ask AI for deeper decisions.</li>
+            </ul>
+
+            <p className="mt-3 rounded-lg border border-[#efe1c4] bg-[#fff8eb] px-3 py-2 text-xs text-[#7f5a1a]">
+              Current sprint mode: preview uses a MapleMind demo spending profile. Real account
+              sync is the next integration step.
+            </p>
+          </article>
+
+          <article className="rounded-xl border border-[#e2dbd4] bg-white p-4">
+            <h4 className="text-base font-semibold text-[#151311]">Supported pages (preview)</h4>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {["Amazon", "Best Buy", "Sephora"].map((merchant) => (
+                <span
+                  key={merchant}
+                  className="rounded-full border border-[#e2dbd4] bg-[#faf8f6] px-2.5 py-1 text-xs font-semibold text-[#5f5953]"
+                >
+                  {merchant}
+                </span>
+              ))}
+            </div>
+
+            <p className="mt-3 text-sm leading-relaxed text-[#5f5953]">
+              Use it for fast buy-or-wait checks, then return here to track actions and open Ask AI
+              when the decision needs more context.
+            </p>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Link
+                href="/ask-ai"
+                className="rounded-lg border border-[#e2dbd4] bg-[#faf8f6] px-3 py-1.5 text-xs font-medium text-[#151311] transition hover:border-[#d0c9c1]"
+              >
+                Open Ask AI
+              </Link>
+              <Link
+                href="/profile"
+                className="rounded-lg border border-[#e2dbd4] bg-white px-3 py-1.5 text-xs font-medium text-[#151311] transition hover:border-[#d0c9c1]"
+              >
+                Update profile
+              </Link>
+            </div>
+          </article>
+        </div>
+
+        <article className="mt-3 rounded-xl border border-[#e2dbd4] bg-white p-4">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h4 className="text-base font-semibold text-[#151311]">Recent browser decisions</h4>
+              <p className="mt-0.5 text-xs text-[#5f5953]">
+                Your latest extension purchase checks tied to this account when available.
+              </p>
+            </div>
+            <span
+              className={`rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] ${
+                decisionHistoryStorage === "supabase"
+                  ? "bg-[#eef6ef] text-[#2f7a47]"
+                  : "bg-[#fef8ec] text-[#92620a]"
+              }`}
+            >
+              {decisionHistoryStorage === "supabase" ? "Supabase" : "Local fallback"}
+            </span>
+          </div>
+
+          {isDecisionHistoryLoading ? (
+            <p className="rounded-lg border border-[#e2dbd4] bg-[#faf8f6] px-3 py-2 text-sm text-[#5f5953]">
+              Loading recent extension activity...
+            </p>
+          ) : decisionHistoryError ? (
+            <p className="rounded-lg border border-[#f0cfd3] bg-[#fff1f2] px-3 py-2 text-sm text-[#c82233]">
+              {decisionHistoryError}
+            </p>
+          ) : recentExtensionDecisions.length === 0 ? (
+            <p className="rounded-lg border border-[#e2dbd4] bg-[#faf8f6] px-3 py-2 text-sm text-[#5f5953]">
+              No browser decisions yet. Open the MapleMind extension on a supported product page
+              to start building decision history.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {recentExtensionDecisions.map((decision) => (
+                <article
+                  key={decision.id}
+                  className="rounded-lg border border-[#e2dbd4] bg-[#faf8f6] px-3 py-3"
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-[#151311]">
+                        {decision.pageTitle}
+                      </p>
+                      <p className="mt-0.5 text-xs text-[#5f5953]">
+                        {formatDecisionMerchant(decision.merchant)} ·{" "}
+                        {formatDecisionCategory(decision.detectedCategory)} ·{" "}
+                        {formatDecisionTimestamp(decision.createdAt)}
+                      </p>
+                    </div>
+                    <span
+                      className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] ${extensionRecommendationClasses[decision.recommendation]}`}
+                    >
+                      {extensionRecommendationLabels[decision.recommendation]}
+                    </span>
+                  </div>
+
+                  <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-[#5f5953]">
+                    <span className="rounded-full bg-white px-2 py-0.5">
+                      {new Intl.NumberFormat("en-CA", {
+                        style: "currency",
+                        currency: "CAD",
+                      }).format(decision.purchaseAmount)}
+                    </span>
+                    <span className="rounded-full bg-white px-2 py-0.5">
+                      Deadline: {decision.deadlineRisk}
+                    </span>
+                    <span className="rounded-full bg-white px-2 py-0.5">
+                      Goal impact: {decision.goalImpact}
+                    </span>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </article>
+      </section>
+
+      {/* ── Row 4: Benefits You May Qualify For ── */}
       <section className="mb-5 rounded-2xl border border-[#e2dbd4] bg-gradient-to-b from-[#faf8f6] to-[#f5f2ee] p-5 shadow-[0_4px_16px_rgba(20,15,12,0.05)]">
         <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
           <div>
@@ -543,7 +805,7 @@ export default function DashboardPage() {
         )}
       </section>
 
-      {/* ── Row 4: Personalized Insights ── */}
+      {/* ── Row 5: Personalized Insights ── */}
       <section className="rounded-2xl border border-[#e2dbd4] bg-gradient-to-b from-[#faf8f6] to-[#f5f2ee] p-5 shadow-[0_4px_16px_rgba(20,15,12,0.05)]">
         <div className="mb-4">
           <h3 className="text-lg font-bold text-[#151311]">Personalized Insights</h3>
