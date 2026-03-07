@@ -1,19 +1,3 @@
-create table if not exists public.user_profiles (
-  user_id uuid primary key references auth.users (id) on delete cascade,
-  age text,
-  province text,
-  employed boolean not null default false,
-  student boolean not null default false,
-  renter boolean not null default false,
-  has_car boolean not null default false,
-  has_debt boolean not null default false,
-  lives_with_parents boolean not null default false,
-  files_taxes boolean not null default false,
-  no_employer_benefits boolean not null default false,
-  created_at timestamptz not null default timezone('utc', now()),
-  updated_at timestamptz not null default timezone('utc', now())
-);
-
 create table if not exists public.user_actions (
   user_id uuid not null references auth.users (id) on delete cascade,
   action_id text not null,
@@ -86,3 +70,24 @@ on public.user_actions
 for update
 using (auth.uid() = user_id)
 with check (auth.uid() = user_id);
+
+create table if not exists public.user_profiles (
+  user_id uuid primary key references auth.users (id) on delete cascade,
+  age text,
+  province text,
+  employed boolean not null default false,
+  student boolean not null default false,
+  renter boolean not null default false,
+  has_car boolean not null default false,
+  has_debt boolean not null default false,
+  lives_with_parents boolean not null default false,
+  files_taxes boolean not null default false,
+  no_employer_benefits boolean not null default false,
+  is_post_secondary boolean not null default false,
+  is_newcomer boolean not null default false,
+  is_indigenous boolean not null default false,
+  has_emergency_savings boolean not null default false,
+  has_dependent boolean not null default false,
+  created_at timestamptz not null default timezone('utc', now()),
+  updated_at timestamptz not null default timezone('utc', now())
+);

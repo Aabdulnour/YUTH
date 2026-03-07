@@ -77,6 +77,12 @@ function mapProfileToInsert(userId: string, profile: UserProfile): UserProfileIn
     lives_with_parents: profile.livesWithParents,
     files_taxes: profile.filesTaxes,
     no_employer_benefits: profile.noEmployerBenefits,
+    // Eligibility & context (new additive fields)
+    is_post_secondary: profile.isPostSecondary,
+    is_newcomer: profile.isNewcomer,
+    is_indigenous: profile.isIndigenous,
+    has_emergency_savings: profile.hasEmergencySavings,
+    has_dependent: profile.hasDependent,
   };
 }
 
@@ -92,6 +98,12 @@ function mapRowToProfile(row: UserProfileRow): UserProfile {
     livesWithParents: row.lives_with_parents,
     filesTaxes: row.files_taxes,
     noEmployerBenefits: row.no_employer_benefits,
+    // Eligibility & context — nullable fallback to false if column doesn't exist yet in DB
+    isPostSecondary: row.is_post_secondary ?? false,
+    isNewcomer: row.is_newcomer ?? false,
+    isIndigenous: row.is_indigenous ?? false,
+    hasEmergencySavings: row.has_emergency_savings ?? false,
+    hasDependent: row.has_dependent ?? false,
   });
 
   if (!normalized) {

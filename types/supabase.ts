@@ -14,6 +14,12 @@ export interface Database {
           lives_with_parents: boolean;
           files_taxes: boolean;
           no_employer_benefits: boolean;
+          // Eligibility & context (additive columns — safe to fallback if not yet in DB)
+          is_post_secondary: boolean | null;
+          is_newcomer: boolean | null;
+          is_indigenous: boolean | null;
+          has_emergency_savings: boolean | null;
+          has_dependent: boolean | null;
           created_at: string;
           updated_at: string;
         };
@@ -29,6 +35,11 @@ export interface Database {
           lives_with_parents?: boolean;
           files_taxes?: boolean;
           no_employer_benefits?: boolean;
+          is_post_secondary?: boolean | null;
+          is_newcomer?: boolean | null;
+          is_indigenous?: boolean | null;
+          has_emergency_savings?: boolean | null;
+          has_dependent?: boolean | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -43,6 +54,11 @@ export interface Database {
           lives_with_parents?: boolean;
           files_taxes?: boolean;
           no_employer_benefits?: boolean;
+          is_post_secondary?: boolean | null;
+          is_newcomer?: boolean | null;
+          is_indigenous?: boolean | null;
+          has_emergency_savings?: boolean | null;
+          has_dependent?: boolean | null;
           updated_at?: string;
         };
         Relationships: [];

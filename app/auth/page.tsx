@@ -140,9 +140,9 @@ export default function AuthPage() {
 
   if (status === "loading") {
     return (
-      <main className="min-h-screen bg-[#0d2216] px-6 py-16 text-[#f7f0e1]">
-        <div className="mx-auto max-w-2xl rounded-2xl border border-[#dcebd3]/20 bg-[#11291b] p-8">
-          <p className="text-sm text-[#d4e2cf]">Checking your session...</p>
+      <main className="min-h-screen bg-white px-6 py-16 text-[#171412]">
+        <div className="mx-auto max-w-2xl rounded-2xl border border-[#e6e0d8] bg-[#faf8f6] p-8">
+          <p className="text-sm text-[#5f5953]">Checking your session...</p>
         </div>
       </main>
     );
@@ -150,55 +150,67 @@ export default function AuthPage() {
 
   if (status === "authenticated") {
     return (
-      <main className="min-h-screen bg-[#0d2216] px-6 py-16 text-[#f7f0e1]">
-        <div className="mx-auto max-w-2xl rounded-2xl border border-[#dcebd3]/20 bg-[#11291b] p-8">
-          <p className="text-sm text-[#d4e2cf]">Redirecting to your MapleMind account...</p>
+      <main className="min-h-screen bg-white px-6 py-16 text-[#171412]">
+        <div className="mx-auto max-w-2xl rounded-2xl border border-[#e6e0d8] bg-[#faf8f6] p-8">
+          <p className="text-sm text-[#5f5953]">Redirecting to your MapleMind account...</p>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-[#0d2216] px-6 py-10 text-[#f7f0e1]">
-      <div className="mx-auto max-w-4xl">
+    <main className="min-h-screen bg-white px-6 py-10 text-[#171412]" style={{ fontFamily: "'Inter', 'Avenir Next', 'Segoe UI', sans-serif" }}>
+      <div className="mx-auto max-w-5xl">
         <header className="flex items-center justify-between">
-          <Link href="/" className="text-sm font-semibold tracking-[0.16em] text-[#dcebd3] md:text-base">
+          <Link href="/" className="text-sm font-bold tracking-[0.2em] text-[#151311]">
             MAPLEMIND
           </Link>
           <Link
             href="/"
-            className="rounded-lg border border-[#dcebd3]/30 px-4 py-2 text-sm font-medium text-[#f7f0e1] transition hover:bg-[#f7f0e1]/8"
+            className="rounded-lg border border-[#d4cec8] px-4 py-2 text-sm font-semibold text-[#2a2521] transition hover:border-[#b8b2ac] hover:bg-[#f7f5f3]"
           >
             Back to home
           </Link>
         </header>
 
-        <section className="mt-10 grid gap-8 rounded-[28px] border border-[#dcebd3]/16 bg-gradient-to-b from-[#143121] to-[#10271a] p-8 lg:grid-cols-[1fr_0.95fr] lg:p-10">
-          <div>
-            <p className="text-xs uppercase tracking-[0.16em] text-[#9fbea7]">Account access</p>
-            <h1 className="mt-3 text-4xl font-semibold leading-tight md:text-5xl">Your MapleMind account, synced and secure.</h1>
-            <p className="mt-5 max-w-xl text-lg text-[#d5e3d0]">
-              Sign in to continue your plan or create an account to save profile progress, completed actions, and AI context.
+        <section className="mt-10 grid gap-6 rounded-[28px] border border-[#e6e0d8] bg-[#0c0a09] p-7 lg:grid-cols-[1.05fr_0.95fr] lg:p-10">
+          <div className="rounded-2xl border border-[#2a2520] bg-[#141210] p-6">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#7a6e68]">Your account</p>
+            <h1 className="mt-4 text-3xl font-bold leading-tight text-white md:text-4xl">
+              Sign in or create your MapleMind account.
+            </h1>
+            <p className="mt-4 max-w-xl text-base text-[#9a9290]">
+              Pick up where you left off, or build your profile in about two minutes.
             </p>
+            <ul className="mt-6 space-y-2">
+              {[
+                "Tax credits and benefits matched to your profile",
+                "Province-specific eligibility — not generic advice",
+                "Prioritized actions for your situation this week",
+              ].map((point) => (
+                <li key={point} className="flex items-start gap-2.5 text-sm text-[#a09890]">
+                  <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#c82233] text-[9px] font-bold text-white">✓</span>
+                  {point}
+                </li>
+              ))}
+            </ul>
           </div>
 
-          <div className="rounded-2xl border border-[#dcebd3]/18 bg-[#f7f0e1]/6 p-6">
-            <div className="mb-5 flex gap-2 rounded-xl border border-[#dcebd3]/20 bg-[#0f2518] p-1">
+          <div className="rounded-2xl border border-[#2a2520] bg-[#141210] p-6">
+            <div className="mb-6 grid grid-cols-2 gap-2 rounded-xl border border-[#2e2826] bg-[#1c1917] p-1">
               <button
                 type="button"
                 onClick={() => updateMode("login")}
-                className={`flex-1 rounded-lg px-4 py-2 text-sm font-semibold transition ${
-                  mode === "login" ? "bg-[#f7f0e1] text-[#13271a]" : "text-[#d0dfcb] hover:bg-[#f7f0e1]/10"
-                }`}
+                className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${mode === "login" ? "bg-white text-[#151311]" : "text-[#857d77] hover:bg-[#2a2520]"
+                  }`}
               >
                 Log in
               </button>
               <button
                 type="button"
                 onClick={() => updateMode("signup")}
-                className={`flex-1 rounded-lg px-4 py-2 text-sm font-semibold transition ${
-                  mode === "signup" ? "bg-[#f7f0e1] text-[#13271a]" : "text-[#d0dfcb] hover:bg-[#f7f0e1]/10"
-                }`}
+                className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${mode === "signup" ? "bg-white text-[#151311]" : "text-[#857d77] hover:bg-[#2a2520]"
+                  }`}
               >
                 Sign up
               </button>
@@ -206,45 +218,41 @@ export default function AuthPage() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <label className="block">
-                <span className="text-sm font-medium text-[#d9e7d3]">Email</span>
+                <span className="text-sm font-semibold text-[#b8b0a8]">Email</span>
                 <input
                   type="email"
                   autoComplete="email"
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
-                  className="mt-2 w-full rounded-xl border border-[#dcebd3]/22 bg-[#f7f0e1]/8 px-4 py-3 outline-none transition focus:border-[#f26a2c]"
+                  className="mt-2 w-full rounded-xl border border-[#2e2826] bg-[#1c1917] px-4 py-3 text-white placeholder-[#5a524c] outline-none transition focus:border-[#c82233]"
                   placeholder="you@example.com"
                 />
               </label>
 
               <label className="block">
-                <span className="text-sm font-medium text-[#d9e7d3]">Password</span>
+                <span className="text-sm font-semibold text-[#b8b0a8]">Password</span>
                 <input
                   type="password"
                   autoComplete={mode === "signup" ? "new-password" : "current-password"}
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
-                  className="mt-2 w-full rounded-xl border border-[#dcebd3]/22 bg-[#f7f0e1]/8 px-4 py-3 outline-none transition focus:border-[#f26a2c]"
+                  className="mt-2 w-full rounded-xl border border-[#2e2826] bg-[#1c1917] px-4 py-3 text-white placeholder-[#5a524c] outline-none transition focus:border-[#c82233]"
                   placeholder="At least 8 characters"
                 />
               </label>
 
               {errorMessage ? (
-                <p className="rounded-xl border border-[#f3b8a8]/40 bg-[#f26a2c]/12 px-3 py-2 text-sm text-[#ffd2c6]">
-                  {errorMessage}
-                </p>
+                <p className="rounded-xl border border-[#4a1a1e] bg-[#1e0d10] px-3 py-2 text-sm text-[#f08090]">{errorMessage}</p>
               ) : null}
 
               {infoMessage ? (
-                <p className="rounded-xl border border-[#c9e0cc]/40 bg-[#eef6ef]/12 px-3 py-2 text-sm text-[#d6e7d0]">
-                  {infoMessage}
-                </p>
+                <p className="rounded-xl border border-[#1a3a28] bg-[#0d1e16] px-3 py-2 text-sm text-[#6dbf90]">{infoMessage}</p>
               ) : null}
 
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full rounded-xl bg-[#f26a2c] px-4 py-3 font-semibold text-white transition hover:bg-[#ea7a45] disabled:cursor-not-allowed disabled:opacity-70"
+                className="w-full rounded-xl bg-[#c82233] px-4 py-3 font-bold text-white shadow-[0_0_16px_rgba(200,34,51,0.35)] transition hover:bg-[#b01e2d] disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {isSubmitting ? "Please wait..." : mode === "signup" ? "Create account" : "Log in"}
               </button>
