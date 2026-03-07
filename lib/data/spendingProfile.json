@@ -1,0 +1,54 @@
+{
+  "monthlyTakeHomeRange": "$2,000-$2,500",
+  "discretionaryBudgetMonthly": 300,
+  "categoryCaps": {
+    "shopping": 150,
+    "clothing": 100,
+    "electronics": 120,
+    "foodDelivery": 80,
+    "beauty": 60,
+    "home": 75,
+    "general": 150
+  },
+  "currentMonthSpend": {
+    "shopping": 65,
+    "clothing": 20,
+    "electronics": 0,
+    "foodDelivery": 32,
+    "beauty": 18,
+    "home": 0,
+    "general": 65
+  },
+  "upcomingDeadlines": [
+    {
+      "id": "deadline-rent",
+      "type": "rent",
+      "title": "Rent",
+      "amount": 850,
+      "dueDate": "2026-03-10",
+      "priority": "high"
+    },
+    {
+      "id": "deadline-cc",
+      "type": "credit_card",
+      "title": "Credit Card Payment",
+      "amount": 120,
+      "dueDate": "2026-03-11",
+      "priority": "high"
+    }
+  ],
+  "goals": [
+    {
+      "id": "goal-fhsa",
+      "name": "FHSA contribution",
+      "monthlyTarget": 150,
+      "priority": "high"
+    },
+    {
+      "id": "goal-emergency",
+      "name": "Emergency fund",
+      "monthlyTarget": 100,
+      "priority": "medium"
+    }
+  ]
+}
