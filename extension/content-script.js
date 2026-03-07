@@ -39,7 +39,8 @@ async function sendToBackend(data) {
   const result = await response.json();
 
   chrome.storage.local.set({
-    lastAnalysis: result.result
+    lastAnalysis: result.result,
+    lastAnalysisError: null
   });
 }
 
