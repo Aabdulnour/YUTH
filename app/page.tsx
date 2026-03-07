@@ -1,8 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { ProgressProvider } from "@/hooks/useProgress";
-import MindMap from "@/components/mindmap/TaskPanel";
 
 export default function HomePage() {
   return (
@@ -19,10 +17,6 @@ export default function HomePage() {
         <p className="mt-6 max-w-2xl text-lg text-white/70 md:text-xl">
           Discover benefits, savings, and financial next steps tailored to your life situation.
         </p>
-
-        <ProgressProvider>
-          <MindMap />
-        </ProgressProvider>
 
         <div className="mt-10 flex flex-col gap-4 sm:flex-row">
           <Link href="/onboarding" className="rounded-2xl bg-[#f04d2d] px-8 py-4 text-center text-lg font-semibold text-white transition hover:opacity-90">
