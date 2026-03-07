@@ -48,11 +48,11 @@ export function AppShell({ activePath, children, maxWidthClassName = "max-w-6xl"
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,_#faf8f6,_#f5f2ee_48%,_#f3efe9_100%)] text-[#151311]">
       <div className={joinClasses("mx-auto px-6 py-8", maxWidthClassName)}>
-        <header className="sticky top-4 z-20 mb-8 rounded-2xl border border-[#e2dbd4] bg-white/92 px-4 py-3 shadow-[0_10px_30px_rgba(20,15,12,0.07)] backdrop-blur">
+        <header className="sticky top-0 z-50 mb-8 rounded-b-2xl border-b border-x border-[#e2dbd4] bg-white/92 px-4 py-3 shadow-[0_10px_30px_rgba(20,15,12,0.07)] backdrop-blur">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <Link href="/" className="text-sm font-bold tracking-[0.18em] text-[#151311]">
-                MAPLEMIND
+                YUTH
               </Link>
               <span className="rounded-full bg-[#fff1f2] px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] text-[#c82233]">
                 Preview
