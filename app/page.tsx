@@ -49,7 +49,8 @@ export default function HomePage() {
       {/* ── NAV (dark, flush with hero) ── */}
       <div className="mx-auto w-full max-w-[1200px] px-6 md:px-10">
         <header className="flex items-center justify-between py-5">
-          <span className="text-sm font-bold tracking-[0.22em] text-white">MAPLEMIND</span>
+          <span className="text-sm font-bold tracking-[0.22em] text-white">YUTH</span>
+           / YUTH
           <nav className="flex items-center gap-2">
             <Link
               href="/auth?mode=signup"
@@ -83,7 +84,7 @@ export default function HomePage() {
                 CANADA'S AI FINANCIAL ASSISTANT
               </p>
               <h1 className="mt-5 text-4xl font-bold leading-[1.06] tracking-tight text-white sm:text-5xl md:text-6xl xl:text-[68px]">
-                Built by Yuth, <br></br>For youth.{" "}
+                Built by YUTH, <br></br>For youth.{" "}
                 <br className="hidden sm:block" />
                 Your next steps.<br></br>{" "}
                 <span className="text-[#e8394c]">All in one place.</span>
@@ -102,7 +103,7 @@ export default function HomePage() {
                   href="#how-it-works"
                   className="rounded-xl border border-[#3a3530] px-7 py-3.5 text-center text-base font-semibold text-[#c8c0b8] transition hover:border-[#57504a] hover:text-white"
                 >
-                  Download Yuth's Chrome Extension
+                  Download YUTH's Chrome Extension
                 </Link>
               </div>
             </div>
@@ -141,12 +142,12 @@ export default function HomePage() {
         <div className="mx-auto w-full max-w-[1200px] px-6 py-20 md:px-10 md:py-24">
           <div className="grid items-start gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:gap-16">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9a7b72]">What MapleMind does</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9a7b72]">What YUTH does</p>
               <h2 className="mt-4 text-3xl font-bold leading-tight text-[#0f0c0a] md:text-4xl">
                 One dashboard for the adult stuff nobody taught you.
               </h2>
               <p className="mt-4 text-base leading-relaxed text-[#5f5953] md:text-lg">
-                Government credits, benefit programs, and financial priorities are spread across dozens of sites. MapleMind reads your profile and surfaces what applies to you.
+                Government credits, benefit programs, and financial priorities are spread across dozens of sites. YUTH reads your profile and surfaces what applies to you.
               </p>
             </div>
             <div className="grid gap-3">
@@ -213,7 +214,7 @@ export default function HomePage() {
               <div>
                 <h3 className="text-xl font-bold text-[#151311]">Support is fragmented by design</h3>
                 <p className="mt-2 text-base text-[#5f5953]">
-                  Programs live across federal, provincial, and municipal systems with no single discovery layer. MapleMind is that layer.
+                  Programs live across federal, provincial, and municipal systems with no single discovery layer. YUTH  is that layer.
                 </p>
               </div>
               <div className="h-px bg-[#e2dbd4]" />
@@ -227,7 +228,7 @@ export default function HomePage() {
               <div>
                 <h3 className="text-xl font-bold text-[#151311]">Clarity compounds</h3>
                 <p className="mt-2 text-base text-[#5f5953]">
-                  Filing one credit, claiming one benefit, making one better financial decision. These stack. MapleMind helps you start.
+                  Filing one credit, claiming one benefit, making one better financial decision. These stack. YUTH helps you start.
                 </p>
               </div>
             </div>
@@ -292,7 +293,7 @@ export default function HomePage() {
       <footer className="bg-[#0c0a09]">
         <div className="mx-auto w-full max-w-[1200px] border-t border-[#1e1c1a] px-6 py-6 md:px-10">
           <div className="flex flex-col items-center justify-between gap-2 text-xs text-[#6a6460] sm:flex-row">
-            <span className="font-bold tracking-[0.18em] text-[#a09890]">MAPLEMIND</span>
+            <span className="font-bold tracking-[0.18em] text-[#a09890]">YUTH</span>
             <span>Built for young adults navigating Canada.</span>
           </div>
         </div>
