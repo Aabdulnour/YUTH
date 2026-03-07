@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "YUTH Smart Spend",
+  "name": "YUTH Smart Spender",
   "version": "0.1.0",
   "description": "Analyze purchases against your budget and goals.",
   "action": {
