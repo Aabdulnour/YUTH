@@ -1,0 +1,11 @@
+{
+  "user_id": "user123",
+  "age": 19,
+  "province": "Ontario",
+  "employment_status": "part_time",
+  "income_range": "15000-30000",
+  "housing_status": "living_with_parents",
+  "student_loans": false,
+  "debt": false,
+  "children": false
+}
