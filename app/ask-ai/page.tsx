@@ -6,7 +6,7 @@ import { type FormEvent, useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { usePrivateRoute } from "@/lib/auth/usePrivateRoute";
 import { loadPersistedUserProfile } from "@/lib/persistence/profile-store";
-import { getRecommendations } from "@/lib/recommendation";
+import { getRecommendations } from "@/lib/recommendations/engine";
 import type { AskAIResponseBody, ChatHistoryMessage } from "@/types/ai";
 import type { UserProfile } from "@/types/profile";
 

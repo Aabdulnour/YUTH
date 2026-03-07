@@ -135,12 +135,48 @@ export function sanitizeRecommendationContext(value: unknown): RecommendationCon
     estimatedValueTotal = value.estimatedValueTotal;
   }
 
+  let topInsight: RecommendationContext["topInsight"];
+  if (isRecord(value.topInsight)) {
+    const title = toSafeString(value.topInsight.title);
+    const body = toSafeString(value.topInsight.body);
+    const sourceLabel = toSafeString(value.topInsight.sourceLabel) ?? undefined;
+    const sourceUrl = toSafeString(value.topInsight.sourceUrl) ?? undefined;
+
+    if (title && body) {
+      topInsight = {
+        title,
+        body,
+        sourceLabel,
+        sourceUrl,
+      };
+    }
+  }
+
+  let adultScore: RecommendationContext["adultScore"];
+  if (isRecord(value.adultScore)) {
+    const score = value.adultScore.score;
+    const tier = toSafeString(value.adultScore.tier);
+    const completedActions = value.adultScore.completedActions;
+    const totalActions = value.adultScore.totalActions;
+
+    if (isFiniteNumber(score) && tier && isFiniteNumber(completedActions) && isFiniteNumber(totalActions)) {
+      adultScore = {
+        score,
+        tier,
+        completedActions,
+        totalActions,
+      };
+    }
+  }
+
   return {
     matchedBenefits,
     matchedActions,
     estimatedValueRange,
     estimatedValueTotal,
     insights,
+    topInsight,
+    adultScore,
   };
 }
 
@@ -168,7 +204,18 @@ export function sanitizeHistory(value: unknown): ChatHistoryMessage[] {
     .slice(-MAX_HISTORY_MESSAGES);
 }
 
-export function buildSystemPrompt(): string {
+interface SystemPromptInput {
+  profile: UserProfile;
+  recommendation: RecommendationContext;
+}
+
+export function buildSystemPrompt(input: SystemPromptInput): string {
+  const systemContext = {
+    profile: input.profile,
+    top_insight: input.recommendation.topInsight ?? null,
+    adult_score: input.recommendation.adultScore ?? null,
+  };
+
   return [
     "You are MapleMind AI, a Canadian adulthood assistant for young adults.",
     "Answer using ONLY the provided MapleMind context and allowed program catalog.",
@@ -177,7 +224,9 @@ export function buildSystemPrompt(): string {
     "Do not provide legal or tax guarantees; use cautious language like 'may', 'could', or 'typically'.",
     "Use a calm, practical fintech/govtech tone.",
     "Keep the response concise: one short paragraph plus optional next-step bullets (max 4 bullets).",
-  ].join(" ");
+    "Treat the following user profile context as mandatory personalization input.",
+    JSON.stringify(systemContext, null, 2),
+  ].join("\n\n");
 }
 
 interface UserPromptInput {
@@ -212,6 +261,8 @@ export function buildUserPrompt(input: UserPromptInput): string {
       external_link_label: action.externalLinkLabel,
     })),
     estimated_value_range: input.recommendation.estimatedValueRange?.label,
+    adult_score: input.recommendation.adultScore,
+    top_insight: input.recommendation.topInsight,
     recommendation_insights: input.recommendation.insights ?? [],
     recent_chat_history: input.history,
     allowed_benefit_catalog: input.benefitCatalog.map((benefit) => ({

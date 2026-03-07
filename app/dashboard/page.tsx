@@ -11,7 +11,12 @@ import {
   type ActionCompletionMap,
 } from "@/lib/persistence/action-store";
 import { loadPersistedUserProfile } from "@/lib/persistence/profile-store";
-import { getRecommendations, type RecommendationResult } from "@/lib/recommendation";
+import { recordWeeklyMetrics } from "@/lib/persistence/weekly-metrics-store";
+import {
+  calculateAdultScore,
+  getRecommendations,
+  type AdultScoreTier,
+} from "@/lib/recommendations/engine";
 import type { ActionPriority } from "@/types/action";
 import type { BenefitCategory } from "@/types/benefit";
 import type { UserProfile } from "@/types/profile";
@@ -38,21 +43,12 @@ const categoryLabels: Record<BenefitCategory, string> = {
   financial_support: "Financial Support",
 };
 
-interface AdultScoreSummary {
-  score: number;
-  delta: number;
-  trendText: string;
-  progressText: string;
-}
-
-interface InsightCard {
-  title: string;
-  body: string;
-}
-
-function clampScore(value: number): number {
-  return Math.max(35, Math.min(96, Math.round(value)));
-}
+const scoreTierClasses: Record<AdultScoreTier, string> = {
+  "Starting Out": "bg-[#fff2ef] text-[#b14634]",
+  Progressing: "bg-[#f8f1e8] text-[#9b5e1a]",
+  Strong: "bg-[#edf5ee] text-[#2f7a47]",
+  Optimized: "bg-[#e8f0fb] text-[#345d81]",
+};
 
 function formatPriority(priority: ActionPriority): string {
   return priority.charAt(0).toUpperCase() + priority.slice(1);
@@ -77,109 +73,6 @@ function SourceCue({ label, url }: { label?: string; url?: string }) {
       Source: {label}
     </a>
   );
-}
-
-function buildAdultScore(
-  profile: UserProfile,
-  recommendations: RecommendationResult,
-  actionCompletion: ActionCompletionMap
-): AdultScoreSummary {
-  let score = 42;
-
-  score += profile.filesTaxes ? 15 : -4;
-  score += profile.employed ? 8 : 0;
-  score += profile.student ? 5 : 0;
-  score += profile.renter ? 3 : 0;
-  score += profile.hasDebt ? -4 : 10;
-  score += profile.noEmployerBenefits ? -2 : 3;
-  score += recommendations.matchedBenefits.length * 2;
-  score += Math.min(recommendations.matchedActions.length, 4);
-
-  const completedActions = recommendations.matchedActions.filter((action) => actionCompletion[action.id]).length;
-  score += Math.min(completedActions * 5, 20);
-
-  const delta =
-    (profile.filesTaxes ? 3 : 0) +
-    (profile.employed ? 1 : 0) +
-    (profile.hasDebt ? -1 : 1) +
-    (recommendations.matchedActions.length > 2 ? 1 : 0) +
-    Math.min(completedActions, 3);
-
-  const scoreDelta = Math.max(-3, Math.min(6, delta));
-  const trendText =
-    scoreDelta > 0
-      ? `Up ${scoreDelta} points this month`
-      : scoreDelta < 0
-        ? `Down ${Math.abs(scoreDelta)} points this month`
-        : "No change this month";
-
-  const progressText = recommendations.matchedActions.length
-    ? `${completedActions}/${recommendations.matchedActions.length} actions completed`
-    : "No actions available yet";
-
-  return {
-    score: clampScore(score),
-    delta: scoreDelta,
-    trendText,
-    progressText,
-  };
-}
-
-function buildInsightCards(profile: UserProfile, recommendations: RecommendationResult): InsightCard[] {
-  const cards: InsightCard[] = [];
-
-  if (!profile.filesTaxes) {
-    cards.push({
-      title: "Biggest unlock",
-      body: "Filing your taxes is likely your highest-impact move because it activates multiple matched programs.",
-    });
-  } else {
-    cards.push({
-      title: "Eligibility maintenance",
-      body: "Keep annual tax filing consistent so your matched credits and support programs continue without interruption.",
-    });
-  }
-
-  if (profile.student && profile.employed) {
-    cards.push({
-      title: "Dual-track advantage",
-      body: "You can often combine student funding with worker-related credits, which strengthens both cash flow and long-term planning.",
-    });
-  } else if (profile.student) {
-    cards.push({
-      title: "Education funding focus",
-      body: "Prioritize student grant and provincial aid timelines early in the term to avoid leaving support unclaimed.",
-    });
-  } else if (profile.hasDebt) {
-    cards.push({
-      title: "Debt-first pacing",
-      body: "Use matched actions to build a repayment structure before taking on new fixed financial commitments.",
-    });
-  } else {
-    cards.push({
-      title: "Savings momentum",
-      body: "Your profile is in a good position to turn matched benefits into emergency savings and medium-term goals.",
-    });
-  }
-
-  if (profile.renter) {
-    cards.push({
-      title: "Housing pressure control",
-      body: "Track rent receipts and review renter support programs regularly to reduce monthly strain where possible.",
-    });
-  } else if (profile.livesWithParents) {
-    cards.push({
-      title: "Transition runway",
-      body: "Use your lower current housing cost window to build an emergency fund and strengthen your next-step financial cushion.",
-    });
-  } else {
-    cards.push({
-      title: "Execution priority",
-      body: recommendations.insights[0] ?? "Work through your top two actions this month to convert recommendations into real outcomes.",
-    });
-  }
-
-  return cards.slice(0, 3);
 }
 
 export default function DashboardPage() {
@@ -257,22 +150,6 @@ export default function DashboardPage() {
     return getRecommendations(profile);
   }, [profile]);
 
-  const adultScore = useMemo(() => {
-    if (!profile || !recommendations) {
-      return null;
-    }
-
-    return buildAdultScore(profile, recommendations, actionCompletion);
-  }, [actionCompletion, profile, recommendations]);
-
-  const insightCards = useMemo(() => {
-    if (!profile || !recommendations) {
-      return [];
-    }
-
-    return buildInsightCards(profile, recommendations);
-  }, [profile, recommendations]);
-
   const completedActionCount = useMemo(() => {
     if (!recommendations) {
       return 0;
@@ -280,6 +157,37 @@ export default function DashboardPage() {
 
     return recommendations.matchedActions.filter((action) => actionCompletion[action.id]).length;
   }, [actionCompletion, recommendations]);
+
+  const adultScore = useMemo(() => {
+    if (!profile || !recommendations) {
+      return null;
+    }
+
+    return calculateAdultScore(profile, completedActionCount, recommendations.matchedActions.length);
+  }, [completedActionCount, profile, recommendations]);
+
+  const insightCards = useMemo(() => {
+    if (!recommendations) {
+      return [];
+    }
+
+    return recommendations.insights.map((insight, index) => ({
+      title: `Insight ${index + 1}`,
+      body: insight,
+    }));
+  }, [recommendations]);
+
+  useEffect(() => {
+    if (!userId || !adultScore || !recommendations) {
+      return;
+    }
+
+    recordWeeklyMetrics(userId, {
+      completedActionCount,
+      adultScore: adultScore.score,
+      benefitIds: recommendations.matchedBenefits.map((benefit) => benefit.id),
+    });
+  }, [adultScore, completedActionCount, recommendations, userId]);
 
   const handleSetActionCompletion = async (actionId: string, completed: boolean) => {
     if (!userId) {
@@ -360,6 +268,22 @@ export default function DashboardPage() {
         description="A focused monthly view of money opportunities, execution steps, and profile health."
       />
 
+      <section className="mb-6 rounded-[26px] border border-[#e7dfd5] bg-white p-6 shadow-[0_10px_26px_rgba(35,31,26,0.07)]">
+        <p className="text-xs uppercase tracking-[0.14em] text-[#8a8580]">Top insight</p>
+        <h2 className="mt-2 text-2xl font-bold text-[#163320]">{recommendations.topInsight.title}</h2>
+        <p className="mt-3 max-w-4xl text-base text-[#5e5953]">{recommendations.topInsight.body}</p>
+        {recommendations.topInsight.sourceUrl ? (
+          <a
+            href={recommendations.topInsight.sourceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 inline-flex rounded-xl border border-[#d9d1c8] bg-[#fbf8f4] px-3 py-1.5 text-sm font-medium text-[#1c1b19] transition hover:border-[#cfc5ba]"
+          >
+            {recommendations.topInsight.sourceLabel ?? "Source"}
+          </a>
+        ) : null}
+      </section>
+
       <div className="mb-8 grid gap-5 lg:grid-cols-[1.4fr_1fr]">
         <section className="relative overflow-hidden rounded-[30px] border border-[#163320]/10 bg-gradient-to-r from-[#163320] to-[#1f4a33] p-8 text-white shadow-[0_22px_40px_rgba(22,51,32,0.25)]">
           <div className="absolute -right-12 -top-16 h-44 w-44 rounded-full bg-white/10 blur-2xl" />
@@ -387,19 +311,19 @@ export default function DashboardPage() {
           <div className="mt-3 flex items-end justify-between gap-4">
             <p className="text-5xl font-bold text-[#163320]">{adultScore.score}</p>
             <p
-              className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] ${
-                adultScore.delta >= 0 ? "bg-[#edf5ee] text-[#2f7a47]" : "bg-[#fff1ec] text-[#b04d36]"
-              }`}
+              className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] ${scoreTierClasses[adultScore.tier]}`}
             >
-              {adultScore.trendText}
+              {adultScore.tier}
             </p>
           </div>
           <div className="mt-5 h-2 rounded-full bg-[#efe9e2]">
             <div className="h-2 rounded-full bg-[#163320]" style={{ width: `${adultScore.score}%` }} aria-hidden />
           </div>
-          <p className="mt-4 text-sm text-[#6f6a64]">{adultScore.progressText}</p>
+          <p className="mt-4 text-sm text-[#6f6a64]">
+            {adultScore.completedActions}/{adultScore.totalActions} actions completed
+          </p>
           <p className="mt-1 text-sm text-[#6f6a64]">
-            Score blends profile stability and completed action progress to track monthly momentum.
+            Signals: taxes, emergency savings, debt load, renter/student status, employer benefits, and action follow-through.
           </p>
         </section>
       </div>
@@ -553,9 +477,9 @@ export default function DashboardPage() {
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">
-          {insightCards.map((card) => (
+          {insightCards.map((card, index) => (
             <article
-              key={card.title}
+              key={`${card.title}-${index}`}
               className="rounded-2xl border border-[#ebe4dc] bg-white p-5 shadow-[0_8px_20px_rgba(35,31,26,0.05)]"
             >
               <p className="text-xs uppercase tracking-[0.12em] text-[#8a8580]">{card.title}</p>

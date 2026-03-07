@@ -35,6 +35,18 @@ export interface RecommendationContext {
   };
   estimatedValueTotal?: number;
   insights?: string[];
+  topInsight?: {
+    title: string;
+    body: string;
+    sourceLabel?: string;
+    sourceUrl?: string;
+  };
+  adultScore?: {
+    score: number;
+    tier: string;
+    completedActions: number;
+    totalActions: number;
+  };
 }
 
 export interface AskAIRequestBody {
