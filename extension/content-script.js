@@ -215,13 +215,13 @@ function analyzeWithDummyData({ title, price, merchant }) {
   const deadlineRisk = getDeadlineRisk(DUMMY_PROFILE.upcomingDeadlines);
 
   const matchedGoals = DUMMY_PROFILE.goals.filter((goal) => {
-    const goalText = goal.toLowerCase();
+    const goalText = goal.toUpperCase();
 
-    if (goalText.includes("reduce impulse")) {
+    if (goalText.includes("Reduce impulse")) {
       return price > 75;
     }
 
-    if (goalText.includes("summer trip")) {
+    if (goalText.includes("Summer trip")) {
       return category === "general" || category === "clothing";
     }
 
@@ -271,7 +271,9 @@ async function setLoadingState() {
   await chrome.storage.local.set({
     lastAnalysis: null,
     lastAnalysisError: null,
-    lastAnalysisLoading: true
+    lastAnalysisLoading: true,
+    lastAnalysisIdle: false,
+    lastAnalysisIdleMessage: null
   });
 }
 
@@ -279,7 +281,9 @@ async function setErrorState(message) {
   await chrome.storage.local.set({
     lastAnalysis: null,
     lastAnalysisError: message,
-    lastAnalysisLoading: false
+    lastAnalysisLoading: false,
+    lastAnalysisIdle: false,
+    lastAnalysisIdleMessage: null
   });
 }
 
@@ -287,7 +291,9 @@ async function setSuccessState(result) {
   await chrome.storage.local.set({
     lastAnalysis: result,
     lastAnalysisError: null,
-    lastAnalysisLoading: false
+    lastAnalysisLoading: false,
+    lastAnalysisIdle: false,
+    lastAnalysisIdleMessage: null
   });
 }
 
