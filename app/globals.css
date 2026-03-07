@@ -15,6 +15,21 @@
   --font-mono: var(--font-mono);
 }
 
+@layer base {
+  html{
+    background-color: black;
+  }
+
+  body{
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overscroll-behavior-y: none;
+  }
+}
+
 /* Suppress automatic dark mode - public pages are intentionally designed */
 body {
   background: var(--background);
