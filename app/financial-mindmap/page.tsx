@@ -675,7 +675,7 @@ export default function FinancialMindMapPage() {
                 color: "#ff6038",
               }}
             >
-              MapleMind
+              YUTH
             </div>
 
             <span className="text-sm text-white/20">/ Financial Roadmap</span>
