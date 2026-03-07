@@ -1,8 +1,12 @@
 {
   "manifest_version": 3,
   "name": "MapleMind Smart Spend Check",
-  "description": "Analyze purchases against your budget and goals.",
   "version": "0.1.0",
+  "description": "Analyze purchases against your budget and goals.",
+
+  "action": {
+    "default_title": "Open MapleMind"
+  },
 
   "permissions": [
     "activeTab",
