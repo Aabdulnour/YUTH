@@ -1,0 +1,40 @@
+{
+  "manifest_version": 3,
+  "name": "MapleMind Smart Spend Check",
+  "description": "Analyze purchases against your budget and goals.",
+  "version": "0.1.0",
+
+  "permissions": [
+    "activeTab",
+    "storage",
+    "sidePanel",
+    "scripting"
+  ],
+
+  "host_permissions": [
+    "*://*.amazon.ca/*",
+    "*://*.bestbuy.ca/*",
+    "*://*.sephora.ca/*",
+    "http://localhost:3000/*"
+  ],
+
+  "background": {
+    "service_worker": "background.js"
+  },
+
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.amazon.ca/*",
+        "*://*.bestbuy.ca/*",
+        "*://*.sephora.ca/*"
+      ],
+      "js": ["content-script.js"],
+      "run_at": "document_idle"
+    }
+  ],
+
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  }
+}
