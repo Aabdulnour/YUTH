@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>MapleMind</title>
+    <link rel="stylesheet" href="sidepanel.css" />
+  </head>
+  <body>
+    <div class="panel">
+      <div class="header">
+        <h1>MapleMind</h1>
+        <div id="statusBadge" class="badge">Checking...</div>
+      </div>
+
+      <div class="card">
+        <div class="label">Purchase</div>
+        <div id="purchaseAmount" class="value">$0.00</div>
+      </div>
+
+      <div class="grid">
+        <div class="mini-card">
+          <div class="label">Budget</div>
+          <div id="budgetFit" class="mini-value">—</div>
+        </div>
+
+        <div class="mini-card">
+          <div class="label">Deadline Risk</div>
+          <div id="deadlineRisk" class="mini-value">—</div>
+        </div>
+
+        <div class="mini-card">
+          <div class="label">Category</div>
+          <div id="category" class="mini-value">—</div>
+        </div>
+
+        <div class="mini-card">
+          <div class="label">Next Step</div>
+          <div id="recommendation" class="mini-value">—</div>
+        </div>
+      </div>
+
+      <div class="summary-card">
+        <div class="label">Quick Summary</div>
+        <div id="summaryText" class="summary-text"></div>
+      </div>
+
+      <button id="openDashboardBtn" class="primary-btn">
+        Open Full Dashboard
+      </button>
+    </div>
+
+    <script src="sidepanel.js"></script>
+  </body>
+</html>
