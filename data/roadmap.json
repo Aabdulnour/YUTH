@@ -1,0 +1,196 @@
+{
+  "id": "root",
+  "label": "Financial Freedom",
+  "children": [
+    {
+      "id": "foundation",
+      "label": "Foundation",
+      "color": "#263B2F",
+      "children": [
+        {
+          "id": "banking-setup",
+          "label": "Banking Setup",
+          "color": "#3E5146",
+          "tasks": [
+            { "id": "banking-setup-1", "label": "Open chequing account" },
+            { "id": "banking-setup-2", "label": "Open high-interest savings account" },
+            { "id": "banking-setup-3", "label": "Set up automatic transfers", "prerequisite": "banking-setup-1" },
+            { "id": "banking-setup-4", "label": "Enable online banking", "prerequisite": "banking-setup-1" }
+          ]
+        },
+        {
+          "id": "credit-building",
+          "label": "Credit Building",
+          "color": "#3E5146",
+          "tasks": [
+            { "id": "credit-building-1", "label": "Understand credit score" },
+            { "id": "credit-building-2", "label": "Open first credit card", "prerequisite": "credit-building-1" },
+            { "id": "credit-building-3", "label": "Keep utilization below 30%", "prerequisite": "credit-building-2" },
+            { "id": "credit-building-4", "label": "Pay balance on time", "prerequisite": "credit-building-2" },
+            { "id": "credit-building-5", "label": "Check credit report annually", "prerequisite": "credit-building-2" }
+          ]
+        },
+        {
+          "id": "budgeting",
+          "label": "Budgeting",
+          "color": "#3E5146",
+          "tasks": [
+            { "id": "budgeting-1", "label": "Track monthly expenses" },
+            { "id": "budgeting-2", "label": "Create a budget", "prerequisite": "budgeting-1" },
+            { "id": "budgeting-3", "label": "Reduce unnecessary expenses", "prerequisite": "budgeting-2" },
+            { "id": "budgeting-4", "label": "Automate bill payments", "prerequisite": "budgeting-2" },
+            { "id": "budgeting-5", "label": "Review budget monthly", "prerequisite": "budgeting-2" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "stability",
+      "label": "Stability",
+      "color": "#263B2F",
+      "children": [
+        {
+          "id": "emergency-fund",
+          "label": "Emergency Fund",
+          "color": "#3E5146",
+          "tasks": [
+            { "id": "emergency-fund-1", "label": "Calculate monthly expenses" },
+            { "id": "emergency-fund-2", "label": "Save $1,000 starter fund", "prerequisite": "emergency-fund-1" },
+            { "id": "emergency-fund-3", "label": "Save 3 months of expenses", "prerequisite": "emergency-fund-2" },
+            { "id": "emergency-fund-4", "label": "Save 6 months of expenses", "prerequisite": "emergency-fund-3" }
+          ]
+        },
+        {
+          "id": "debt-management",
+          "label": "Debt Management",
+          "color": "#3E5146",
+          "tasks": [
+            { "id": "debt-management-1", "label": "List all debts" },
+            { "id": "debt-management-2", "label": "Understand interest rates", "prerequisite": "debt-management-1" },
+            { "id": "debt-management-3", "label": "Choose a repayment strategy (snowball or avalanche)", "prerequisite": "debt-management-2" },
+            { "id": "debt-management-4", "label": "Pay off credit cards", "prerequisite": "debt-management-3" },
+            { "id": "debt-management-5", "label": "Reduce high-interest debt", "prerequisite": "debt-management-3" }
+          ]
+        },
+        {
+          "id": "protection",
+          "label": "Protection",
+          "color": "#3E5146",
+          "tasks": [
+            { "id": "protection-1", "label": "Get health insurance" },
+            { "id": "protection-2", "label": "Get disability insurance" },
+            { "id": "protection-3", "label": "Get life insurance" },
+            { "id": "protection-4", "label": "Set up identity protection" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "growth",
+      "label": "Growth",
+      "color": "#263B2F",
+      "children": [
+        {
+          "id": "taxes",
+          "label": "Taxes",
+          "color": "#3E5146",
+          "tasks": [
+            { "id": "taxes-1", "label": "Set up CRA My Account" },
+            { "id": "taxes-2", "label": "File taxes every year", "prerequisite": "taxes-1" },
+            { "id": "taxes-3", "label": "Claim all eligible tax credits", "prerequisite": "taxes-1" },
+            { "id": "taxes-4", "label": "Track TFSA contribution room", "prerequisite": "taxes-1" },
+            { "id": "taxes-5", "label": "Understand RRSP deductions", "prerequisite": "taxes-1" }
+          ]
+        },
+        {
+          "id": "investing",
+          "label": "Investing",
+          "color": "#3E5146",
+          "tasks": [
+            { "id": "investing-1", "label": "Learn investing basics" },
+            { "id": "investing-2", "label": "Understand your risk tolerance", "prerequisite": "investing-1" },
+            { "id": "investing-3", "label": "Understand diversification", "prerequisite": "investing-1" },
+            { "id": "investing-4", "label": "Understand asset allocation", "prerequisite": "investing-1" },
+            { "id": "investing-5", "label": "Understand compound growth", "prerequisite": "investing-1" }
+          ]
+        },
+        {
+          "id": "investment-accounts",
+          "label": "Investment Accounts",
+          "color": "#3E5146",
+          "tasks": [
+            { "id": "investment-accounts-1", "label": "Open a TFSA" },
+            { "id": "investment-accounts-2", "label": "Open an RRSP", "prerequisite": "investment-accounts-1" },
+            { "id": "investment-accounts-3", "label": "Open an FHSA", "prerequisite": "investment-accounts-1" },
+            { "id": "investment-accounts-4", "label": "Understand taxable accounts", "prerequisite": "investment-accounts-1" }
+          ]
+        },
+        {
+          "id": "portfolio-building",
+          "label": "Portfolio Building",
+          "color": "#3E5146",
+          "tasks": [
+            { "id": "portfolio-building-1", "label": "Buy your first ETF" },
+            { "id": "portfolio-building-2", "label": "Build a diversified portfolio", "prerequisite": "portfolio-building-1" },
+            { "id": "portfolio-building-3", "label": "Set monthly contributions", "prerequisite": "portfolio-building-1" },
+            { "id": "portfolio-building-4", "label": "Reinvest dividends", "prerequisite": "portfolio-building-2" },
+            { "id": "portfolio-building-5", "label": "Rebalance portfolio annually", "prerequisite": "portfolio-building-2" }
+          ]
+        },
+        {
+          "id": "income-growth",
+          "label": "Income Growth",
+          "color": "#3E5146",
+          "tasks": [
+            { "id": "income-growth-1", "label": "Develop high-value skills" },
+            { "id": "income-growth-2", "label": "Negotiate your salary", "prerequisite": "income-growth-1" },
+            { "id": "income-growth-3", "label": "Change jobs strategically", "prerequisite": "income-growth-1" },
+            { "id": "income-growth-4", "label": "Start a side income", "prerequisite": "income-growth-1" },
+            { "id": "income-growth-5", "label": "Increase your savings rate", "prerequisite": "income-growth-1" }
+          ]
+        },
+        {
+          "id": "expense-optimization",
+          "label": "Expense Optimization",
+          "color": "#3E5146",
+          "tasks": [
+            { "id": "expense-optimization-1", "label": "Reduce housing costs" },
+            { "id": "expense-optimization-2", "label": "Reduce transportation costs" },
+            { "id": "expense-optimization-3", "label": "Audit and cut subscriptions" },
+            { "id": "expense-optimization-4", "label": "Compare insurance plans" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "independence",
+      "label": "Independence",
+      "color": "#263B2F",
+      "children": [
+        {
+          "id": "long-term-planning",
+          "label": "Long-Term Planning",
+          "color": "#3E5146",
+          "tasks": [
+            { "id": "long-term-planning-1", "label": "Start retirement planning" },
+            { "id": "long-term-planning-2", "label": "Estimate retirement expenses", "prerequisite": "long-term-planning-1" },
+            { "id": "long-term-planning-3", "label": "Determine your retirement number", "prerequisite": "long-term-planning-2" },
+            { "id": "long-term-planning-4", "label": "Plan a withdrawal strategy", "prerequisite": "long-term-planning-3" },
+            { "id": "long-term-planning-5", "label": "Monitor net worth regularly", "prerequisite": "long-term-planning-1" }
+          ]
+        },
+        {
+          "id": "financial-independence",
+          "label": "Financial Independence",
+          "color": "#3E5146",
+          "tasks": [
+            { "id": "financial-independence-1", "label": "Achieve investment income > expenses" },
+            { "id": "financial-independence-2", "label": "Maintain a diversified portfolio", "prerequisite": "financial-independence-1" },
+            { "id": "financial-independence-3", "label": "Continue long-term investing", "prerequisite": "financial-independence-1" },
+            { "id": "financial-independence-4", "label": "Adjust lifestyle as needed", "prerequisite": "financial-independence-1" }
+          ]
+        }
+      ]
+    }
+  ]
+}
