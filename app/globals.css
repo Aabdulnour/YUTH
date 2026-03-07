@@ -43,7 +43,7 @@ body {
 @keyframes mindmap-node-appear {
   from {
     opacity: 0;
-    transform: scale(0.5);
+    transform: scale(0.7);
   }
   to {
     opacity: 1;
@@ -52,14 +52,14 @@ body {
 }
 
 .mindmap-node-animated {
-  animation: mindmap-node-appear 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation: mindmap-node-appear 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
   animation-delay: var(--node-delay, 0s);
 }
 
 @keyframes mindmap-panel-slide {
   from {
     opacity: 0;
-    transform: translateX(24px);
+    transform: translateX(16px);
   }
   to {
     opacity: 1;
@@ -68,19 +68,28 @@ body {
 }
 
 .mindmap-panel-animated {
-  animation: mindmap-panel-slide 0.25s ease-out both;
+  animation: mindmap-panel-slide 0.2s ease-out both;
 }
 
 @keyframes mindmap-pulse-ring {
   0%, 100% {
-    opacity: 0.35;
-    r: inherit;
+    opacity: 0.2;
   }
   50% {
-    opacity: 0.12;
+    opacity: 0.08;
   }
 }
 
 .mindmap-pulse {
-  animation: mindmap-pulse-ring 2.5s ease-in-out infinite;
+  animation: mindmap-pulse-ring 3s ease-in-out infinite;
+}
+
+/* Node hover */
+.mindmap-node-circle {
+  transition: filter 0.15s ease, stroke-width 0.15s ease;
+}
+
+.mindmap-node-animated:hover .mindmap-node-circle {
+  filter: brightness(0.97);
+  stroke-width: 2;
 }
