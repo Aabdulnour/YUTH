@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>YUTH Side Panel</title>
+    <link rel="stylesheet" href="sidepanel.css" />
+  </head>
+  <body>
+    <div class="panel">
+      <header class="panel-header">
+        <div>
+          <p class="eyebrow">YUTH</p>
+          <h1>Smart Spender</h1>
+        </div>
+
+        <div class="header-actions">
+          <button id="openDashboardBtn" class="btn btn-primary" type="button">
+            Open Dashboard
+          </button>
+        </div>
+      </header>
+
+      <main class="panel-body">
+        <section id="loadingState" class="state-card" style="display: none;">
+          <p class="state-title">Analyzing page...</p>
+          <p class="muted">Checking this product against budget, goals, and timing.</p>
+        </section>
+
+        <section id="errorState" class="state-card" style="display: none;">
+          <p class="state-title">Could not analyze this page</p>
+          <p id="errorMessage" class="muted"></p>
+        </section>
+
+        <section id="emptyState" class="state-card" style="display: none;">
+          <p class="state-title">No analysis yet</p>
+          <p id="emptyStateMessage" class="muted">
+            Open a supported product page to see analysis.
+          </p>
+        </section>
+
+        <section id="analysisContent" style="display: none;">
+          <div class="hero-card">
+            <div class="hero-top">
+              <span class="label">Recommendation</span>
+              <span id="recommendation" class="recommendation-badge">Unknown</span>
+            </div>
+            <p id="summary" class="hero-summary">No summary available</p>
+          </div>
+
+          <div class="grid">
+            <section class="info-card">
+              <h2>Purchase Snapshot</h2>
+              <div class="metric-list">
+                <div class="metric-row">
+                  <span class="metric-label">Price</span>
+                  <span id="price" class="metric-value">—</span>
+                </div>
+                <div class="metric-row">
+                  <span class="metric-label">Category</span>
+                  <span id="category" class="metric-value">—</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="info-card">
+              <h2>Budget Impact</h2>
+              <div class="metric-list">
+                <div class="metric-row">
+                  <span class="metric-label">Projected Spend</span>
+                  <span id="projectedSpend" class="metric-value">—</span>
+                </div>
+                <div class="metric-row">
+                  <span class="metric-label">Monthly Budget</span>
+                  <span id="budgetCap" class="metric-value">—</span>
+                </div>
+                <div class="metric-row">
+                  <span class="metric-label">Remaining</span>
+                  <span id="remainingBudget" class="metric-value">—</span>
+                </div>
+                <div class="metric-row">
+                  <span class="metric-label">Budget Fit</span>
+                  <span id="budgetFit" class="metric-value">—</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="info-card">
+              <h2>Timing</h2>
+              <div class="metric-list">
+                <div class="metric-row">
+                  <span class="metric-label">Deadline Risk</span>
+                  <span id="deadlineRisk" class="metric-value">—</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="info-card">
+              <h2>Matched Goals</h2>
+              <div id="matchedGoals" class="tags-wrap">
+                <span class="muted">No matched goals</span>
+              </div>
+            </section>
+          </div>
+
+          <section class="info-card reasoning-card">
+            <h2>Reasoning</h2>
+            <div id="reasons">
+              <p>No additional reasoning provided.</p>
+            </div>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <script src="sidepanel.js"></script>
+  </body>
+</html>

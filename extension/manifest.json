@@ -1,0 +1,35 @@
+{
+  "manifest_version": 3,
+  "name": "YUTH Smart Spender",
+  "version": "0.1.0",
+  "description": "Analyze purchases against your budget and goals.",
+  "action": {
+    "default_title": "Open MapleMind"
+  },
+  "permissions": ["activeTab", "storage", "sidePanel", "scripting"],
+  "host_permissions": [
+    "*://*.amazon.ca/*",
+    "*://*.amazon.com/*",
+    "*://*.bestbuy.ca/*",
+    "*://*.sephora.ca/*",
+    "http://localhost:3000/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.amazon.ca/*",
+        "*://*.amazon.com/*",
+        "*://*.bestbuy.ca/*",
+        "*://*.sephora.ca/*"
+      ],
+      "js": ["content-script.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  }
+}

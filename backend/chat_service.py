@@ -8,11 +8,10 @@ async def create_thread(assistant_id):
 
 
 async def ask_question(thread_id, user_id, message):
-
     client = get_client()
 
-    profile = load_user_profile(user_id)
-    context = generate_user_context(profile)
+    user_data = load_user_profile(user_id)
+    context = generate_user_context(user_data)
 
     prompt = f"""
 {context}
@@ -28,4 +27,4 @@ User question:
         stream=False
     )
 
-    return response.content 
+    return response.content

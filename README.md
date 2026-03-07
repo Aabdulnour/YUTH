@@ -1,3 +1,66 @@
+# YUTH.
+
+YUTH is an AI-powered assistant that helps the next generation of young Canadian adults discover government benefits, financial opportunities, and important next steps based on their life situation. By combining structured program data with personalized profiles and AI guidance, YUTH helps users understand what money they may be missing and what financial actions they should take — from filing taxes and building credit to choosing between accounts like a TFSA or FHSA.
+
+## Features
+add all features
+## Architecture
+add project architecture
+## Tech Stack
+| Layer | Technology |
+|----------|-------------|
+| Frontend | Next.js |
+| Styling | TailwindCSS |
+| Backend | Next.js API Routes |
+| AI | OpenAI API |
+| Database | Supabase |
+| Data Layer | Structured JSON |
+| Browser Extension | Chrome Extension (Manifest v3) |
+| UI Integration | Chrome Side Panel API |
+
+## Smart Spend Chrome Extension
+
+The YUTH. Chrome Extension provides **real-time financial context while users shop online**.  
+When a supported product page is opened, the extension analyzes the purchase against the user's financial profile and displays a quick recommendation in the browser side panel.
+
+This enables users to understand how a purchase fits into their financial plan **before completing the transaction**.
+
+### Overview
+
+The extension observes supported commerce pages and extracts product information such as:
+
+- Product title
+- Purchase price
+- Merchant information
+- Page metadata
+
+This information is sent to the YUTH backend where the purchase is evaluated against the user's financial context.
+
+The result is presented in a **lightweight side panel dashboard** that summarizes whether the purchase fits the user’s financial plan.
+
+### How It Works
+
+1. A content script detects supported product pages.
+2. Product metadata is extracted from the page.
+3. The extension sends the data to the MapleMind analysis API.
+4. The backend evaluates the purchase against the user's financial profile.
+5. The result is stored locally and rendered in the side panel.
+
+### Extension Structure
+
+```text
+extension/
+├── manifest.json
+├── background.js
+├── content-script.js
+├── extractors/
+│   ├── amazon.js
+│   └── index.js
+├── sidepanel.html
+├── sidepanel.js
+└── sidepane.css
+```
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
@@ -34,3 +97,20 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Future Work
+
+MapleMind is designed to expand into a broader platform for financial adulthood support in Canada.
+
+Potential future features include:
+
+- tax filing guidance
+- credit score monitoring
+- housing and insurance comparisons
+- savings and investment planning
+- financial milestone tracking
+- partner integrations and affiliate services
+
+## License
+
+MIT License
