@@ -78,10 +78,12 @@ function LeafNodeComponent({
   node,
   onHeightChange,
   onSelect,
+  onExpanded, 
 }: {
   node: LeafNode;
   onHeightChange?: (height: number) => void;
   onSelect?: (node: LeafNode) => void;
+  onExpanded?: (expanded: boolean) => void; 
 }) {
   const [expanded, setExpanded] = useState(false);
   const { getNodeProgress } = useProgressContext();
@@ -142,7 +144,12 @@ function LeafNodeComponent({
         }}
       >
         <button
-          onClick={() => setExpanded(!expanded)}
+          onClick={
+            () => {
+              setExpanded(!expanded);
+              onExpanded?.(!expanded);
+            }
+          }
           className="flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
           style={{
             width: NODE_WIDTHS.leaf,
@@ -169,7 +176,7 @@ function LeafNodeComponent({
 
       {/* Task list — connector exits from center of the button */}
       {expanded && (
-        <div className="flex items-start ml-3 self-start">
+        <div className="flex items-start ml-9 self-start">
           {/* Horizontal connector aligned to button center */}
           <div
             className="w-5 flex-shrink-0"
@@ -235,12 +242,18 @@ function TaskNodeWrapper({
 }
 // ─── Branch Node ──────────────────────────────────────────────────────────────
 
-function BranchNodeComponent({ branch, onSelect }: { branch: BranchNode; onSelect?: (node: LeafNode) => void }) {
+function BranchNodeComponent({ branch, onSelect, onExpanded, onLeafExpand }: { 
+  branch: BranchNode; 
+  onSelect?: (node: LeafNode) => void;
+  onExpanded?: (expanded: boolean) => void;
+  onLeafExpand?: () => void;
+}) {
   const [expanded, setExpanded] = useState(false);
   const { getBranchProgress } = useProgressContext();
   const { pct } = getBranchProgress(branch.children);
   const branchButtonRef = useRef<HTMLDivElement>(null);
   const [branchButtonHeight, setBranchButtonHeight] = useState(44);
+  const [anyLeafExpanded, setAnyLeafExpanded] = useState(false);
 
   // Measure actual branch button height
   useEffect(() => {
@@ -269,8 +282,9 @@ function BranchNodeComponent({ branch, onSelect }: { branch: BranchNode; onSelec
     childHeights.reduce((sum, h) => sum + h, 0) +
     GAP_LEAF * (childHeights.length - 1);
   const topOffset = Math.max(0, (totalChildrenHeight - branchButtonHeight) / 2);
-
+  
   return (
+    
     <div className="flex items-start">
       {/* Branch button */}
       <div
@@ -279,8 +293,12 @@ function BranchNodeComponent({ branch, onSelect }: { branch: BranchNode; onSelec
         style={{ paddingTop: expanded ? topOffset : 0, transition: "padding-top 0.2s ease" }}
       >
         <button
-          onClick={() => setExpanded(!expanded)}
-          className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl border font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+          onClick={() => {
+            const next = !expanded;
+            setExpanded(next);
+            onExpanded?.(next);
+          }}
+          className="flex items-center gap-3 px-4 py-3.5 rounded-xl border font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
           style={{
             width: NODE_WIDTHS.branch,
             minWidth: NODE_WIDTHS.branch,
@@ -314,7 +332,7 @@ function BranchNodeComponent({ branch, onSelect }: { branch: BranchNode; onSelec
       {/* Leaf nodes */}
       {expanded && (
         <div className="flex items-start ml-4">
-          <div className="flex-shrink-0 relative" style={{ width: 16 }}>
+          <div className="flex-shrink-0 relative" style={{ width: anyLeafExpanded ? 60 : 310}}>
             <div
               className="absolute w-px"
               style={{
@@ -341,6 +359,10 @@ function BranchNodeComponent({ branch, onSelect }: { branch: BranchNode; onSelec
                 node={leaf}
                 onHeightChange={(h) => updateChildHeight(i, h)}
                 onSelect={onSelect}
+                onExpanded={(isExpanded) => {
+                    setAnyLeafExpanded(isExpanded);
+                    if (isExpanded) onLeafExpand?.(); // ← leaf-specific, not branch
+                }}
               />
             ))}
           </div>
@@ -358,12 +380,16 @@ function BranchHeightWrapper({
   branchHeights,
   onHeightChange,
   onSelect,
+  onExpanded,
+  onLeafExpand,
 }: {
   branch: BranchNode;
   index: number;
   branchHeights: number[];
   onHeightChange: (index: number, height: number) => void;
   onSelect?: (node: LeafNode) => void;
+  onExpanded?: (expanded: boolean) => void;
+  onLeafExpand?: () => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -383,7 +409,7 @@ function BranchHeightWrapper({
       <div className="absolute h-px"
         style={{ backgroundColor: `${branch.color}40`, left: 0, top: `${tickTop}px`, width: 16 }} />
       <div style={{ marginLeft: 16 }}>
-        <BranchNodeComponent branch={branch} onSelect={onSelect} />
+        <BranchNodeComponent branch={branch} onSelect={onSelect} onExpanded={onExpanded} onLeafExpand={onLeafExpand} />
       </div>
     </div>
   );
@@ -391,11 +417,15 @@ function BranchHeightWrapper({
 
 // ─── Mind Map ─────────────────────────────────────────────────────────────────
 
-function MindMap({ onSelectLeaf }: { onSelectLeaf?: (node: LeafNode) => void }) {
+function MindMap({ onSelectLeaf, onBranchExpand, onLeafExpand }: { 
+  onSelectLeaf?: (node: LeafNode) => void;
+  onBranchExpand?: () => void;
+  onLeafExpand?: () => void;
+}) {
   const data = roadmap as RoadmapData;
   const { getOverallProgress } = useProgressContext();
   const { done, total, pct } = getOverallProgress(data.children);
-
+  const [anyBranchExpanded, setAnyBranchExpanded] = useState(false);
   const [branchHeights, setBranchHeights] = useState<number[]>(
     () => new Array(data.children.length).fill(44)
   );
@@ -442,7 +472,8 @@ function MindMap({ onSelectLeaf }: { onSelectLeaf?: (node: LeafNode) => void }) 
           </div>
           <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>{done} / {total} tasks</div>
         </div>
-        <div className="w-6 h-px bg-white/20 mx-2 flex-shrink-0" />
+        <div className="h-px bg-white/20 mx-2 flex-shrink-0" 
+          style={{ width: anyBranchExpanded ? 120 : 360, transition: "width 0.5s ease" }} />
       </div>
 
       {/* Branches */}
@@ -464,6 +495,11 @@ function MindMap({ onSelectLeaf }: { onSelectLeaf?: (node: LeafNode) => void }) 
             branchHeights={branchHeights}
             onHeightChange={updateBranchHeight}
             onSelect={onSelectLeaf}
+            onExpanded={(expanded) => {
+                setAnyBranchExpanded(expanded);
+                if (expanded) onBranchExpand?.();
+            }}
+            onLeafExpand={onLeafExpand}
           />
         ))}
       </div>
@@ -474,7 +510,7 @@ function MindMap({ onSelectLeaf }: { onSelectLeaf?: (node: LeafNode) => void }) 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function FinancialMindMapPage() {
-  const [zoom, setZoom] = useState(1);
+  const [zoom, setZoom] = useState(1.33);
   const [selectedLeaf, setSelectedLeaf] = useState<LeafNode | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
 
@@ -544,7 +580,11 @@ export default function FinancialMindMapPage() {
                 minHeight: `${100 / zoom}%`,
               }}
             >
-              <MindMap onSelectLeaf={setSelectedLeaf} />
+              <MindMap 
+                onSelectLeaf={setSelectedLeaf} 
+                onBranchExpand={() => setZoom(1.41)} 
+                onLeafExpand={() => setZoom(1.33)} 
+              />
             </div>
           </div>
 
