@@ -52,3 +52,59 @@ body {
 .score-ring-animated {
   animation: score-ring-fill 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
+
+/* ── MindMap animations ── */
+
+@keyframes mindmap-node-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.mindmap-node-animated {
+  animation: mindmap-node-appear 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--node-delay, 0s);
+}
+
+@keyframes mindmap-panel-slide {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.mindmap-panel-animated {
+  animation: mindmap-panel-slide 0.2s ease-out both;
+}
+
+@keyframes mindmap-pulse-ring {
+  0%, 100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.08;
+  }
+}
+
+.mindmap-pulse {
+  animation: mindmap-pulse-ring 3s ease-in-out infinite;
+}
+
+/* Node hover */
+.mindmap-node-circle {
+  transition: filter 0.15s ease, stroke-width 0.15s ease;
+}
+
+.mindmap-node-animated:hover .mindmap-node-circle {
+  filter: brightness(0.97);
+  stroke-width: 2;
+}
