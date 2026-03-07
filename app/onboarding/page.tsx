@@ -15,7 +15,12 @@ import {
 import { loadPersistedUserProfile, savePersistedUserProfile } from "@/lib/persistence/profile-store";
 import { PROFILE_FLAG_KEYS, type UserProfileFlagKey } from "@/types/profile";
 
-const SECTION_LETTERS = ["B", "C", "D"] as const;
+const SECTION_META: { letter: string; label: string }[] = [
+  { letter: "A", label: "Basics" },
+  { letter: "B", label: "Life Situation" },
+  { letter: "C", label: "Financial Signals" },
+  { letter: "D", label: "Context Signals" },
+];
 
 interface FieldErrors {
   age?: string;
@@ -85,6 +90,14 @@ export default function OnboardingPage() {
     return ONBOARDING_OPTION_GROUPS.reduce((count, group) => count + group.options.length, 0);
   }, []);
 
+  const progressPercent = useMemo(() => {
+    // Basics (age + province) count as 2 signals worth
+    const basicsComplete = (ageInput.trim() ? 1 : 0) + (province.trim() ? 1 : 0);
+    const total = totalSignalCount + 2;
+    const filled = profileSignalCount + basicsComplete;
+    return Math.round((filled / total) * 100);
+  }, [ageInput, province, profileSignalCount, totalSignalCount]);
+
   const toggleOption = (flag: UserProfileFlagKey) => {
     setSelectedFlags((currentFlags) =>
       currentFlags.includes(flag)
@@ -136,9 +149,9 @@ export default function OnboardingPage() {
 
   if (isLoading || (isAuthenticated && isInitializing)) {
     return (
-      <main className="min-h-screen bg-white px-6 py-10 text-[#171412]">
-        <div className="mx-auto max-w-5xl rounded-3xl border border-[#e6e1da] bg-[#faf8f6] p-8">
-          Loading your account...
+      <main className="min-h-screen bg-[#faf8f6] px-6 py-10 text-[#151311]" style={{ fontFamily: "'Inter', 'Avenir Next', 'Segoe UI', sans-serif" }}>
+        <div className="mx-auto max-w-5xl rounded-2xl border border-[#e2dbd4] bg-white p-8 text-[#5f5953]">
+          Loading your account…
         </div>
       </main>
     );
@@ -149,28 +162,59 @@ export default function OnboardingPage() {
   }
 
   return (
-    <main className="min-h-screen bg-white px-6 py-10 text-[#171412]" style={{ fontFamily: "'Inter', 'Avenir Next', 'Segoe UI', sans-serif" }}>
+    <main
+      className="min-h-screen bg-[#faf8f6] px-6 py-10 text-[#151311]"
+      style={{ fontFamily: "'Inter', 'Avenir Next', 'Segoe UI', sans-serif" }}
+    >
       <div className="mx-auto max-w-5xl">
+        {/* ── Header ── */}
         <header className="flex items-center justify-between">
-          <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#151311]">MapleMind</p>
-          <p className="rounded-full border border-[#dcd6cf] bg-[#f7f5f3] px-4 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-[#6f6962]">
+          <p className="text-sm font-bold uppercase tracking-[0.18em] text-[#151311]">MAPLEMIND</p>
+          <p className="rounded-full bg-[#fff1f2] px-4 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-[#c82233]">
             Profile setup
           </p>
         </header>
 
-        <section className="mt-8 rounded-[30px] border border-[#e6e1da] bg-white p-7 shadow-[0_16px_48px_rgba(22,19,17,0.07)] sm:p-8 lg:p-10">
-          <h1 className="text-4xl font-semibold leading-tight text-[#171412] sm:text-5xl">Set up your MapleMind profile</h1>
-          <p className="mt-4 max-w-3xl text-lg text-[#5f5953]">
+        {/* ── Progress bar ── */}
+        <div className="mt-5">
+          <div className="flex items-center justify-between text-xs text-[#9a7b72]">
+            <span>{progressPercent}% complete</span>
+            <span>{profileSignalCount + (ageInput.trim() ? 1 : 0) + (province.trim() ? 1 : 0)}/{totalSignalCount + 2} fields</span>
+          </div>
+          <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-[#ebe4dd]">
+            <div
+              className="h-1 rounded-full bg-[#c82233] transition-all duration-500"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
+        </div>
+
+        {/* ── Main card ── */}
+        <section className="mt-6 rounded-2xl border border-[#e2dbd4] bg-white p-7 shadow-[0_12px_36px_rgba(20,15,12,0.06)] sm:p-8 lg:p-10">
+          <h1 className="text-3xl font-bold leading-tight text-[#151311] sm:text-4xl">
+            Set up your MapleMind profile
+          </h1>
+          <p className="mt-3 max-w-3xl text-base leading-relaxed text-[#5f5953]">
             This takes about two minutes. Your answers personalize recommendations, action priorities, and AI guidance.
           </p>
 
           <div className="mt-8 grid gap-8 lg:grid-cols-[1.65fr_0.95fr]">
-            <div className="space-y-5">
-              <section className="rounded-2xl border border-[#ebe5de] bg-[#fcfaf8] p-5 sm:p-6">
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#8a837d]">Section A</p>
-                <h2 className="mt-2 text-2xl font-semibold text-[#171412]">Basics</h2>
+            <div className="space-y-6">
+              {/* ── Section A: Basics ── */}
+              <section className="rounded-2xl border border-[#e2dbd4] bg-[#faf8f6] p-5 sm:p-6">
+                <div className="mb-4 flex items-center gap-2.5">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#c82233] text-xs font-bold text-white">
+                    A
+                  </span>
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#9a7b72]">
+                      Section A
+                    </p>
+                    <h2 className="text-xl font-bold text-[#151311]">Basics</h2>
+                  </div>
+                </div>
 
-                <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                <div className="grid gap-4 sm:grid-cols-2">
                   <label className="block">
                     <span className="text-sm font-medium text-[#322d28]">Age</span>
                     <input
@@ -185,10 +229,14 @@ export default function OnboardingPage() {
                         }
                       }}
                       placeholder="24"
-                      className="mt-2 w-full rounded-xl border border-[#d8d1c9] bg-white px-4 py-3 text-base outline-none transition focus:border-[#c82233]"
+                      className="mt-2 w-full rounded-xl border border-[#d8d1c9] bg-white px-4 py-3 text-base outline-none transition focus:border-[#c82233] focus:ring-1 focus:ring-[#c82233]/20"
                     />
-                    <p className="mt-2 text-xs text-[#7a726b]">Required. Enter a number between {ONBOARDING_AGE_MIN} and {ONBOARDING_AGE_MAX}.</p>
-                    {fieldErrors.age ? <p className="mt-2 text-sm text-[#b42330]">{fieldErrors.age}</p> : null}
+                    <p className="mt-2 text-xs text-[#9a7b72]">
+                      Required. Enter a number between {ONBOARDING_AGE_MIN} and {ONBOARDING_AGE_MAX}.
+                    </p>
+                    {fieldErrors.age ? (
+                      <p className="mt-2 text-sm font-medium text-[#c82233]">{fieldErrors.age}</p>
+                    ) : null}
                   </label>
 
                   <label className="block">
@@ -201,7 +249,7 @@ export default function OnboardingPage() {
                           setFieldErrors((current) => ({ ...current, province: undefined }));
                         }
                       }}
-                      className="mt-2 w-full rounded-xl border border-[#d8d1c9] bg-white px-4 py-3 text-base outline-none transition focus:border-[#c82233]"
+                      className="mt-2 w-full rounded-xl border border-[#d8d1c9] bg-white px-4 py-3 text-base outline-none transition focus:border-[#c82233] focus:ring-1 focus:ring-[#c82233]/20"
                     >
                       <option value="">Select province or territory</option>
                       {PROVINCE_OPTIONS.map((provinceOption) => (
@@ -210,89 +258,134 @@ export default function OnboardingPage() {
                         </option>
                       ))}
                     </select>
-                    <p className="mt-2 text-xs text-[#7a726b]">Required for province-specific programs and tax credits.</p>
-                    {fieldErrors.province ? <p className="mt-2 text-sm text-[#b42330]">{fieldErrors.province}</p> : null}
+                    <p className="mt-2 text-xs text-[#9a7b72]">
+                      Required for province-specific programs and tax credits.
+                    </p>
+                    {fieldErrors.province ? (
+                      <p className="mt-2 text-sm font-medium text-[#c82233]">{fieldErrors.province}</p>
+                    ) : null}
                   </label>
                 </div>
               </section>
 
-              {ONBOARDING_OPTION_GROUPS.map((group, index) => (
-                <section key={group.id} className="rounded-2xl border border-[#ebe5de] bg-[#fcfaf8] p-5 sm:p-6">
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#8a837d]">Section {SECTION_LETTERS[index]}</p>
-                  <h2 className="mt-2 text-2xl font-semibold text-[#171412]">{group.title}</h2>
-                  <p className="mt-2 text-sm text-[#68625b]">{group.description}</p>
+              {/* ── Sections B, C, D ── */}
+              {ONBOARDING_OPTION_GROUPS.map((group, index) => {
+                const meta = SECTION_META[index + 1];
 
-                  <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                    {group.options.map((option) => {
-                      const active = selectedFlags.includes(option.key);
+                return (
+                  <section key={group.id} className="rounded-2xl border border-[#e2dbd4] bg-[#faf8f6] p-5 sm:p-6">
+                    <div className="mb-4 flex items-center gap-2.5">
+                      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#c82233] text-xs font-bold text-white">
+                        {meta.letter}
+                      </span>
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#9a7b72]">
+                          Section {meta.letter}
+                        </p>
+                        <h2 className="text-xl font-bold text-[#151311]">{group.title}</h2>
+                      </div>
+                    </div>
+                    <p className="mb-4 text-sm leading-relaxed text-[#5f5953]">{group.description}</p>
 
-                      return (
-                        <button
-                          key={option.key}
-                          type="button"
-                          onClick={() => toggleOption(option.key)}
-                          className={`rounded-2xl border px-4 py-4 text-left transition ${active
-                              ? "border-[#c82233] bg-[#fff1f2]"
-                              : "border-[#ddd7d0] bg-white hover:border-[#cfc8c0]"
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {group.options.map((option) => {
+                        const active = selectedFlags.includes(option.key);
+
+                        return (
+                          <button
+                            key={option.key}
+                            type="button"
+                            onClick={() => toggleOption(option.key)}
+                            className={`group relative rounded-xl border px-4 py-3.5 text-left transition ${
+                              active
+                                ? "border-[#c82233] bg-[#fff1f2] shadow-[0_0_0_1px_rgba(200,34,51,0.15)]"
+                                : "border-[#e2dbd4] bg-white hover:border-[#d0c9c1] hover:shadow-[0_2px_8px_rgba(20,15,12,0.04)]"
                             }`}
-                        >
-                          <p className="text-sm font-semibold text-[#171412]">{option.label}</p>
-                          <p className="mt-1 text-sm text-[#6a645d]">{option.helperText}</p>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </section>
-              ))}
+                          >
+                            <div className="flex items-start gap-3">
+                              {/* Checkbox indicator */}
+                              <span
+                                className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition ${
+                                  active
+                                    ? "border-[#c82233] bg-[#c82233] text-white"
+                                    : "border-[#d8d1c9] bg-white"
+                                }`}
+                              >
+                                {active ? (
+                                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                                    <path d="M2.5 6L5 8.5L9.5 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                  </svg>
+                                ) : null}
+                              </span>
+                              <div>
+                                <p className="text-sm font-semibold text-[#151311]">{option.label}</p>
+                                <p className="mt-0.5 text-sm leading-relaxed text-[#5f5953]">{option.helperText}</p>
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </section>
+                );
+              })}
 
+              {/* ── Error / CTA ── */}
               {saveError ? (
-                <p className="rounded-xl border border-[#f0cfd3] bg-[#fff3f4] px-4 py-3 text-sm text-[#b42330]">{saveError}</p>
+                <p className="rounded-xl border border-[#f0cfd3] bg-[#fff1f2] px-4 py-3 text-sm text-[#c82233]">
+                  {saveError}
+                </p>
               ) : null}
 
-              <div className="flex flex-col gap-4 sm:flex-row">
+              <div className="flex flex-col gap-3 sm:flex-row">
                 <button
                   type="button"
                   onClick={() => {
                     void handleContinue();
                   }}
                   disabled={isSaving}
-                  className="rounded-xl bg-[#c82233] px-8 py-3 text-center text-base font-semibold text-white transition hover:bg-[#af1d2d] disabled:cursor-not-allowed disabled:opacity-70"
+                  className="rounded-xl bg-[#c82233] px-8 py-3 text-center text-base font-semibold text-white shadow-[0_0_20px_rgba(200,34,51,0.25)] transition hover:bg-[#b01e2d] disabled:cursor-not-allowed disabled:opacity-70"
                 >
-                  {isSaving ? "Saving..." : "Continue to dashboard"}
+                  {isSaving ? "Saving…" : "Continue to dashboard"}
                 </button>
                 <Link
                   href="/dashboard"
-                  className="rounded-xl border border-[#d5cfc8] bg-white px-8 py-3 text-center text-base font-medium text-[#26221f]"
+                  className="rounded-xl border border-[#e2dbd4] bg-white px-8 py-3 text-center text-base font-medium text-[#151311] transition hover:border-[#d0c9c1]"
                 >
                   Back
                 </Link>
               </div>
             </div>
 
+            {/* ── Sidebar ── */}
             <aside className="space-y-4">
-              <div className="rounded-2xl border border-[#e7e1da] bg-white p-5">
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#857f79]">Profile snapshot</p>
+              <div className="rounded-2xl border border-[#e2dbd4] bg-white p-5">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#9a7b72]">
+                  Profile snapshot
+                </p>
                 <dl className="mt-4 space-y-3 text-sm">
                   <div className="flex items-center justify-between gap-3">
-                    <dt className="text-[#6f6963]">Age</dt>
-                    <dd className="font-semibold text-[#171412]">{ageInput || "Required"}</dd>
+                    <dt className="text-[#5f5953]">Age</dt>
+                    <dd className="font-semibold text-[#151311]">{ageInput || "Required"}</dd>
                   </div>
                   <div className="flex items-center justify-between gap-3">
-                    <dt className="text-[#6f6963]">Province</dt>
-                    <dd className="font-semibold text-[#171412]">{province || "Required"}</dd>
+                    <dt className="text-[#5f5953]">Province</dt>
+                    <dd className="font-semibold text-[#151311]">{province || "Required"}</dd>
                   </div>
                   <div className="flex items-center justify-between gap-3">
-                    <dt className="text-[#6f6963]">Signals selected</dt>
-                    <dd className="font-semibold text-[#171412]">
+                    <dt className="text-[#5f5953]">Signals selected</dt>
+                    <dd className="font-semibold text-[#151311]">
                       {profileSignalCount}/{totalSignalCount}
                     </dd>
                   </div>
                 </dl>
               </div>
 
-              <div className="rounded-2xl border border-[#e7e1da] bg-white p-5">
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#857f79]">Trust and privacy</p>
-                <p className="mt-3 text-sm text-[#5f5953]">
+              <div className="rounded-2xl border border-[#e2dbd4] bg-white p-5">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#9a7b72]">
+                  Trust and privacy
+                </p>
+                <p className="mt-3 text-sm leading-relaxed text-[#5f5953]">
                   MapleMind uses this information to tailor guidance. You can update your profile any time in settings.
                 </p>
               </div>

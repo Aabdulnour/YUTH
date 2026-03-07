@@ -27,14 +27,7 @@ This enables users to understand how a purchase fits into their financial plan *
 
 ### Overview
 
-The extension observes supported commerce pages and extracts product information such as:
-
-- Product title
-- Purchase price
-- Merchant information
-- Page metadata
-
-This information is sent to the YUTH backend where the purchase is evaluated against the user's financial context.
+YUTH's Smart Spender brings financial intelligence directly into your browser. As you browse the web, it understands the financial context of the page. From purchases and subscriptions to travel and everyday spending, it provides instant insights to help you make smarter decisions before money leaves your account.
 
 The result is presented in a **lightweight side panel dashboard** that summarizes whether the purchase fits the user’s financial plan.
 
