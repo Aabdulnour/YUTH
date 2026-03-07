@@ -1,220 +1,187 @@
 const DASHBOARD_URL = "http://localhost:3000/dashboard";
 
 function formatCurrency(value) {
-  if (typeof value !== "number") return "—";
+  const amount = Number(value);
+  if (!Number.isFinite(amount)) return "$0.00";
+
   return new Intl.NumberFormat("en-CA", {
     style: "currency",
-    currency: "CAD",
-    maximumFractionDigits: 2
-  }).format(value);
+    currency: "CAD"
+  }).format(amount);
 }
 
-function titleCase(value) {
-  if (!value) return "—";
-  return value
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, (char) => char.toUpperCase());
-}
-
-function setBadge(text, tone) {
-  const badge = document.getElementById("statusBadge");
-  badge.textContent = text;
-  badge.classList.remove("is-positive", "is-warning", "is-danger");
-  if (tone) badge.classList.add(tone);
-}
-
-function setMetricValue(id, text, tone) {
-  const el = document.getElementById(id);
-  el.textContent = text;
-  el.classList.remove("is-positive", "is-warning", "is-danger");
-  if (tone) el.classList.add(tone);
-}
-
-function renderTags(tags = []) {
-  const wrap = document.getElementById("tags");
-  wrap.innerHTML = "";
-
-  if (!tags.length) {
-    const tag = document.createElement("span");
-    tag.className = "tag";
-    tag.textContent = "No signals yet";
-    wrap.appendChild(tag);
-    return;
-  }
-
-  tags.forEach((item) => {
-    const tag = document.createElement("span");
-    tag.className = "tag";
-    tag.textContent = titleCase(item);
-    wrap.appendChild(tag);
-  });
-}
-
-function renderDetailList(items) {
-  const list = document.getElementById("detailList");
-  list.innerHTML = "";
-
-  items.forEach((text) => {
-    const li = document.createElement("li");
-    li.className = "detail-item";
-    li.textContent = text;
-    list.appendChild(li);
-  });
-}
-
-function getBudgetLeft(data) {
-  if (
-    typeof data.discretionaryBudget !== "number" ||
-    typeof data.projectedDiscretionarySpend !== "number"
-  ) {
-    return null;
-  }
-
-  return data.discretionaryBudget - data.projectedDiscretionarySpend;
-}
-
-function getBudgetDisplay(data) {
-  const left = getBudgetLeft(data);
-
-  if (left === null) {
-    return { text: "—", tone: "" };
-  }
-
-  if (left >= 0) {
-    return {
-      text: `${formatCurrency(left)} left`,
-      tone: "is-positive"
-    };
-  }
-
-  return {
-    text: `${formatCurrency(Math.abs(left))} over`,
-    tone: "is-danger"
-  };
-}
-
-function getDeadlineDisplay(data) {
-  switch (data.deadlineRisk) {
-    case "high":
-      return { text: "High", tone: "is-danger" };
+function getStatusTone(recommendation) {
+  switch ((recommendation || "").toLowerCase()) {
+    case "fits":
+    case "buy":
+    case "safe":
+      return "good";
     case "watch":
-      return { text: "Watch", tone: "is-warning" };
-    case "none":
-      return { text: "Clear", tone: "is-positive" };
+    case "consider":
+      return "watch";
+    case "over limit":
+    case "avoid":
+    case "risky":
+      return "bad";
     default:
-      return { text: "—", tone: "" };
+      return "neutral";
   }
 }
 
-function getSummaryText(data) {
+function getShortSummary(data) {
   const parts = [];
 
   if (data.fitsBudget) {
-    parts.push("This purchase fits your current monthly budget");
+    parts.push(
+      `Currently fits the monthly budget with ${formatCurrency(
+        data.remainingAfterPurchase
+      )} left`
+    );
   } else {
-    parts.push("This purchase may push you beyond your monthly plan");
+    parts.push("May push you over your monthly budget");
   }
 
   if (data.deadlineRisk === "high") {
-    parts.push("however, there is a high near-term deadline risk");
+    parts.push("high deadline risk");
   } else if (data.deadlineRisk === "watch") {
-    parts.push("and there are upcoming deadlines to watch");
+    parts.push("upcoming deadlines to watch");
   }
 
-  return parts.join(", ");
+  if (Array.isArray(data.matchedGoals) && data.matchedGoals.length > 0) {
+    parts.push(`related to ${data.matchedGoals[0]}`);
+  }
+
+  return parts.join(" • ");
 }
 
-function getDetailItems(data) {
-  const items = [];
+function showOnly(sectionId) {
+  ["loadingState", "errorState", "emptyState", "analysisContent"].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = id === sectionId ? "" : "none";
+  });
+}
 
-  items.push(
-    `Projected category spend: ${formatCurrency(data.projectedCategorySpend)} of ${formatCurrency(data.categoryCap)}.`
+function setText(id, value, fallback = "—") {
+  const el = document.getElementById(id);
+  if (el) el.textContent = value ?? fallback;
+}
+
+function setHTML(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.innerHTML = value;
+}
+
+function renderLoading() {
+  showOnly("loadingState");
+}
+
+function renderError(message) {
+  showOnly("errorState");
+  setText("errorMessage", message || "Something went wrong while analyzing this page.");
+}
+
+function renderEmpty(message) {
+  showOnly("emptyState");
+  setText("emptyStateMessage", message || "Open a supported product page to see analysis.");
+}
+
+function renderAnalysis(data) {
+  showOnly("analysisContent");
+
+  const recommendation = data.recommendation || "Unknown";
+  const tone = getStatusTone(recommendation);
+
+  const recommendationEl = document.getElementById("recommendation");
+  if (recommendationEl) {
+    recommendationEl.textContent = recommendation;
+    recommendationEl.dataset.tone = tone;
+  }
+
+  setText("summary", getShortSummary(data), "No summary available");
+  setText("price", formatCurrency(data.price));
+  setText("category", data.category || "General");
+  setText("projectedSpend", formatCurrency(data.projectedDiscretionarySpend));
+  setText("budgetCap", formatCurrency(data.discretionaryBudget));
+  setText("remainingBudget", formatCurrency(data.remainingAfterPurchase));
+
+  setText(
+    "budgetFit",
+    data.fitsBudget ? "Fits monthly budget" : "Exceeds monthly budget"
   );
 
-  items.push(
-    `Projected discretionary spend: ${formatCurrency(data.projectedDiscretionarySpend)} of ${formatCurrency(data.discretionaryBudget)}.`
+  setText(
+    "deadlineRisk",
+    data.deadlineRisk
+      ? data.deadlineRisk.charAt(0).toUpperCase() + data.deadlineRisk.slice(1)
+      : "None"
   );
 
-  if (data.matchedDeadlines?.length) {
-    items.push(`Upcoming deadlines: ${data.matchedDeadlines.join(", ")}.`);
-  }
+  const goals =
+    Array.isArray(data.matchedGoals) && data.matchedGoals.length
+      ? data.matchedGoals.map((goal) => `<span class="tag">${goal}</span>`).join("")
+      : '<span class="muted">No matched goals</span>';
 
-  if (data.matchedGoals?.length) {
-    items.push(`Related goals: ${data.matchedGoals.join(", ")}.`);
-  }
+  setHTML("matchedGoals", goals);
 
-  items.push(`Recommended next step: ${titleCase(data.recommendation)}.`);
+  const reasons =
+    Array.isArray(data.reasons) && data.reasons.length
+      ? `<ul>${data.reasons.map((reason) => `<li>${reason}</li>`).join("")}</ul>`
+      : "<p>No additional reasoning provided.</p>";
 
-  return items;
-}
-
-function renderEmpty() {
-  setBadge("No Data", "is-warning");
-  document.getElementById("purchaseAmount").textContent = "—";
-  setMetricValue("budgetFit", "—");
-  setMetricValue("deadlineRisk", "—");
-  setMetricValue("category", "—");
-  setMetricValue("recommendation", "—");
-  document.getElementById("summaryText").textContent =
-    "Visit a supported shopping page to get a quick MapleMind check.";
-  renderDetailList([
-    "Open a supported product page to see budget fit, deadline risk, and your recommended next step."
-  ]);
-  renderTags([]);
-}
-
-function renderResult(data) {
-  if (data.fitsBudget && data.deadlineRisk === "none") {
-    setBadge("On Track", "is-positive");
-  } else if (data.deadlineRisk === "high") {
-    setBadge("Needs Review", "is-danger");
-  } else {
-    setBadge("Be Careful", "is-warning");
-  }
-
-  document.getElementById("purchaseAmount").textContent =
-    formatCurrency(data.purchaseAmount);
-
-  const budgetDisplay = getBudgetDisplay(data);
-  setMetricValue("budgetFit", budgetDisplay.text, budgetDisplay.tone);
-
-  const deadlineDisplay = getDeadlineDisplay(data);
-  setMetricValue("deadlineRisk", deadlineDisplay.text, deadlineDisplay.tone);
-
-  setMetricValue("category", titleCase(data.detectedCategory));
-  setMetricValue("recommendation", titleCase(data.recommendation));
-
-  document.getElementById("summaryText").textContent = getSummaryText(data);
-
-  renderDetailList(getDetailItems(data));
-  renderTags(data.tags || []);
+  setHTML("reasons", reasons);
 }
 
 async function loadAnalysis() {
-  const stored = await chrome.storage.local.get(["lastAnalysis"]);
+  try {
+    const stored = await chrome.storage.local.get([
+      "lastAnalysis",
+      "lastAnalysisError",
+      "lastAnalysisLoading"
+    ]);
 
-  if (!stored.lastAnalysis) {
-    renderEmpty();
-    return;
+    if (stored.lastAnalysisLoading) {
+      renderLoading();
+      return;
+    }
+
+    if (stored.lastAnalysisError) {
+      renderError(stored.lastAnalysisError);
+      return;
+    }
+
+    if (!stored.lastAnalysis) {
+      renderEmpty("Open a supported product page to see analysis.");
+      return;
+    }
+
+    renderAnalysis(stored.lastAnalysis);
+  } catch (error) {
+    renderError(error?.message || "Failed to load side panel data.");
   }
+}
 
-  renderResult(stored.lastAnalysis);
+function setupStorageListener() {
+  chrome.storage.onChanged.addListener((changes, areaName) => {
+    if (areaName !== "local") return;
+
+    if (
+      changes.lastAnalysis ||
+      changes.lastAnalysisError ||
+      changes.lastAnalysisLoading
+    ) {
+      loadAnalysis();
+    }
+  });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  const button = document.getElementById("openDashboardBtn");
-
-  if (button) {
-    button.addEventListener("click", () => {
+  const openDashboardBtn = document.getElementById("openDashboardBtn");
+  if (openDashboardBtn) {
+    openDashboardBtn.addEventListener("click", () => {
       chrome.tabs.create({ url: DASHBOARD_URL });
     });
   }
 
+  setupStorageListener();
   loadAnalysis();
-});
-
-chrome.storage.onChanged.addListener((changes, areaName) => {
-  if (areaName === "local" && changes.lastAnalysis) {
-    loadAnalysis();
-  }
 });
