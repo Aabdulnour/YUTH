@@ -2,22 +2,105 @@
   {
     "id": "gst_hst_credit",
     "name": "GST/HST Credit",
-    "description": "Quarterly tax-free payment for eligible Canadians.",
-    "estimated_value": "$519/year",
-    "category": "benefit"
+    "description": "Quarterly tax-free credit that can offset sales tax costs after you file your return.",
+    "estimated_value": {
+      "min": 300,
+      "max": 519,
+      "display": "$300-$519/year"
+    },
+    "category": "tax_credit",
+    "tags": ["taxes", "cost_of_living", "federal"],
+    "conditions": {
+      "ageMin": 19
+    },
+    "sourceLabel": "CRA",
+    "sourceUrl": "https://www.canada.ca/en/revenue-agency/services/child-family-benefits/gsthstc-eligibility.html"
   },
   {
     "id": "canada_workers_benefit",
     "name": "Canada Workers Benefit",
-    "description": "Refundable tax credit for eligible low-income workers.",
-    "estimated_value": "$1518/year",
-    "category": "benefit"
+    "description": "Refundable credit for workers with modest income, usually claimed when filing taxes.",
+    "estimated_value": {
+      "min": 400,
+      "max": 1518,
+      "display": "$400-$1,518/year"
+    },
+    "category": "tax_credit",
+    "tags": ["employment", "taxes", "federal"],
+    "conditions": {
+      "employed": true,
+      "ageMin": 19
+    },
+    "sourceLabel": "CRA",
+    "sourceUrl": "https://www.canada.ca/en/revenue-agency/services/child-family-benefits/acwb-eligibility.html"
+  },
+  {
+    "id": "canada_student_grant",
+    "name": "Canada Student Grant",
+    "description": "Non-repayable federal funding for eligible post-secondary students with assessed need.",
+    "estimated_value": {
+      "min": 1000,
+      "max": 4200,
+      "display": "$1,000-$4,200/school year"
+    },
+    "category": "education",
+    "tags": ["student", "grant", "federal"],
+    "conditions": {
+      "student": true
+    },
+    "sourceLabel": "Canada Student Aid",
+    "sourceUrl": "https://www.canada.ca/en/services/benefits/education/student-aid/grants-loans/full-time.html"
+  },
+  {
+    "id": "provincial_student_aid",
+    "name": "Provincial Student Aid",
+    "description": "Provincial loans and grants (such as OSAP and StudentAid BC) that can supplement federal aid.",
+    "estimated_value": {
+      "min": 500,
+      "max": 3500,
+      "display": "$500-$3,500/school year"
+    },
+    "category": "financial_support",
+    "tags": ["student", "provincial_support", "education"],
+    "conditions": {
+      "student": true
+    },
+    "sourceLabel": "Provincial Student Aid",
+    "sourceUrl": "https://www.canada.ca/en/services/benefits/education/student-aid.html"
   },
   {
     "id": "fhsa",
-    "name": "First Home Savings Account",
-    "description": "Tax-advantaged account for saving toward a first home.",
-    "estimated_value": "Varies",
-    "category": "account"
+    "name": "First Home Savings Account (FHSA)",
+    "description": "Registered account for first-home savings with tax-deductible contributions and tax-free withdrawals for eligible home purchases.",
+    "estimated_value": {
+      "min": 600,
+      "max": 2400,
+      "display": "Rough tax impact: $600-$2,400/year"
+    },
+    "category": "savings_account",
+    "tags": ["first_home", "savings", "tax_advantaged"],
+    "conditions": {
+      "ageMin": 18,
+      "ageMax": 39
+    },
+    "sourceLabel": "CRA",
+    "sourceUrl": "https://www.canada.ca/en/revenue-agency/services/tax/individuals/topics/first-home-savings-account.html"
+  },
+  {
+    "id": "tfsa",
+    "name": "Tax-Free Savings Account (TFSA)",
+    "description": "Flexible registered account for emergency savings and investing, with tax-free growth and withdrawals.",
+    "estimated_value": {
+      "min": 150,
+      "max": 1000,
+      "display": "Potential value: $150-$1,000/year"
+    },
+    "category": "savings_account",
+    "tags": ["savings", "investing", "tax_free_growth"],
+    "conditions": {
+      "ageMin": 18
+    },
+    "sourceLabel": "CRA",
+    "sourceUrl": "https://www.canada.ca/en/revenue-agency/services/tax/individuals/topics/tax-free-savings-account.html"
   }
 ]
