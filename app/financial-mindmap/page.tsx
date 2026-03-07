@@ -86,8 +86,9 @@ function LeafNodeComponent({
   const [expanded, setExpanded] = useState(false);
   const { getNodeProgress } = useProgressContext();
   const { pct } = getNodeProgress(node.tasks);
-  const containerRef = useRef<HTMLDivElement>(null);
 
+  // 1. Measures total container height so parent can center on this node
+  const containerRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!containerRef.current || !onHeightChange) return;
     const observer = new ResizeObserver(() => {
@@ -97,50 +98,106 @@ function LeafNodeComponent({
     return () => observer.disconnect();
   }, [onHeightChange]);
 
+  // 2. Measures the button's own rendered height
+  const leafButtonRef = useRef<HTMLDivElement>(null);
+  const [leafButtonHeight, setLeafButtonHeight] = useState(36);
+  useEffect(() => {
+    if (!leafButtonRef.current) return;
+    const observer = new ResizeObserver(() => {
+      setLeafButtonHeight(leafButtonRef.current?.offsetHeight ?? 36);
+    });
+    observer.observe(leafButtonRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  // 3. Tracks each task's rendered height
+  const [taskHeights, setTaskHeights] = useState<number[]>(
+    () => new Array(node.tasks.length).fill(32)
+  );
+  const updateTaskHeight = useCallback((i: number, h: number) => {
+    setTaskHeights((prev) => {
+      if (prev[i] === h) return prev;
+      const next = [...prev];
+      next[i] = h;
+      return next;
+    });
+  }, []);
+
+  const totalTaskHeight =
+    taskHeights.reduce((s, h) => s + h, 0) + GAP_TASK * (taskHeights.length - 1);
+
+  // 4. How far to push the button down so it centers on the task list
+  const leafTopOffset = Math.max(0, (totalTaskHeight - leafButtonHeight) / 2);
+
   return (
     <div ref={containerRef} className="flex items-start">
-      <button
-        onClick={() => setExpanded(!expanded)}
-        className="flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex-shrink-0"
+
+      {/* Button wrapper — this is what moves the button down when expanded */}
+      <div
+        ref={leafButtonRef}
+        className="flex-shrink-0"
         style={{
-          width: NODE_WIDTHS.leaf,
-          minWidth: NODE_WIDTHS.leaf,
-          backgroundColor: expanded ? `${node.color}22` : "rgba(255,255,255,0.05)",
-          borderColor: expanded ? `${node.color}60` : "rgba(255,255,255,0.1)",
-          alignSelf: "flex-start",
+          paddingTop: expanded ? leafTopOffset : 0,
+          transition: "padding-top 0.2s ease",
         }}
       >
-        <div
-          className="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center"
-          style={{ background: `conic-gradient(${node.color} ${pct}%, rgba(255,255,255,0.1) 0%)` }}
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+          style={{
+            width: NODE_WIDTHS.leaf,
+            minWidth: NODE_WIDTHS.leaf,
+            backgroundColor: expanded ? `${node.color}22` : "rgba(255,255,255,0.05)",
+            borderColor: expanded ? `${node.color}60` : "rgba(255,255,255,0.1)",
+          }}
         >
-          <div className="w-3.5 h-3.5 flex-shrink-0 rounded-full bg-[#0d0d14] flex items-center justify-center">
-            <span style={{ color: node.color, fontSize: pct === 100 ? 5 : 7, fontWeight: 700 }}>{pct}%</span>
+          <div
+            className="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center"
+            style={{ background: `conic-gradient(${node.color} ${pct}%, rgba(255,255,255,0.1) 0%)` }}
+          >
+            <div className="w-3.5 h-3.5 flex-shrink-0 rounded-full bg-[#0d0d14] flex items-center justify-center">
+              <span style={{ color: node.color, fontSize: pct === 100 ? 5 : 7, fontWeight: 700 }}>{pct}%</span>
+            </div>
           </div>
-        </div>
-        <span className="text-xs font-medium text-white/80 flex-1 text-left">{node.label}</span>
-        <span
-          className="text-white/30 text-xs transition-transform duration-200 flex-shrink-0"
-          style={{ transform: expanded ? "rotate(90deg)" : "rotate(0deg)" }}
-        >›</span>
-      </button>
+          <span className="text-xs font-medium text-white/80 flex-1 text-left">{node.label}</span>
+          <span
+            className="text-white/30 text-xs transition-transform duration-200 flex-shrink-0"
+            style={{ transform: expanded ? "rotate(90deg)" : "rotate(0deg)" }}
+          >›</span>
+        </button>
+      </div>
 
+      {/* Task list — connector exits from center of the button */}
       {expanded && (
         <div className="flex items-start ml-3 self-start">
-          <div className="w-5 h-px mt-[18px] flex-shrink-0"
-            style={{ backgroundColor: `${node.color}40` }} />
+          {/* Horizontal connector aligned to button center */}
+          <div
+            className="w-5 flex-shrink-0"
+            style={{
+              height: 1,
+              backgroundColor: `${node.color}40`,
+              marginTop: leafTopOffset + leafButtonHeight / 2,
+            }}
+          />
           <div className="flex flex-col relative" style={{ gap: GAP_TASK }}>
+            {/* Vertical spine from center of first to center of last task */}
             <div
               className="absolute w-px"
               style={{
                 backgroundColor: `${node.color}30`,
                 left: "-2px",
-                top: "10px",
-                bottom: "10px",
+                top: `${taskHeights[0] / 2}px`,
+                height: `${totalTaskHeight - taskHeights[0] / 2 - taskHeights[taskHeights.length - 1] / 2}px`,
               }}
             />
-            {node.tasks.map((task) => (
-              <TaskNode key={task.id} task={task} allTasks={node.tasks} color={node.color} />
+            {node.tasks.map((task, i) => (
+              <TaskNodeWrapper
+                key={task.id}
+                task={task}
+                allTasks={node.tasks}
+                color={node.color}
+                onHeightChange={(h) => updateTaskHeight(i, h)}
+              />
             ))}
           </div>
         </div>
@@ -148,7 +205,34 @@ function LeafNodeComponent({
     </div>
   );
 }
+function TaskNodeWrapper({
+  task,
+  allTasks,
+  color,
+  onHeightChange,
+}: {
+  task: Task;
+  allTasks: Task[];
+  color: string;
+  onHeightChange: (h: number) => void;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    if (!ref.current) return;
+    const observer = new ResizeObserver(() => {
+      onHeightChange(ref.current?.offsetHeight ?? 32);
+    });
+    observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [onHeightChange]);
+
+  return (
+    <div ref={ref}>
+      <TaskNode task={task} allTasks={allTasks} color={color} />
+    </div>
+  );
+}
 // ─── Branch Node ──────────────────────────────────────────────────────────────
 
 function BranchNodeComponent({ branch, onSelect }: { branch: BranchNode; onSelect?: (node: LeafNode) => void }) {
