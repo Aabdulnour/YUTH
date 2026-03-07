@@ -9,5 +9,8 @@ export interface ActionItem {
   priority: ActionPriority;
   tags?: string[];
   conditions?: ProfileMatchConditions;
+  sourceLabel?: string;
+  sourceUrl?: string;
   externalLink?: string;
+  externalLinkLabel?: string;
 }

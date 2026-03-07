@@ -15,12 +15,18 @@ export interface RecommendationContext {
     name: string;
     description: string;
     estimated_value: EstimatedValue;
+    sourceLabel?: string;
+    sourceUrl?: string;
   }>;
   matchedActions: Array<{
     id: string;
     title: string;
     description: string;
     priority: ActionPriority;
+    sourceLabel?: string;
+    sourceUrl?: string;
+    externalLink?: string;
+    externalLinkLabel?: string;
   }>;
   estimatedValueRange?: {
     min: number;
@@ -29,6 +35,18 @@ export interface RecommendationContext {
   };
   estimatedValueTotal?: number;
   insights?: string[];
+  topInsight?: {
+    title: string;
+    body: string;
+    sourceLabel?: string;
+    sourceUrl?: string;
+  };
+  adultScore?: {
+    score: number;
+    tier: string;
+    completedActions: number;
+    totalActions: number;
+  };
 }
 
 export interface AskAIRequestBody {

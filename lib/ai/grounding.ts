@@ -60,6 +60,8 @@ export function sanitizeRecommendationContext(value: unknown): RecommendationCon
       const min = benefit.estimated_value.min;
       const max = benefit.estimated_value.max;
       const display = toSafeString(benefit.estimated_value.display);
+      const sourceLabel = toSafeString(benefit.sourceLabel) ?? undefined;
+      const sourceUrl = toSafeString(benefit.sourceUrl) ?? undefined;
 
       if (!isFiniteNumber(min) || !isFiniteNumber(max) || !display) {
         return null;
@@ -74,6 +76,8 @@ export function sanitizeRecommendationContext(value: unknown): RecommendationCon
           max,
           display,
         },
+        sourceLabel,
+        sourceUrl,
       };
     })
     .filter((benefit): benefit is RecommendationContext["matchedBenefits"][number] => Boolean(benefit));
@@ -88,6 +92,10 @@ export function sanitizeRecommendationContext(value: unknown): RecommendationCon
       const title = toSafeString(action.title);
       const description = toSafeString(action.description);
       const priority = toSafeString(action.priority);
+      const sourceLabel = toSafeString(action.sourceLabel) ?? undefined;
+      const sourceUrl = toSafeString(action.sourceUrl) ?? undefined;
+      const externalLink = toSafeString(action.externalLink) ?? undefined;
+      const externalLinkLabel = toSafeString(action.externalLinkLabel) ?? undefined;
 
       if (!id || !title || !description || !isActionPriority(priority)) {
         return null;
@@ -98,6 +106,10 @@ export function sanitizeRecommendationContext(value: unknown): RecommendationCon
         title,
         description,
         priority,
+        sourceLabel,
+        sourceUrl,
+        externalLink,
+        externalLinkLabel,
       };
     })
     .filter((action): action is RecommendationContext["matchedActions"][number] => Boolean(action));
@@ -123,12 +135,48 @@ export function sanitizeRecommendationContext(value: unknown): RecommendationCon
     estimatedValueTotal = value.estimatedValueTotal;
   }
 
+  let topInsight: RecommendationContext["topInsight"];
+  if (isRecord(value.topInsight)) {
+    const title = toSafeString(value.topInsight.title);
+    const body = toSafeString(value.topInsight.body);
+    const sourceLabel = toSafeString(value.topInsight.sourceLabel) ?? undefined;
+    const sourceUrl = toSafeString(value.topInsight.sourceUrl) ?? undefined;
+
+    if (title && body) {
+      topInsight = {
+        title,
+        body,
+        sourceLabel,
+        sourceUrl,
+      };
+    }
+  }
+
+  let adultScore: RecommendationContext["adultScore"];
+  if (isRecord(value.adultScore)) {
+    const score = value.adultScore.score;
+    const tier = toSafeString(value.adultScore.tier);
+    const completedActions = value.adultScore.completedActions;
+    const totalActions = value.adultScore.totalActions;
+
+    if (isFiniteNumber(score) && tier && isFiniteNumber(completedActions) && isFiniteNumber(totalActions)) {
+      adultScore = {
+        score,
+        tier,
+        completedActions,
+        totalActions,
+      };
+    }
+  }
+
   return {
     matchedBenefits,
     matchedActions,
     estimatedValueRange,
     estimatedValueTotal,
     insights,
+    topInsight,
+    adultScore,
   };
 }
 
@@ -156,7 +204,18 @@ export function sanitizeHistory(value: unknown): ChatHistoryMessage[] {
     .slice(-MAX_HISTORY_MESSAGES);
 }
 
-export function buildSystemPrompt(): string {
+interface SystemPromptInput {
+  profile: UserProfile;
+  recommendation: RecommendationContext;
+}
+
+export function buildSystemPrompt(input: SystemPromptInput): string {
+  const systemContext = {
+    profile: input.profile,
+    top_insight: input.recommendation.topInsight ?? null,
+    adult_score: input.recommendation.adultScore ?? null,
+  };
+
   return [
     "You are MapleMind AI, a Canadian adulthood assistant for young adults.",
     "Answer using ONLY the provided MapleMind context and allowed program catalog.",
@@ -165,7 +224,9 @@ export function buildSystemPrompt(): string {
     "Do not provide legal or tax guarantees; use cautious language like 'may', 'could', or 'typically'.",
     "Use a calm, practical fintech/govtech tone.",
     "Keep the response concise: one short paragraph plus optional next-step bullets (max 4 bullets).",
-  ].join(" ");
+    "Treat the following user profile context as mandatory personalization input.",
+    JSON.stringify(systemContext, null, 2),
+  ].join("\n\n");
 }
 
 interface UserPromptInput {
@@ -186,23 +247,33 @@ export function buildUserPrompt(input: UserPromptInput): string {
       name: benefit.name,
       description: benefit.description,
       estimated_value: benefit.estimated_value.display,
+      source_label: benefit.sourceLabel,
+      source_url: benefit.sourceUrl,
     })),
     matched_actions: input.recommendation.matchedActions.map((action) => ({
       id: action.id,
       title: action.title,
       description: action.description,
       priority: action.priority,
+      source_label: action.sourceLabel,
+      source_url: action.sourceUrl,
+      external_link: action.externalLink,
+      external_link_label: action.externalLinkLabel,
     })),
     estimated_value_range: input.recommendation.estimatedValueRange?.label,
+    adult_score: input.recommendation.adultScore,
+    top_insight: input.recommendation.topInsight,
     recommendation_insights: input.recommendation.insights ?? [],
     recent_chat_history: input.history,
     allowed_benefit_catalog: input.benefitCatalog.map((benefit) => ({
       id: benefit.id,
       name: benefit.name,
+      source_label: benefit.sourceLabel,
     })),
     allowed_action_catalog: input.actionCatalog.map((action) => ({
       id: action.id,
       title: action.title,
+      source_label: action.sourceLabel,
     })),
   };
 

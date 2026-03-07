@@ -11,6 +11,12 @@ export interface UserProfile {
   livesWithParents: boolean;
   filesTaxes: boolean;
   noEmployerBenefits: boolean;
+  // Eligibility & context signals (additive, default false)
+  isPostSecondary: boolean;
+  isNewcomer: boolean;
+  isIndigenous: boolean;
+  hasEmergencySavings: boolean;
+  hasDependent: boolean;
 }
 
 export type UserProfileFlagKey = Exclude<keyof UserProfile, "age" | "province">;
@@ -30,6 +36,11 @@ export const PROFILE_FLAG_KEYS: UserProfileFlagKey[] = [
   "livesWithParents",
   "filesTaxes",
   "noEmployerBenefits",
+  "isPostSecondary",
+  "isNewcomer",
+  "isIndigenous",
+  "hasEmergencySavings",
+  "hasDependent",
 ];
 
 export const DEFAULT_USER_PROFILE: UserProfile = {
@@ -41,6 +52,11 @@ export const DEFAULT_USER_PROFILE: UserProfile = {
   livesWithParents: false,
   filesTaxes: false,
   noEmployerBenefits: false,
+  isPostSecondary: false,
+  isNewcomer: false,
+  isIndigenous: false,
+  hasEmergencySavings: false,
+  hasDependent: false,
 };
 
 export const PROFILE_FIELD_LABELS: Record<keyof UserProfile, string> = {
@@ -54,4 +70,9 @@ export const PROFILE_FIELD_LABELS: Record<keyof UserProfile, string> = {
   livesWithParents: "Lives with Parents",
   filesTaxes: "Files Taxes",
   noEmployerBenefits: "No Employer Benefits",
+  isPostSecondary: "Post-Secondary Student",
+  isNewcomer: "Newcomer / Recent Immigrant",
+  isIndigenous: "Indigenous Identity",
+  hasEmergencySavings: "Has Emergency Savings",
+  hasDependent: "Has a Dependent",
 };

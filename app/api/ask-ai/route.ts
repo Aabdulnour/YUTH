@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
       input: [
         {
           role: "system",
-          content: [{ type: "input_text", text: buildSystemPrompt() }],
+          content: [{ type: "input_text", text: buildSystemPrompt({ profile, recommendation }) }],
         },
         {
           role: "user",
