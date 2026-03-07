@@ -33,25 +33,25 @@ function getShortSummary(data) {
 
   if (data.fitsBudget) {
     parts.push(
-      `Currently fits the monthly budget with ${formatCurrency(
+      `This purchase currently fits the monthly budget with ${formatCurrency(
         data.remainingAfterPurchase
       )} left`
     );
   } else {
-    parts.push("May push you over your monthly budget");
+    parts.push("This purchase may push you over your monthly budget");
   }
 
   if (data.deadlineRisk === "high") {
-    parts.push("high deadline risk");
+    parts.push("as you have a high deadline risk coming up");
   } else if (data.deadlineRisk === "watch") {
-    parts.push("upcoming deadlines to watch");
+    parts.push("you may want to watch out for your upcoming deadlines");
   }
 
   if (Array.isArray(data.matchedGoals) && data.matchedGoals.length > 0) {
-    parts.push(`related to ${data.matchedGoals[0]}`);
+    parts.push(`relating to ${data.matchedGoals[0]}.`);
   }
 
-  return parts.join(" • ");
+  return parts.join(", ");
 }
 
 function showOnly(sectionId) {
@@ -99,7 +99,12 @@ function renderAnalysis(data) {
 
   setText("summary", getShortSummary(data), "No summary available");
   setText("price", formatCurrency(data.price));
-  setText("category", data.category || "General");
+  setText(
+  "category",
+  data.category
+    ? data.category.charAt(0).toUpperCase() + data.category.slice(1)
+    : "General"
+);
   setText("projectedSpend", formatCurrency(data.projectedDiscretionarySpend));
   setText("budgetCap", formatCurrency(data.discretionaryBudget));
   setText("remainingBudget", formatCurrency(data.remainingAfterPurchase));
@@ -116,10 +121,14 @@ function renderAnalysis(data) {
       : "None"
   );
 
-  const goals =
-    Array.isArray(data.matchedGoals) && data.matchedGoals.length
-      ? data.matchedGoals.map((goal) => `<span class="tag">${goal}</span>`).join("")
-      : '<span class="muted">No matched goals</span>';
+ const goals =
+  Array.isArray(data.matchedGoals) && data.matchedGoals.length
+    ? data.matchedGoals
+        .map((goal) =>
+          `<span class="tag">${goal.charAt(0).toUpperCase() + goal.slice(1)}</span>`
+        )
+        .join("")
+    : '<span class="muted">No matched goals</span>';
 
   setHTML("matchedGoals", goals);
 
@@ -136,7 +145,9 @@ async function loadAnalysis() {
     const stored = await chrome.storage.local.get([
       "lastAnalysis",
       "lastAnalysisError",
-      "lastAnalysisLoading"
+      "lastAnalysisLoading",
+      "lastAnalysisIdle",
+      "lastAnalysisIdleMessage"
     ]);
 
     if (stored.lastAnalysisLoading) {
