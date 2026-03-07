@@ -21,12 +21,11 @@
   }
 
   body{
-    background-color: var(--background);
+    background-color: black;
     color: var(--foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    overscroll-behavior-y: none;
   }
 }
 
