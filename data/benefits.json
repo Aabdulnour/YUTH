@@ -2,7 +2,7 @@
   {
     "id": "gst_hst_credit",
     "name": "GST/HST Credit",
-    "description": "Quarterly tax-free payment for eligible Canadians with low to modest income.",
+    "description": "Quarterly tax-free credit that can offset sales tax costs after you file your return.",
     "estimated_value": {
       "min": 300,
       "max": 519,
@@ -12,12 +12,14 @@
     "tags": ["taxes", "cost_of_living", "federal"],
     "conditions": {
       "ageMin": 19
-    }
+    },
+    "sourceLabel": "CRA",
+    "sourceUrl": "https://www.canada.ca/en/revenue-agency/services/child-family-benefits/gsthstc-eligibility.html"
   },
   {
     "id": "canada_workers_benefit",
     "name": "Canada Workers Benefit",
-    "description": "Refundable tax credit that can top up earnings for workers with modest income.",
+    "description": "Refundable credit for workers with modest income, usually claimed when filing taxes.",
     "estimated_value": {
       "min": 400,
       "max": 1518,
@@ -28,12 +30,14 @@
     "conditions": {
       "employed": true,
       "ageMin": 19
-    }
+    },
+    "sourceLabel": "CRA",
+    "sourceUrl": "https://www.canada.ca/en/revenue-agency/services/child-family-benefits/acwb-eligibility.html"
   },
   {
     "id": "canada_student_grant",
     "name": "Canada Student Grant",
-    "description": "Non-repayable support for eligible full-time or part-time post-secondary students.",
+    "description": "Non-repayable federal funding for eligible post-secondary students with assessed need.",
     "estimated_value": {
       "min": 1000,
       "max": 4200,
@@ -43,12 +47,14 @@
     "tags": ["student", "grant", "federal"],
     "conditions": {
       "student": true
-    }
+    },
+    "sourceLabel": "Canada Student Aid",
+    "sourceUrl": "https://www.canada.ca/en/services/benefits/education/student-aid/grants-loans/full-time.html"
   },
   {
     "id": "provincial_student_aid",
     "name": "Provincial Student Aid",
-    "description": "Province-level student loans and grants (for example OSAP, StudentAid BC, AFE).",
+    "description": "Provincial loans and grants (such as OSAP and StudentAid BC) that can supplement federal aid.",
     "estimated_value": {
       "min": 500,
       "max": 3500,
@@ -58,12 +64,14 @@
     "tags": ["student", "provincial_support", "education"],
     "conditions": {
       "student": true
-    }
+    },
+    "sourceLabel": "Provincial Student Aid",
+    "sourceUrl": "https://www.canada.ca/en/services/benefits/education/student-aid.html"
   },
   {
     "id": "fhsa",
     "name": "First Home Savings Account (FHSA)",
-    "description": "Registered account for first-home savings with tax-deductible contributions.",
+    "description": "Registered account for first-home savings with tax-deductible contributions and tax-free withdrawals for eligible home purchases.",
     "estimated_value": {
       "min": 600,
       "max": 2400,
@@ -74,12 +82,14 @@
     "conditions": {
       "ageMin": 18,
       "ageMax": 39
-    }
+    },
+    "sourceLabel": "CRA",
+    "sourceUrl": "https://www.canada.ca/en/revenue-agency/services/tax/individuals/topics/first-home-savings-account.html"
   },
   {
     "id": "tfsa",
     "name": "Tax-Free Savings Account (TFSA)",
-    "description": "Flexible tax-sheltered account useful for emergency funds and medium-term goals.",
+    "description": "Flexible registered account for emergency savings and investing, with tax-free growth and withdrawals.",
     "estimated_value": {
       "min": 150,
       "max": 1000,
@@ -89,6 +99,8 @@
     "tags": ["savings", "investing", "tax_free_growth"],
     "conditions": {
       "ageMin": 18
-    }
+    },
+    "sourceLabel": "CRA",
+    "sourceUrl": "https://www.canada.ca/en/revenue-agency/services/tax/individuals/topics/tax-free-savings-account.html"
   }
 ]

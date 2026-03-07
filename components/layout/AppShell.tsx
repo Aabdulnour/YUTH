@@ -1,0 +1,88 @@
+"use client";
+
+import Link from "next/link";
+import type { ReactNode } from "react";
+
+interface AppShellProps {
+  activePath: "/dashboard" | "/ask-ai" | "/profile";
+  children: ReactNode;
+  maxWidthClassName?: string;
+}
+
+interface AppPageHeaderProps {
+  eyebrow: string;
+  title: string;
+  description?: string;
+  actions?: ReactNode;
+}
+
+const NAV_ITEMS = [
+  { href: "/dashboard", label: "Dashboard" },
+  { href: "/ask-ai", label: "Ask AI" },
+  { href: "/profile", label: "Profile" },
+] as const;
+
+function joinClasses(...classes: Array<string | false | undefined>): string {
+  return classes.filter(Boolean).join(" ");
+}
+
+export function AppShell({ activePath, children, maxWidthClassName = "max-w-6xl" }: AppShellProps) {
+  return (
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top,_#fff7ef,_#f7f3ee_48%,_#f3efe9_100%)] text-[#1c1b19]">
+      <div className={joinClasses("mx-auto px-6 py-8", maxWidthClassName)}>
+        <header className="sticky top-4 z-20 mb-8 rounded-2xl border border-[#e6dfd8] bg-white/92 px-4 py-3 shadow-[0_10px_30px_rgba(34,32,29,0.08)] backdrop-blur">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <Link href="/" className="text-base font-semibold tracking-[0.08em] text-[#163320]">
+                MAPLEMIND APP
+              </Link>
+              <span className="rounded-full bg-[#edf5ee] px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] text-[#2f7a47]">
+                Private Preview
+              </span>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <nav className="flex flex-wrap items-center gap-2">
+                {NAV_ITEMS.map((item) => {
+                  const isActive = item.href === activePath;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={joinClasses(
+                        "rounded-xl px-4 py-2 text-sm font-medium transition",
+                        isActive
+                          ? "bg-[#163320] text-white"
+                          : "border border-[#e7e0d9] bg-[#fbf8f4] text-[#4d473f] hover:border-[#d9d1c8]"
+                      )}
+                    >
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </nav>
+
+              <span className="rounded-xl border border-[#e7e0d9] bg-[#fbf8f4] px-3 py-2 text-xs font-medium text-[#6f6a64]">
+                Demo Account
+              </span>
+            </div>
+          </div>
+        </header>
+        {children}
+      </div>
+    </main>
+  );
+}
+
+export function AppPageHeader({ eyebrow, title, description, actions }: AppPageHeaderProps) {
+  return (
+    <section className="mb-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+      <div>
+        <p className="text-sm uppercase tracking-[0.2em] text-[#8a8580]">{eyebrow}</p>
+        <h1 className="mt-2 text-4xl font-bold leading-tight md:text-5xl">{title}</h1>
+        {description ? <p className="mt-3 max-w-3xl text-lg text-[#6f6a64]">{description}</p> : null}
+      </div>
+      {actions ? <div className="flex flex-wrap items-center gap-3">{actions}</div> : null}
+    </section>
+  );
+}

@@ -15,12 +15,18 @@ export interface RecommendationContext {
     name: string;
     description: string;
     estimated_value: EstimatedValue;
+    sourceLabel?: string;
+    sourceUrl?: string;
   }>;
   matchedActions: Array<{
     id: string;
     title: string;
     description: string;
     priority: ActionPriority;
+    sourceLabel?: string;
+    sourceUrl?: string;
+    externalLink?: string;
+    externalLinkLabel?: string;
   }>;
   estimatedValueRange?: {
     min: number;

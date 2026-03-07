@@ -21,4 +21,6 @@ export interface Benefit {
   category: BenefitCategory;
   tags?: string[];
   conditions?: ProfileMatchConditions;
+  sourceLabel?: string;
+  sourceUrl?: string;
 }

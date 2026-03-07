@@ -60,6 +60,8 @@ export function sanitizeRecommendationContext(value: unknown): RecommendationCon
       const min = benefit.estimated_value.min;
       const max = benefit.estimated_value.max;
       const display = toSafeString(benefit.estimated_value.display);
+      const sourceLabel = toSafeString(benefit.sourceLabel) ?? undefined;
+      const sourceUrl = toSafeString(benefit.sourceUrl) ?? undefined;
 
       if (!isFiniteNumber(min) || !isFiniteNumber(max) || !display) {
         return null;
@@ -74,6 +76,8 @@ export function sanitizeRecommendationContext(value: unknown): RecommendationCon
           max,
           display,
         },
+        sourceLabel,
+        sourceUrl,
       };
     })
     .filter((benefit): benefit is RecommendationContext["matchedBenefits"][number] => Boolean(benefit));
@@ -88,6 +92,10 @@ export function sanitizeRecommendationContext(value: unknown): RecommendationCon
       const title = toSafeString(action.title);
       const description = toSafeString(action.description);
       const priority = toSafeString(action.priority);
+      const sourceLabel = toSafeString(action.sourceLabel) ?? undefined;
+      const sourceUrl = toSafeString(action.sourceUrl) ?? undefined;
+      const externalLink = toSafeString(action.externalLink) ?? undefined;
+      const externalLinkLabel = toSafeString(action.externalLinkLabel) ?? undefined;
 
       if (!id || !title || !description || !isActionPriority(priority)) {
         return null;
@@ -98,6 +106,10 @@ export function sanitizeRecommendationContext(value: unknown): RecommendationCon
         title,
         description,
         priority,
+        sourceLabel,
+        sourceUrl,
+        externalLink,
+        externalLinkLabel,
       };
     })
     .filter((action): action is RecommendationContext["matchedActions"][number] => Boolean(action));
@@ -186,12 +198,18 @@ export function buildUserPrompt(input: UserPromptInput): string {
       name: benefit.name,
       description: benefit.description,
       estimated_value: benefit.estimated_value.display,
+      source_label: benefit.sourceLabel,
+      source_url: benefit.sourceUrl,
     })),
     matched_actions: input.recommendation.matchedActions.map((action) => ({
       id: action.id,
       title: action.title,
       description: action.description,
       priority: action.priority,
+      source_label: action.sourceLabel,
+      source_url: action.sourceUrl,
+      external_link: action.externalLink,
+      external_link_label: action.externalLinkLabel,
     })),
     estimated_value_range: input.recommendation.estimatedValueRange?.label,
     recommendation_insights: input.recommendation.insights ?? [],
@@ -199,10 +217,12 @@ export function buildUserPrompt(input: UserPromptInput): string {
     allowed_benefit_catalog: input.benefitCatalog.map((benefit) => ({
       id: benefit.id,
       name: benefit.name,
+      source_label: benefit.sourceLabel,
     })),
     allowed_action_catalog: input.actionCatalog.map((action) => ({
       id: action.id,
       title: action.title,
+      source_label: action.sourceLabel,
     })),
   };
 
