@@ -1,26 +1,34 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
-
-const options = [
-  "I have a job",
-  "I'm a student",
-  "I pay rent",
-  "I have a car",
-  "I have debt",
-  "I live with parents",
-  "I file taxes",
-  "I don't have employer benefits",
-];
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { ONBOARDING_OPTIONS, PROVINCE_OPTIONS, buildProfileFromOnboarding } from "@/lib/onboarding";
+import { saveUserProfile } from "@/lib/profile-storage";
+import type { UserProfileFlagKey } from "@/types/profile";
 
 export default function OnboardingPage() {
-  const [selected, setSelected] = useState<string[]>([]);
+  const router = useRouter();
+  const [selectedFlags, setSelectedFlags] = useState<UserProfileFlagKey[]>([]);
+  const [ageInput, setAgeInput] = useState("");
+  const [province, setProvince] = useState("");
 
-  const toggleOption = (option: string) => {
-    setSelected((prev) =>
-      prev.includes(option) ? prev.filter((item) => item !== option) : [...prev, option]
+  const toggleOption = (flag: UserProfileFlagKey) => {
+    setSelectedFlags((currentFlags) =>
+      currentFlags.includes(flag)
+        ? currentFlags.filter((currentFlag) => currentFlag !== flag)
+        : [...currentFlags, flag]
     );
+  };
+
+  const handleContinue = () => {
+    const profile = buildProfileFromOnboarding({
+      selectedFlags,
+      ageInput,
+      province,
+    });
+    saveUserProfile(profile);
+    router.push("/dashboard");
   };
 
   return (
@@ -36,31 +44,65 @@ export default function OnboardingPage() {
         </p>
 
         <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {options.map((option) => {
-            const active = selected.includes(option);
+          <label className="rounded-2xl border border-[#e6dfd8] bg-white p-5">
+            <span className="block text-sm font-semibold uppercase tracking-[0.08em] text-[#8a8580]">
+              Age (optional)
+            </span>
+            <input
+              value={ageInput}
+              onChange={(event) => setAgeInput(event.target.value)}
+              placeholder="24 or 18-24"
+              className="mt-3 w-full rounded-xl border border-[#ddd6cf] bg-[#faf7f3] px-4 py-3 outline-none focus:border-[#f04d2d]"
+            />
+          </label>
+
+          <label className="rounded-2xl border border-[#e6dfd8] bg-white p-5">
+            <span className="block text-sm font-semibold uppercase tracking-[0.08em] text-[#8a8580]">
+              Province (optional)
+            </span>
+            <select
+              value={province}
+              onChange={(event) => setProvince(event.target.value)}
+              className="mt-3 w-full rounded-xl border border-[#ddd6cf] bg-[#faf7f3] px-4 py-3 outline-none focus:border-[#f04d2d]"
+            >
+              <option value="">Select province or territory</option>
+              {PROVINCE_OPTIONS.map((provinceOption) => (
+                <option key={provinceOption} value={provinceOption}>
+                  {provinceOption}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {ONBOARDING_OPTIONS.map((option) => {
+            const active = selectedFlags.includes(option.key);
             return (
               <button
-                key={option}
-                onClick={() => toggleOption(option)}
+                key={option.key}
+                type="button"
+                onClick={() => toggleOption(option.key)}
                 className={`rounded-2xl border p-5 text-left text-lg font-semibold transition ${
                   active
                     ? "border-[#f04d2d] bg-[#fff0eb] text-[#1c1b19]"
                     : "border-[#e6dfd8] bg-white hover:border-[#d6cec6]"
                 }`}
               >
-                {option}
+                {option.label}
               </button>
             );
           })}
         </div>
 
         <div className="mt-8 flex flex-col gap-4 sm:flex-row">
-          <Link
-            href="/dashboard"
+          <button
+            type="button"
+            onClick={handleContinue}
             className="rounded-2xl bg-[#f04d2d] px-8 py-4 text-center text-lg font-semibold text-white"
           >
             Continue to dashboard
-          </Link>
+          </button>
           <Link
             href="/"
             className="rounded-2xl border border-[#d8d1c8] bg-white px-8 py-4 text-center text-lg font-medium text-[#1c1b19]"

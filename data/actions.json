@@ -2,19 +2,60 @@
   {
     "id": "file_taxes",
     "title": "File your taxes",
-    "description": "Filing taxes unlocks benefits like the GST/HST Credit.",
-    "priority": "high"
+    "description": "Filing taxes unlocks credits like GST/HST and can trigger automatic benefit payments.",
+    "priority": "high",
+    "tags": ["taxes", "unlock_benefits"],
+    "conditions": {
+      "filesTaxes": false
+    }
   },
   {
-    "id": "open_fhsa",
-    "title": "Open an FHSA",
-    "description": "Start building contribution room for a future home purchase.",
-    "priority": "medium"
+    "id": "register_cra_my_account",
+    "title": "Register for CRA My Account",
+    "description": "Track returns, notice of assessments, and benefit payment details in one place.",
+    "priority": "medium",
+    "tags": ["taxes", "account_setup"],
+    "externalLink": "https://www.canada.ca/en/revenue-agency/services/e-services/e-services-individuals/account-individuals.html"
   },
   {
     "id": "check_credit_score",
     "title": "Check your credit score",
-    "description": "Understand your current credit health and track progress.",
-    "priority": "medium"
+    "description": "Use your bank or a free provider to monitor your score and spot errors early.",
+    "priority": "medium",
+    "tags": ["credit", "financial_health"],
+    "conditions": {
+      "hasDebt": true
+    }
+  },
+  {
+    "id": "apply_provincial_student_aid",
+    "title": "Apply for provincial student aid",
+    "description": "Submit your province-specific student aid application before school deadlines.",
+    "priority": "high",
+    "tags": ["student", "education", "provincial_support"],
+    "conditions": {
+      "student": true
+    },
+    "externalLink": "https://www.canada.ca/en/services/benefits/education/student-aid.html"
+  },
+  {
+    "id": "review_rent_support_programs",
+    "title": "Review rent support and budgeting programs",
+    "description": "Check provincial renter supports and free financial literacy tools for monthly cash flow.",
+    "priority": "medium",
+    "tags": ["rent", "financial_literacy", "cash_flow"],
+    "conditions": {
+      "renter": true
+    }
+  },
+  {
+    "id": "start_debt_repayment_plan",
+    "title": "Start a debt repayment plan",
+    "description": "List balances, target highest-interest debt first, and automate minimum payments.",
+    "priority": "high",
+    "tags": ["debt", "budgeting", "financial_setup"],
+    "conditions": {
+      "hasDebt": true
+    }
   }
 ]
