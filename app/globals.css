@@ -15,6 +15,20 @@
   --font-mono: var(--font-mono);
 }
 
+@layer base {
+  html{
+    background-color: black;
+  }
+
+  body{
+    background-color: black;
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
 /* Suppress automatic dark mode - public pages are intentionally designed */
 body {
   background: var(--background);
@@ -22,4 +36,18 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Score ring animation ── */
+@keyframes score-ring-fill {
+  from {
+    stroke-dashoffset: var(--ring-circumference);
+  }
+  to {
+    stroke-dashoffset: var(--ring-offset);
+  }
+}
+
+.score-ring-animated {
+  animation: score-ring-fill 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }

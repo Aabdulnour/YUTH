@@ -12,8 +12,6 @@ type RoadmapData = {
   children: BranchNode[];
 };
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-
 const NODE_WIDTHS = {
   root: 160,
   branch: 180,
@@ -21,58 +19,102 @@ const NODE_WIDTHS = {
   task: 220,
 };
 
+const NODE_HEIGHTS = {
+  collapsedBranch: 44,
+};
+
 const GAP_BRANCH = 20;
 const GAP_LEAF = 12;
 const GAP_TASK = 8;
+const CONNECTOR_WIDTH = 16;
+const LEAF_EXPANDED_EXTRA_WIDTH = 260;
 
-// ─── Task Node ────────────────────────────────────────────────────────────────
-
-function TaskNode({ task, allTasks, color }: { task: Task; allTasks: Task[]; color: string }) {
+function TaskNode({
+  task,
+  allTasks,
+  color,
+}: {
+  task: Task;
+  allTasks: Task[];
+  color: string;
+}) {
   const { smartToggle, isTaskUnlocked, isComplete } = useProgressContext();
   const unlocked = isTaskUnlocked(task);
   const complete = isComplete(task.id);
 
   return (
     <div className="flex items-center gap-2">
-      <div className="w-2 h-2 rounded-full flex-shrink-0"
-        style={{ backgroundColor: color, opacity: unlocked ? 1 : 0.3 }} />
+      <div
+        className="h-2 w-2 flex-shrink-0 rounded-full"
+        style={{ backgroundColor: color, opacity: unlocked ? 1 : 0.3 }}
+      />
+
       <button
         onClick={() => unlocked && smartToggle(task, allTasks)}
         disabled={!unlocked}
-        className="flex items-center gap-2.5 px-3 py-2 rounded-lg border text-left transition-all duration-150"
+        className="flex items-center gap-2.5 rounded-lg border px-3 py-2 text-left transition-all duration-150"
         style={{
           width: NODE_WIDTHS.task,
           minWidth: NODE_WIDTHS.task,
-          backgroundColor: complete ? `${color}18` : unlocked ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.02)",
-          borderColor: complete ? `${color}50` : unlocked ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.05)",
+          backgroundColor: complete
+            ? `${color}18`
+            : unlocked
+              ? "rgba(255,255,255,0.04)"
+              : "rgba(255,255,255,0.02)",
+          borderColor: complete
+            ? `${color}50`
+            : unlocked
+              ? "rgba(255,255,255,0.1)"
+              : "rgba(255,255,255,0.05)",
           opacity: unlocked ? 1 : 0.35,
           cursor: unlocked ? "pointer" : "not-allowed",
         }}
       >
         <div
-          className="w-3.5 h-3.5 rounded flex-shrink-0 border flex items-center justify-center transition-all duration-150"
+          className="flex h-3.5 w-3.5 flex-shrink-0 items-center justify-center rounded border transition-all duration-150"
           style={{
-            borderColor: complete ? color : unlocked ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.15)",
+            borderColor: complete
+              ? color
+              : unlocked
+                ? "rgba(255,255,255,0.3)"
+                : "rgba(255,255,255,0.15)",
             backgroundColor: complete ? color : "transparent",
           }}
         >
-          {complete && <span style={{ fontSize: 8, color: "#000", fontWeight: 900, lineHeight: 1 }}>✓</span>}
+          {complete && (
+            <span
+              style={{
+                fontSize: 8,
+                color: "#000",
+                fontWeight: 900,
+                lineHeight: 1,
+              }}
+            >
+              ✓
+            </span>
+          )}
         </div>
-        <span style={{
-          color: complete ? "rgba(255,255,255,0.35)" : unlocked ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.3)",
-          textDecoration: complete ? "line-through" : "none",
-          fontSize: 12,
-          flex: 1,
-        }}>
+
+        <span
+          style={{
+            color: complete
+              ? "rgba(255,255,255,0.35)"
+              : unlocked
+                ? "rgba(255,255,255,0.85)"
+                : "rgba(255,255,255,0.3)",
+            textDecoration: complete ? "line-through" : "none",
+            fontSize: 12,
+            flex: 1,
+          }}
+        >
           {task.label}
         </span>
-        {!unlocked && <span className="text-xs opacity-40 flex-shrink-0">🔒</span>}
+
+        {!unlocked && <span className="flex-shrink-0 text-xs opacity-40">🔒</span>}
       </button>
     </div>
   );
 }
-
-// ─── Leaf Node ────────────────────────────────────────────────────────────────
 
 function LeafNodeComponent({
   node,
@@ -93,9 +135,11 @@ function LeafNodeComponent({
   const containerRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!containerRef.current || !onHeightChange) return;
+
     const observer = new ResizeObserver(() => {
       onHeightChange(containerRef.current?.offsetHeight ?? 0);
     });
+
     observer.observe(containerRef.current);
     return () => observer.disconnect();
   }, [onHeightChange]);
@@ -253,7 +297,6 @@ function BranchNodeComponent({ branch, onSelect, onExpanded, onLeafExpand }: {
   const { pct } = getBranchProgress(branch.children);
   const branchButtonRef = useRef<HTMLDivElement>(null);
   const [branchButtonHeight, setBranchButtonHeight] = useState(44);
-  const [anyLeafExpanded, setAnyLeafExpanded] = useState(false);
 
   // Measure actual branch button height
   useEffect(() => {
@@ -266,7 +309,7 @@ function BranchNodeComponent({ branch, onSelect, onExpanded, onLeafExpand }: {
   }, []);
 
   const [childHeights, setChildHeights] = useState<number[]>(
-    () => new Array(branch.children.length).fill(40)
+    () => new Array(branch.children.length).fill(40),
   );
 
   const updateChildHeight = useCallback((index: number, height: number) => {
@@ -282,9 +325,8 @@ function BranchNodeComponent({ branch, onSelect, onExpanded, onLeafExpand }: {
     childHeights.reduce((sum, h) => sum + h, 0) +
     GAP_LEAF * (childHeights.length - 1);
   const topOffset = Math.max(0, (totalChildrenHeight - branchButtonHeight) / 2);
-  
+
   return (
-    
     <div className="flex items-start">
       {/* Branch button */}
       <div
@@ -293,12 +335,8 @@ function BranchNodeComponent({ branch, onSelect, onExpanded, onLeafExpand }: {
         style={{ paddingTop: expanded ? topOffset : 0, transition: "padding-top 0.2s ease" }}
       >
         <button
-          onClick={() => {
-            const next = !expanded;
-            setExpanded(next);
-            onExpanded?.(next);
-          }}
-          className="flex items-center gap-3 px-4 py-3.5 rounded-xl border font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+          onClick={() => setExpanded(!expanded)}
+          className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl border font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
           style={{
             width: NODE_WIDTHS.branch,
             minWidth: NODE_WIDTHS.branch,
@@ -314,25 +352,33 @@ function BranchNodeComponent({ branch, onSelect, onExpanded, onLeafExpand }: {
               style={{ background: "rgba(13,13,20,0.85)" }}>
               <span style={{ color: branch.color, fontSize: pct === 100 ? 5 : 7, fontWeight: 800 }}>{pct}%</span>
             </div>
-          </div>
-          <span className="text-sm flex-1 text-left" style={{ color: branch.color }}>{branch.label}</span>
-          <span
-            className="text-white/30 text-sm transition-transform duration-200 flex-shrink-0"
-            style={{ transform: expanded ? "rotate(90deg)" : "rotate(0deg)" }}
-          >›</span>
-        </button>
-        <div className="mt-1 mx-1" style={{ width: NODE_WIDTHS.branch - 8 }}>
-          <div className="h-0.5 rounded-full bg-white/10 overflow-hidden">
-            <div className="h-full rounded-full transition-all duration-500"
-              style={{ width: `${pct}%`, backgroundColor: branch.color }} />
+
+            <span className="flex-1 text-left text-sm" style={{ color: branch.color }}>
+              {branch.label}
+            </span>
+
+            <span
+              className="flex-shrink-0 text-sm text-white/30 transition-transform duration-200"
+              style={{ transform: expanded ? "rotate(90deg)" : "rotate(0deg)" }}
+            >
+              ›
+            </span>
+          </button>
+
+          <div className="mx-1 mt-1" style={{ width: NODE_WIDTHS.branch - 8 }}>
+            <div className="h-0.5 overflow-hidden rounded-full bg-white/10">
+              <div
+                className="h-full rounded-full transition-all duration-500"
+                style={{ width: `${pct}%`, backgroundColor: branch.color }}
+              />
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Leaf nodes */}
       {expanded && (
         <div className="flex items-start ml-4">
-          <div className="flex-shrink-0 relative" style={{ width: anyLeafExpanded ? 60 : 310}}>
+          <div className="flex-shrink-0 relative" style={{ width: 16 }}>
             <div
               className="absolute w-px"
               style={{
@@ -342,22 +388,33 @@ function BranchNodeComponent({ branch, onSelect, onExpanded, onLeafExpand }: {
                 height: `${totalChildrenHeight - childHeights[0] / 2 - childHeights[childHeights.length - 1] / 2}px`,
               }}
             />
+
             {branch.children.map((_, i) => {
               const offsetTop =
-                childHeights.slice(0, i).reduce((s, h) => s + h + GAP_LEAF, 0) +
+                childHeights
+                  .slice(0, i)
+                  .reduce((sum, height) => sum + height + GAP_LEAF, 0) +
                 childHeights[i] / 2;
+
               return (
-                <div key={i} className="absolute h-px w-full"
-                  style={{ backgroundColor: `${branch.color}40`, top: `${offsetTop}px` }} />
+                <div
+                  key={i}
+                  className="absolute h-px w-full"
+                  style={{
+                    backgroundColor: `${branch.color}40`,
+                    top: `${offsetTop}px`,
+                  }}
+                />
               );
             })}
           </div>
+
           <div className="flex flex-col" style={{ gap: GAP_LEAF }}>
             {branch.children.map((leaf, i) => (
               <LeafNodeComponent
                 key={leaf.id}
                 node={leaf}
-                onHeightChange={(h) => updateChildHeight(i, h)}
+                onHeightChange={(height) => updateChildHeight(i, height)}
                 onSelect={onSelect}
                 onExpanded={(isExpanded) => {
                     setAnyLeafExpanded(isExpanded);
@@ -372,12 +429,9 @@ function BranchNodeComponent({ branch, onSelect, onExpanded, onLeafExpand }: {
   );
 }
 
-// ─── Branch Height Wrapper ────────────────────────────────────────────────────
-
 function BranchHeightWrapper({
   branch,
   index,
-  branchHeights,
   onHeightChange,
   onSelect,
   onExpanded,
@@ -395,27 +449,25 @@ function BranchHeightWrapper({
 
   useEffect(() => {
     if (!ref.current) return;
+
     const observer = new ResizeObserver(() => {
-      onHeightChange(index, ref.current?.offsetHeight ?? 44);
+      onHeightChange(index, ref.current?.offsetHeight ?? NODE_HEIGHTS.collapsedBranch);
     });
+
     observer.observe(ref.current);
     return () => observer.disconnect();
   }, [index, onHeightChange]);
-
-  const tickTop = branchHeights[index] / 2;
 
   return (
     <div ref={ref} className="flex items-start relative">
       <div className="absolute h-px"
         style={{ backgroundColor: `${branch.color}40`, left: 0, top: `${tickTop}px`, width: 16 }} />
       <div style={{ marginLeft: 16 }}>
-        <BranchNodeComponent branch={branch} onSelect={onSelect} onExpanded={onExpanded} onLeafExpand={onLeafExpand} />
+        <BranchNodeComponent branch={branch} onSelect={onSelect} />
       </div>
     </div>
   );
 }
-
-// ─── Mind Map ─────────────────────────────────────────────────────────────────
 
 function MindMap({ onSelectLeaf, onBranchExpand, onLeafExpand }: { 
   onSelectLeaf?: (node: LeafNode) => void;
@@ -427,7 +479,7 @@ function MindMap({ onSelectLeaf, onBranchExpand, onLeafExpand }: {
   const { done, total, pct } = getOverallProgress(data.children);
   const [anyBranchExpanded, setAnyBranchExpanded] = useState(false);
   const [branchHeights, setBranchHeights] = useState<number[]>(
-    () => new Array(data.children.length).fill(44)
+    () => new Array(data.children.length).fill(NODE_HEIGHTS.collapsedBranch),
   );
 
   const updateBranchHeight = useCallback((index: number, height: number) => {
@@ -440,40 +492,59 @@ function MindMap({ onSelectLeaf, onBranchExpand, onLeafExpand }: {
   }, []);
 
   const totalBranchHeight =
-    branchHeights.reduce((sum, h) => sum + h, 0) +
-    GAP_BRANCH * (branchHeights.length - 1);
+    branchHeights.reduce((sum, height) => sum + height, 0) +
+    GAP_BRANCH * Math.max(0, branchHeights.length - 1);
+
   const rootHeight = 90;
-  const rootTopOffset = Math.max(0, (totalBranchHeight - rootHeight) / 2);
+  const mapHeight = Math.max(rootHeight, totalBranchHeight);
 
   return (
-    <div className="flex items-start p-12">
-      {/* Root node */}
+    <div className="relative p-12" style={{ minHeight: mapHeight }}>
       <div
-        className="flex items-center flex-shrink-0 mr-2"
-        style={{ paddingTop: rootTopOffset, transition: "padding-top 0.2s ease" }}
+        className="absolute flex items-center"
+        style={{
+          left: 0,
+          top: "50%",
+          transform: "translateY(-50%)",
+        }}
       >
         <div className="flex flex-col items-center gap-1" style={{ width: NODE_WIDTHS.root }}>
           <div
-            className="w-full px-5 py-3 rounded-2xl border-2 font-bold"
+            className="w-full rounded-2xl border-2 px-5 py-3 text-center font-bold"
             style={{
               backgroundColor: "#1a1505",
               borderColor: "#a63e24",
               color: "#ff6038",
-              textAlign: "center",
             }}
           >
             <div style={{ fontSize: 15, fontWeight: 800 }}>Financial</div>
             <div style={{ fontSize: 15, fontWeight: 800 }}>Freedom</div>
-            <div style={{ fontSize: 10, color: "#f0c04080", marginTop: 4 }}>{pct}% complete</div>
+            <div
+              style={{
+                fontSize: 10,
+                color: "#f0c04080",
+                marginTop: 4,
+              }}
+            >
+              {pct}% complete
+            </div>
           </div>
-          <div className="w-full h-1 rounded-full bg-white/10 overflow-hidden mt-1">
-            <div className="h-full rounded-full transition-all duration-500"
-              style={{ width: `${pct}%`, background: "linear-gradient(90deg, #ff6038, #4ade80)" }} />
+
+          <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-white/10">
+            <div
+              className="h-full rounded-full transition-all duration-500"
+              style={{
+                width: `${pct}%`,
+                background: "linear-gradient(90deg, #ff6038, #4ade80)",
+              }}
+            />
           </div>
-          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>{done} / {total} tasks</div>
+
+          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>
+            {done} / {total} tasks
+          </div>
         </div>
-        <div className="h-px bg-white/20 mx-2 flex-shrink-0" 
-          style={{ width: anyBranchExpanded ? 120 : 360, transition: "width 0.5s ease" }} />
+        <div className="w-6 h-px bg-white/20 mx-2 flex-shrink-0" />
       </div>
 
       {/* Branches */}
@@ -495,11 +566,6 @@ function MindMap({ onSelectLeaf, onBranchExpand, onLeafExpand }: {
             branchHeights={branchHeights}
             onHeightChange={updateBranchHeight}
             onSelect={onSelectLeaf}
-            onExpanded={(expanded) => {
-                setAnyBranchExpanded(expanded);
-                if (expanded) onBranchExpand?.();
-            }}
-            onLeafExpand={onLeafExpand}
           />
         ))}
       </div>
@@ -507,69 +573,118 @@ function MindMap({ onSelectLeaf, onBranchExpand, onLeafExpand }: {
   );
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+function OverallProgressBar() {
+  const { getOverallProgress } = useProgressContext();
+  const data = roadmap as RoadmapData;
+  const { done, total, pct } = getOverallProgress(data.children);
+
+  return (
+    <div className="flex items-center gap-3">
+      <span className="text-xs text-white/40">Overall progress</span>
+      <div className="h-1.5 w-40 overflow-hidden rounded-full bg-white/10">
+        <div
+          className="h-full rounded-full transition-all duration-500"
+          style={{
+            width: `${pct}%`,
+            background: "linear-gradient(90deg, #ff6038, #4ade80)",
+          }}
+        />
+      </div>
+      <span className="text-xs font-bold text-white/60">{pct}%</span>
+      <span className="text-xs text-white/30">
+        {done}/{total}
+      </span>
+    </div>
+  );
+}
 
 export default function FinancialMindMapPage() {
   const [zoom, setZoom] = useState(1.33);
   const [selectedLeaf, setSelectedLeaf] = useState<LeafNode | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
 
-  const zoomIn = () => setZoom((z) => Math.min(2, parseFloat((z + 0.1).toFixed(1))));
-  const zoomOut = () => setZoom((z) => Math.max(0.4, parseFloat((z - 0.1).toFixed(1))));
-  const resetZoom = () => setZoom(1);
+  const zoomIn = () => {
+    setZoom((value) => Math.min(2, parseFloat((value + 0.1).toFixed(1))));
+  };
 
-  // Scroll-to-zoom
+  const zoomOut = () => {
+    setZoom((value) => Math.max(0.4, parseFloat((value - 0.1).toFixed(1))));
+  };
+
+  const resetZoom = () => {
+    setZoom(1);
+  };
+
   useEffect(() => {
     const el = canvasRef.current;
     if (!el) return;
+
     const handler = (e: WheelEvent) => {
       if (e.ctrlKey || e.metaKey) {
         e.preventDefault();
-        setZoom((z) => Math.min(2, Math.max(0.4, parseFloat((z - e.deltaY * 0.001).toFixed(2)))));
+        setZoom((value) =>
+          Math.min(2, Math.max(0.4, parseFloat((value - e.deltaY * 0.001).toFixed(2)))),
+        );
       }
     };
+
     el.addEventListener("wheel", handler, { passive: false });
     return () => el.removeEventListener("wheel", handler);
   }, []);
 
   return (
     <ProgressProvider>
-      <div className="flex flex-col h-screen bg-[#0d0d14] overflow-hidden">
-
-        {/* ── Navbar ── */}
-        <header className="flex items-center justify-between px-6 py-3 border-b border-white/10 bg-[#0d0d14] z-10 flex-shrink-0">
+      <div className="flex h-screen flex-col overflow-hidden bg-[#0d0d14]">
+        <header className="z-10 flex flex-shrink-0 items-center justify-between border-b border-white/10 bg-[#0d0d14] px-6 py-3">
           <div className="flex items-center gap-4">
-            <Link href="/" className="text-white/40 hover:text-white/70 transition-colors text-sm">← Back</Link>
-            <div style={{ fontFamily: "serif", fontSize: 18, fontWeight: 800, color: "#ff6038" }}>
+            <Link
+              href="/"
+              className="text-sm text-white/40 transition-colors hover:text-white/70"
+            >
+              ← Back
+            </Link>
+
+            <div
+              style={{
+                fontFamily: "serif",
+                fontSize: 18,
+                fontWeight: 800,
+                color: "#ff6038",
+              }}
+            >
               MapleMind
             </div>
-            <span className="text-white/20 text-sm">/ Financial Roadmap</span>
+
+            <span className="text-sm text-white/20">/ Financial Roadmap</span>
           </div>
 
-          {/* Overall progress in navbar */}
           <OverallProgressBar />
 
-          {/* Zoom controls */}
           <div className="flex items-center gap-2">
-            <button onClick={zoomOut}
-              className="w-7 h-7 rounded-md border border-white/10 bg-white/5 text-white/60 hover:bg-white/10 transition-colors flex items-center justify-center text-sm">
+            <button
+              onClick={zoomOut}
+              className="flex h-7 w-7 items-center justify-center rounded-md border border-white/10 bg-white/5 text-sm text-white/60 transition-colors hover:bg-white/10"
+            >
               −
             </button>
-            <button onClick={resetZoom}
-              className="px-2 h-7 rounded-md border border-white/10 bg-white/5 text-white/60 hover:bg-white/10 transition-colors text-xs min-w-[48px]">
+
+            <button
+              onClick={resetZoom}
+              className="h-7 min-w-[48px] rounded-md border border-white/10 bg-white/5 px-2 text-xs text-white/60 transition-colors hover:bg-white/10"
+            >
               {Math.round(zoom * 100)}%
             </button>
-            <button onClick={zoomIn}
-              className="w-7 h-7 rounded-md border border-white/10 bg-white/5 text-white/60 hover:bg-white/10 transition-colors flex items-center justify-center text-sm">
+
+            <button
+              onClick={zoomIn}
+              className="flex h-7 w-7 items-center justify-center rounded-md border border-white/10 bg-white/5 text-sm text-white/60 transition-colors hover:bg-white/10"
+            >
               +
             </button>
           </div>
         </header>
 
-        {/* ── Canvas + Sidebar ── */}
         <div className="flex flex-1 overflow-hidden">
-
-          {/* Canvas */}
           <div ref={canvasRef} className="flex-1 overflow-auto">
             <div
               style={{
@@ -588,55 +703,42 @@ export default function FinancialMindMapPage() {
             </div>
           </div>
 
-          {/* Sidebar — scaffold for leaf node zoom (populated later) */}
           {selectedLeaf && (
             <div
-              className="flex-shrink-0 border-l border-white/10 bg-[#0d0d14] overflow-y-auto"
+              className="flex-shrink-0 overflow-y-auto border-l border-white/10 bg-[#0d0d14]"
               style={{ width: 300, animation: "slideIn 0.2s ease" }}
             >
-              <style>{`@keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }`}</style>
+              <style>
+                {`@keyframes slideIn {
+                  from { transform: translateX(100%); opacity: 0; }
+                  to { transform: translateX(0); opacity: 1; }
+                }`}
+              </style>
+
               <div className="p-5">
-                <div className="flex items-center justify-between mb-4">
+                <div className="mb-4 flex items-center justify-between">
                   <h2 className="text-sm font-bold" style={{ color: selectedLeaf.color }}>
                     {selectedLeaf.label}
                   </h2>
-                  <button onClick={() => setSelectedLeaf(null)}
-                    className="text-white/30 hover:text-white/60 text-sm transition-colors">✕</button>
+
+                  <button
+                    onClick={() => setSelectedLeaf(null)}
+                    className="text-sm text-white/30 transition-colors hover:text-white/60"
+                  >
+                    ✕
+                  </button>
                 </div>
-                {/* Leaf detail content goes here in the future */}
+
                 <p className="text-xs text-white/30">Detailed view coming soon.</p>
               </div>
             </div>
           )}
         </div>
 
-        {/* Zoom hint */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-xs text-white/20 pointer-events-none">
+        <div className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 text-xs text-white/20">
           Ctrl + scroll to zoom · use +/− buttons or click % to reset
         </div>
       </div>
     </ProgressProvider>
-  );
-}
-
-// ─── Overall Progress Bar (reads from context) ────────────────────────────────
-
-function OverallProgressBar() {
-  const { getOverallProgress } = useProgressContext();
-  const data = roadmap as RoadmapData;
-  const { done, total, pct } = getOverallProgress(data.children);
-
-  return (
-    <div className="flex items-center gap-3">
-      <span className="text-xs text-white/40">Overall progress</span>
-      <div className="w-40 h-1.5 rounded-full bg-white/10 overflow-hidden">
-        <div
-          className="h-full rounded-full transition-all duration-500"
-          style={{ width: `${pct}%`, background: "linear-gradient(90deg, #ff6038, #4ade80)" }}
-        />
-      </div>
-      <span className="text-xs font-bold text-white/60">{pct}%</span>
-      <span className="text-xs text-white/30">{done}/{total}</span>
-    </div>
   );
 }
