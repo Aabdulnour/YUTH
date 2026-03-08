@@ -155,7 +155,7 @@ function getFriendlyErrorMessage(error) {
     message.includes("NetworkError") ||
     message.includes("ERR_CONNECTION_REFUSED")
   ) {
-    return "Could not reach MapleMind at http://localhost:3000. Start the web app, then refresh this page.";
+    return "Could not reach YUTH at http://localhost:3000. Start the web app, then refresh this page.";
   }
 
   return message;
@@ -200,12 +200,12 @@ async function requestAnalysis(page) {
 
   if (!response.ok || !payload?.ok) {
     const apiError = payload?.error;
-    throw new Error(apiError || "MapleMind could not analyze this page right now.");
+    throw new Error(apiError || "YUTH could not analyze this page right now.");
   }
 
   const analysis = payload.analysis ?? payload.result;
   if (!analysis) {
-    throw new Error("MapleMind returned an empty extension analysis response.");
+    throw new Error("YUTH returned an empty extension analysis response.");
   }
 
   return payload;
@@ -226,7 +226,7 @@ function mapAnalysisForStorage(payload, page) {
       mode: payload.metadata?.mode ?? "preview",
       note:
         payload.metadata?.note ??
-        "Preview mode: MapleMind is using a demo spending profile for extension analysis.",
+        "Preview mode: YUTH is using a demo spending profile for extension analysis.",
     },
   };
 }
@@ -283,21 +283,21 @@ async function analyzeCurrentPage() {
   const merchant = detectMerchant();
   if (!merchant) {
     await setIdleState(
-      "MapleMind preview currently supports Amazon, Best Buy, and Sephora product pages."
+      "YUTH preview currently supports Amazon, Best Buy, and Sephora product pages."
     );
     return;
   }
 
   if (!isSupportedProductPage(merchant)) {
     await setIdleState(
-      `Open a ${formatMerchantLabel(merchant)} product detail page to get MapleMind guidance.`
+      `Open a ${formatMerchantLabel(merchant)} product detail page to get YUTH guidance.`
     );
     return;
   }
 
   const page = buildPageContext(merchant);
   if (!page.title || !page.price) {
-    await setErrorState("MapleMind could not detect the product title or price on this page.");
+    await setErrorState("YUTH could not detect the product title or price on this page.");
     return;
   }
 

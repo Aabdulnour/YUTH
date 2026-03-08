@@ -13,7 +13,7 @@ function formatProfileValue(value: unknown): string {
   if (typeof value === "boolean") return value ? "Yes" : "No";
   if (typeof value === "number") return String(value);
   if (typeof value === "string" && value.trim() !== "") return value;
-  return "—";
+  return "-";
 }
 
 export default function ProfilePage() {
@@ -108,7 +108,7 @@ export default function ProfilePage() {
         {profileCompletion >= 100 && (
           <div className="mb-5 rounded-xl border border-[#c8e2cd] bg-[#f4faf4] px-5 py-3 flex items-center gap-3">
             <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#2f7a47] text-xs text-white">✓</span>
-            <p className="text-sm font-semibold text-[#2f7a47]">Profile complete — recommendations are fully personalized.</p>
+            <p className="text-sm font-semibold text-[#2f7a47]">Profile complete. Recommendations are fully personalized.</p>
           </div>
         )}
 
@@ -119,13 +119,13 @@ export default function ProfilePage() {
             <div className="rounded-xl bg-[#faf8f6] px-4 py-3">
               <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#9a7b72]">Age</p>
               <p className="mt-1 text-base font-semibold text-[#151311]">
-                {profile.age !== undefined ? String(profile.age) : "—"}
+                {profile.age !== undefined ? String(profile.age) : "-"}
               </p>
             </div>
             <div className="rounded-xl bg-[#faf8f6] px-4 py-3">
               <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#9a7b72]">Province</p>
               <p className="mt-1 text-base font-semibold text-[#151311]">
-                {profile.province ?? "—"}
+                {profile.province ?? "-"}
               </p>
             </div>
           </div>

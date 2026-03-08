@@ -66,7 +66,7 @@ function getMapleMindUserIdFromLocalStorage() {
       }
     }
   } catch (error) {
-    console.warn("[MapleMind extension] Could not read auth token from localStorage.", error);
+    console.warn("[YUTH extension] Could not read auth token from localStorage.", error);
   }
 
   return null;

@@ -11,12 +11,12 @@ const STEPS = [
   {
     number: "02",
     title: "Get Your Personalized Plan",
-    body: "YUTH surfaces the tax credits, benefits, and actions that actually apply to you — not generic advice.",
+    body: "YUTH surfaces the tax credits, benefits, and actions that actually apply to you, not generic advice.",
   },
   {
     number: "03",
     title: "Stay On Track",
-    body: "Revisit your dashboard as life changes. New job, new province, new priorities — YUTH adapts with you.",
+    body: "Revisit your dashboard as life changes. New job, new province, new priorities. YUTH adapts with you.",
   },
 ];
 
@@ -37,7 +37,7 @@ const CAPABILITIES = [
 
 const TRUST_SIGNALS = [
   "Grounded in curated federal and provincial program data",
-  "Matched to your profile — not generic advice",
+  "Matched to your profile, not generic advice",
   "Every action links to an official Canadian source",
 ];
 
@@ -97,7 +97,7 @@ export default function HomePage() {
                 <span className="text-[#e8394c]">All in one place.</span>
               </h1>
               <p className="mt-6 max-w-xl text-lg leading-relaxed text-[#a09890] md:text-xl">
-                The life assistant for young Canadians navigating taxes, benefits, and financial adulthood — not once, but as life evolves.
+                The life assistant for young Canadians navigating taxes, benefits, and financial adulthood. Not once, but as life evolves.
               </p>
               <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
                 <Link
@@ -148,7 +148,7 @@ export default function HomePage() {
                 One dashboard for the adult stuff nobody taught you.
               </h2>
               <p className="mt-4 text-base leading-relaxed text-[#5f5953] md:text-lg">
-                Government credits, benefit programs, and financial priorities are spread across dozens of sites. YUTH reads your profile and surfaces what applies to you — then keeps updating as your life changes.
+                Government credits, benefit programs, and financial priorities are spread across dozens of sites. YUTH reads your profile and surfaces what applies to you, then keeps updating as your life changes.
               </p>
             </div>
             <div className="grid gap-3">
@@ -228,7 +228,7 @@ export default function HomePage() {
               <div>
                 <h3 className="text-xl font-bold text-[#151311]">Clarity compounds over time</h3>
                 <p className="mt-2 text-base text-[#5f5953]">
-                  Filing one credit, claiming one benefit, making one better financial decision — these stack. YUTH helps you start and keeps you going.
+                  Filing one credit, claiming one benefit, making one better financial decision. These stack. YUTH helps you start and keeps you going.
                 </p>
               </div>
             </div>
