@@ -87,6 +87,47 @@ export interface Database {
         };
         Relationships: [];
       };
+      extension_decisions: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          merchant: string;
+          page_title: string;
+          page_url: string;
+          recommendation: string;
+          purchase_amount: number;
+          detected_category: string;
+          deadline_risk: string;
+          goal_impact: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string | null;
+          merchant: string;
+          page_title: string;
+          page_url: string;
+          recommendation: string;
+          purchase_amount: number;
+          detected_category: string;
+          deadline_risk: string;
+          goal_impact: string;
+          created_at?: string;
+        };
+        Update: {
+          user_id?: string | null;
+          merchant?: string;
+          page_title?: string;
+          page_url?: string;
+          recommendation?: string;
+          purchase_amount?: number;
+          detected_category?: string;
+          deadline_risk?: string;
+          goal_impact?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

@@ -12,7 +12,7 @@ export interface OnboardingOption {
 }
 
 export interface OnboardingOptionGroup {
-  id: "life" | "financial" | "eligibility";
+  id: "education" | "housing" | "finances";
   title: string;
   description: string;
   options: OnboardingOption[];
@@ -21,70 +21,51 @@ export interface OnboardingOptionGroup {
 export const ONBOARDING_AGE_MIN = 16;
 export const ONBOARDING_AGE_MAX = 100;
 
-export const LIFE_SITUATION_OPTIONS: OnboardingOption[] = [
-  { key: "student", label: "Student", helperText: "Currently in school, college, or university." },
+export const EDUCATION_BACKGROUND_OPTIONS: OnboardingOption[] = [
+  { key: "student", label: "Currently a student", helperText: "In school, college, or university." },
+  { key: "isPostSecondary", label: "Post-secondary student", helperText: "Enrolled in college, university, or trade school." },
+  { key: "isNewcomer", label: "Newcomer to Canada", helperText: "Arrived in Canada within the last 5 years." },
+  { key: "isIndigenous", label: "Indigenous identity", helperText: "First Nations, Métis, or Inuit." },
+];
+
+export const HOUSING_LIFE_OPTIONS: OnboardingOption[] = [
+  { key: "renter", label: "Renter", helperText: "Currently paying rent." },
+  { key: "livesWithParents", label: "Lives with parents", helperText: "Living with parents or guardians." },
+  { key: "hasCar", label: "Has a car", helperText: "Own or regularly pay for a vehicle." },
+  { key: "noEmployerBenefits", label: "No employer benefits", helperText: "No extended health or dental through work." },
+];
+
+export const WORK_FINANCES_OPTIONS: OnboardingOption[] = [
   { key: "employed", label: "Employed", helperText: "Currently earning income from work." },
-  { key: "renter", label: "Renter", helperText: "Currently paying rent for housing." },
-  { key: "livesWithParents", label: "Lives with parents", helperText: "Currently living with parents or guardians." },
+  { key: "hasDebt", label: "Carrying debt", helperText: "Credit card, loan, or line of credit." },
+  { key: "filesTaxes", label: "Files taxes", helperText: "Files a Canadian income tax return each year." },
+  { key: "hasEmergencySavings", label: "Has emergency savings", helperText: "At least 3 months of expenses saved." },
+  { key: "hasDependent", label: "Supporting a dependent", helperText: "Caring for a child, parent, or other dependent." },
 ];
 
-export const FINANCIAL_SITUATION_OPTIONS: OnboardingOption[] = [
-  { key: "hasDebt", label: "Carrying debt", helperText: "Credit card, loan, or line of credit debt currently." },
-  { key: "hasCar", label: "Have a car", helperText: "Own or regularly pay for a vehicle." },
-  { key: "filesTaxes", label: "Files taxes", helperText: "File a Canadian income tax return each year." },
-  {
-    key: "noEmployerBenefits",
-    label: "No employer benefits",
-    helperText: "No extended health or dental coverage through work.",
-  },
-  {
-    key: "hasEmergencySavings",
-    label: "Has emergency savings",
-    helperText: "Have at least 3 months of living expenses saved.",
-  },
-];
-
-export const ELIGIBILITY_CONTEXT_OPTIONS: OnboardingOption[] = [
-  {
-    key: "isPostSecondary",
-    label: "Post-secondary student",
-    helperText: "Currently enrolled in a college, university, or trade school program.",
-  },
-  {
-    key: "isNewcomer",
-    label: "Newcomer or recent immigrant",
-    helperText: "Arrived in Canada within the last 5 years.",
-  },
-  {
-    key: "isIndigenous",
-    label: "Indigenous identity",
-    helperText: "First Nations, Métis, or Inuit — relevant for specific federal and provincial support.",
-  },
-  {
-    key: "hasDependent",
-    label: "Supporting a dependent",
-    helperText: "Caring for a child, aging parent, or another dependent.",
-  },
-];
+// Keep backward compat: export old names as aliases
+export const LIFE_SITUATION_OPTIONS = HOUSING_LIFE_OPTIONS;
+export const FINANCIAL_SITUATION_OPTIONS = WORK_FINANCES_OPTIONS;
+export const ELIGIBILITY_CONTEXT_OPTIONS = EDUCATION_BACKGROUND_OPTIONS;
 
 export const ONBOARDING_OPTION_GROUPS: OnboardingOptionGroup[] = [
   {
-    id: "life",
-    title: "Life situation",
-    description: "Select what best describes your current day-to-day setup.",
-    options: LIFE_SITUATION_OPTIONS,
+    id: "education",
+    title: "Education & background",
+    description: "Select what applies to your current education and background.",
+    options: EDUCATION_BACKGROUND_OPTIONS,
   },
   {
-    id: "financial",
-    title: "Financial situation",
-    description: "Select the factors that most impact your money decisions right now.",
-    options: FINANCIAL_SITUATION_OPTIONS,
+    id: "housing",
+    title: "Housing & life setup",
+    description: "Select what describes your living situation.",
+    options: HOUSING_LIFE_OPTIONS,
   },
   {
-    id: "eligibility",
-    title: "Eligibility & context",
-    description: "These signals improve recommendation matching for specific Canadian programs.",
-    options: ELIGIBILITY_CONTEXT_OPTIONS,
+    id: "finances",
+    title: "Work, income & finances",
+    description: "Select what applies to your financial situation.",
+    options: WORK_FINANCES_OPTIONS,
   },
 ];
 

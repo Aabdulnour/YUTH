@@ -15,6 +15,22 @@ function getCurrentDiscretionarySpend(profile: SpendingProfile): number {
   );
 }
 
+function formatCurrency(value: number): string {
+  return new Intl.NumberFormat("en-CA", {
+    style: "currency",
+    currency: "CAD",
+    maximumFractionDigits: 2,
+  }).format(value);
+}
+
+function formatCategory(category: SpendingCategory): string {
+  if (category === "foodDelivery") {
+    return "food delivery";
+  }
+
+  return category.replace(/([a-z])([A-Z])/g, "$1 $2");
+}
+
 function buildExplanation(input: {
   fitsBudget: boolean;
   category: SpendingCategory;
@@ -32,54 +48,58 @@ function buildExplanation(input: {
   const lines: string[] = [];
 
   if (input.fitsBudget) {
-    lines.push(
-      `This purchase is currently within your monthly budget plan.`
-    );
+    lines.push("YUTH sees this purchase as within your monthly spending plan.");
   } else {
-    lines.push(
-      `This purchase would likely push you over your budget limits for the month.`
-    );
+    lines.push("This purchase would push your monthly spending plan off track.");
   }
 
   lines.push(
-    `It is categorized as ${input.category} and would bring you to $${input.projectedCategorySpend} out of a $${input.categoryCap} category cap.`
+    `Purchase amount checked: ${formatCurrency(input.purchaseAmount)}.`
   );
 
   lines.push(
-    `Your overall discretionary spending would become $${input.projectedDiscretionarySpend} out of $${input.discretionaryBudget}.`
+    `Category check: ${formatCategory(input.category)} would move to ${formatCurrency(
+      input.projectedCategorySpend
+    )} of ${formatCurrency(input.categoryCap)}.`
+  );
+
+  lines.push(
+    `Overall discretionary spend would become ${formatCurrency(
+      input.projectedDiscretionarySpend
+    )} of ${formatCurrency(input.discretionaryBudget)}.`
   );
 
   if (input.deadlineRisk === "high" && input.matchedDeadlines.length > 0) {
     lines.push(
-      `You also have an important payment coming up soon: ${input.matchedDeadlines.join(", ")}.`
+      `Cash timing is tight because these payments are close: ${input.matchedDeadlines.join(", ")}.`
     );
   } else if (input.deadlineRisk === "watch" && input.matchedDeadlines.length > 0) {
     lines.push(
-      `Keep an eye on upcoming deadlines like ${input.matchedDeadlines.join(", ")}.`
+      `Keep an eye on upcoming payments: ${input.matchedDeadlines.join(", ")}.`
     );
   }
 
   if (input.goalImpact === "negative" && input.matchedGoals.length > 0) {
     lines.push(
-      `This may reduce progress toward your goals, especially ${input.matchedGoals.join(", ")}.`
+      `This may slow progress on your goals, especially ${input.matchedGoals.join(", ")}.`
     );
   }
 
   switch (input.recommendation) {
     case "buy_now":
-      lines.push(`Recommendation: buy now if this is still a priority purchase.`);
+      lines.push("Recommendation: proceed if this purchase is still a priority.");
       break;
     case "wait":
-      lines.push(`Recommendation: wait until after your upcoming payment deadline.`);
+      lines.push("Recommendation: wait until after the next payment window.");
       break;
     case "find_cheaper_option":
-      lines.push(`Recommendation: look for a lower-cost option in this category.`);
+      lines.push("Recommendation: look for a lower-cost option in the same category.");
       break;
     case "save_for_later":
-      lines.push(`Recommendation: save this for later so it does not disrupt your monthly plan.`);
+      lines.push("Recommendation: save this for later to keep your monthly plan stable.");
       break;
     case "review_budget":
-      lines.push(`Recommendation: review or finish your budget profile first.`);
+      lines.push("Recommendation: review or complete your budget profile first.");
       break;
   }
 
@@ -158,7 +178,7 @@ export function analyzeSpendCheck(
     recommendation,
     explanation,
     tags: [
-      "MapleMind budget rules",
+      "YUTH budget rules",
       category,
       deadlineRisk !== "none" ? "deadline-aware" : "budget-fit",
       goalImpact === "negative" ? "goal-impact" : "goal-neutral"

@@ -1,6 +1,7 @@
 import type { ActionItem } from "@/types/action";
 import type { ChatHistoryMessage, RecommendationContext } from "@/types/ai";
 import type { Benefit } from "@/types/benefit";
+import type { ExtensionDecision } from "@/types/extension";
 import type { UserProfile } from "@/types/profile";
 
 const MAX_HISTORY_MESSAGES = 8;
@@ -207,6 +208,7 @@ export function sanitizeHistory(value: unknown): ChatHistoryMessage[] {
 interface SystemPromptInput {
   profile: UserProfile;
   recommendation: RecommendationContext;
+  recentExtensionDecisions: ExtensionDecision[];
 }
 
 export function buildSystemPrompt(input: SystemPromptInput): string {
@@ -214,11 +216,21 @@ export function buildSystemPrompt(input: SystemPromptInput): string {
     profile: input.profile,
     top_insight: input.recommendation.topInsight ?? null,
     adult_score: input.recommendation.adultScore ?? null,
+    recent_extension_decisions: input.recentExtensionDecisions.slice(0, 5).map((decision) => ({
+      merchant: decision.merchant,
+      page_title: decision.pageTitle,
+      recommendation: decision.recommendation,
+      purchase_amount: decision.purchaseAmount,
+      detected_category: decision.detectedCategory,
+      deadline_risk: decision.deadlineRisk,
+      goal_impact: decision.goalImpact,
+      created_at: decision.createdAt,
+    })),
   };
 
   return [
-    "You are MapleMind AI, a Canadian adulthood assistant for young adults.",
-    "Answer using ONLY the provided MapleMind context and allowed program catalog.",
+    "You are YUTH AI, a Canadian adulthood assistant for young adults.",
+    "Answer using ONLY the provided YUTH context and allowed program catalog.",
     "Do not invent benefits, tax credits, grants, or actions that are not in the provided catalog.",
     "If context is incomplete, state uncertainty and provide practical next steps.",
     "Do not provide legal or tax guarantees; use cautious language like 'may', 'could', or 'typically'.",
@@ -234,6 +246,7 @@ interface UserPromptInput {
   profile: UserProfile;
   recommendation: RecommendationContext;
   history: ChatHistoryMessage[];
+  recentExtensionDecisions: ExtensionDecision[];
   benefitCatalog: Benefit[];
   actionCatalog: ActionItem[];
 }
@@ -264,6 +277,17 @@ export function buildUserPrompt(input: UserPromptInput): string {
     adult_score: input.recommendation.adultScore,
     top_insight: input.recommendation.topInsight,
     recommendation_insights: input.recommendation.insights ?? [],
+    recent_extension_decisions: input.recentExtensionDecisions.slice(0, 5).map((decision) => ({
+      merchant: decision.merchant,
+      page_title: decision.pageTitle,
+      page_url: decision.pageUrl,
+      recommendation: decision.recommendation,
+      purchase_amount: decision.purchaseAmount,
+      detected_category: decision.detectedCategory,
+      deadline_risk: decision.deadlineRisk,
+      goal_impact: decision.goalImpact,
+      created_at: decision.createdAt,
+    })),
     recent_chat_history: input.history,
     allowed_benefit_catalog: input.benefitCatalog.map((benefit) => ({
       id: benefit.id,

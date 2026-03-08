@@ -2,7 +2,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
+  --background: #f7f1ea;
   --foreground: #151311;
   --font-sans: "Inter", "Avenir Next", "Segoe UI", "Trebuchet MS", sans-serif;
   --font-mono: "SFMono-Regular", "Menlo", "Monaco", monospace;
@@ -15,11 +15,95 @@
   --font-mono: var(--font-mono);
 }
 
-/* Suppress automatic dark mode - public pages are intentionally designed */
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@layer base {
+  html {
+    background-color: #0c0a09;
+    overscroll-behavior: none;
+  }
+
+  body {
+    background-color: var(--background);
+    background-image:
+      radial-gradient(circle at 12% 12%, rgba(244, 190, 115, 0.14), transparent 24%),
+      radial-gradient(circle at 88% 18%, rgba(232, 87, 108, 0.1), transparent 26%),
+      linear-gradient(180deg, #faf5ef 0%, #f6efe8 100%);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overscroll-behavior-y: none;
+    min-height: 100vh;
+  }
+}
+
+/* ── Score ring animation ── */
+@keyframes score-ring-fill {
+  from {
+    stroke-dashoffset: var(--ring-circumference);
+  }
+  to {
+    stroke-dashoffset: var(--ring-offset);
+  }
+}
+
+.score-ring-animated {
+  animation: score-ring-fill 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* ── MindMap animations ── */
+
+@keyframes mindmap-node-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.mindmap-node-animated {
+  animation: mindmap-node-appear 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--node-delay, 0s);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@keyframes mindmap-panel-slide {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.mindmap-panel-animated {
+  animation: mindmap-panel-slide 0.24s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes mindmap-pulse-ring {
+  0%, 100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.08;
+  }
+}
+
+.mindmap-pulse {
+  animation: mindmap-pulse-ring 3s ease-in-out infinite;
+}
+
+/* Node hover */
+.mindmap-node-circle {
+  transition: filter 0.18s ease, stroke-width 0.18s ease, fill 0.18s ease, stroke 0.18s ease;
+}
+
+.mindmap-node-animated:hover .mindmap-node-circle {
+  filter: brightness(0.97);
+  stroke-width: 2;
 }
