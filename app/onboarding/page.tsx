@@ -246,7 +246,7 @@ if (!trimmedProvince) {
             Set up your YUTH profile
           </h1>
 
-          <p className="mt-4 max-w-3xl text-base leading-relaxed text-[#5f5953]">
+          <p className="mt-4 text-base leading-relaxed text-[#5f5953]">
             This takes about two minutes. Your answers personalize recommendations,
             action priorities, and AI guidance.
           </p>
