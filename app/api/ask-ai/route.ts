@@ -1,16 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { normalizeUserProfile } from "@/lib/profile-utils";
 import type { AskAIResponseBody } from "@/types/ai";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+const BACKEND_URL = process.env.BACKEND_API_URL ?? "http://127.0.0.1:8000";
+
 interface AskAIRawBody {
   userId?: unknown;
-  profile?: unknown;
-  recommendation?: unknown;
   question?: unknown;
-  history?: unknown;
+  matchCount?: unknown;
 }
 
 export async function POST(request: NextRequest) {
@@ -23,16 +22,16 @@ export async function POST(request: NextRequest) {
   }
 
   const userId = typeof body.userId === "string" ? body.userId.trim() : "";
+  const question = typeof body.question === "string" ? body.question.trim() : "";
+  const matchCount =
+    typeof body.matchCount === "number" && Number.isFinite(body.matchCount)
+      ? body.matchCount
+      : 5;
+
   if (!userId) {
     return NextResponse.json({ error: "A valid userId is required." }, { status: 400 });
   }
 
-  const profile = normalizeUserProfile(body.profile);
-  if (!profile) {
-    return NextResponse.json({ error: "A valid user profile is required." }, { status: 400 });
-  }
-
-  const question = typeof body.question === "string" ? body.question.trim() : "";
   if (!question) {
     return NextResponse.json({ error: "Question is required." }, { status: 400 });
   }
@@ -45,38 +44,42 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    // Ensure user thread exists
-    await fetch("http://127.0.0.1:8000/setup", {
+    const backendResponse = await fetch(`${BACKEND_URL}/ask-ai-hybrid`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
         user_id: userId,
-      }),
-    });
-
-    // Send chat message to FastAPI backend
-    const backendResponse = await fetch("http://127.0.0.1:8000/chat", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        user_id: userId,
-        message: question,
+        question,
+        match_count: matchCount,
       }),
     });
 
     const data = await backendResponse.json().catch(() => null);
 
-    if (!backendResponse.ok || !data || typeof data.response !== "string") {
-      throw new Error(data?.error || "Backend returned an invalid response.");
+    if (!backendResponse.ok || !data || typeof data !== "object") {
+      throw new Error(
+        data && "error" in data && typeof data.error === "string"
+          ? data.error
+          : "Backend returned an invalid response."
+      );
+    }
+
+    if ("error" in data && typeof data.error === "string") {
+      throw new Error(data.error);
+    }
+
+    if (!("answer" in data) || typeof data.answer !== "string") {
+      throw new Error("Backend did not return an answer.");
     }
 
     const payload: AskAIResponseBody = {
-      answer: data.response.trim(),
-      metaLabel: "Based on your saved profile and conversation",
+      answer: data.answer.trim(),
+      metaLabel:
+        "meta_label" in data && typeof data.meta_label === "string"
+          ? data.meta_label
+          : "Based on your uploaded documents, saved profile, and conversation",
     };
 
     return NextResponse.json(payload);
@@ -85,7 +88,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       {
-        error: "I could not generate a personalized answer right now. Please try again shortly.",
+        error: "I could not generate a Yuth answer right now.",
       },
       { status: 500 }
     );

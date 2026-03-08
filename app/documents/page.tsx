@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useRef, useState, type ChangeEvent, type DragEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type DragEvent } from "react";
 import { AppShell } from "@/components/layout/AppShell";
+import { usePrivateRoute } from "@/lib/auth/usePrivateRoute";
 
 type UploadStatus = "ready" | "processing" | "failed";
 
@@ -22,11 +23,10 @@ interface FolderItem {
   createdAt: string;
 }
 
-const ACCEPTED_EXTENSIONS = [".pdf", ".docx", ".pptx", ".txt"];
+const ACCEPTED_EXTENSIONS = [".pdf", ".docx", ".txt"];
 const ACCEPTED_MIME_TYPES = [
   "application/pdf",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
   "text/plain",
 ];
 
@@ -66,7 +66,6 @@ function getFileBadgeLabel(name: string): string {
   const ext = getFileExtension(name);
   if (ext === ".pdf") return "PDF";
   if (ext === ".docx") return "DOCX";
-  if (ext === ".pptx") return "PPTX";
   if (ext === ".txt") return "TXT";
   return "FILE";
 }
@@ -75,7 +74,6 @@ function getFileEmoji(name: string): string {
   const ext = getFileExtension(name);
   if (ext === ".pdf") return "📕";
   if (ext === ".docx") return "📘";
-  if (ext === ".pptx") return "📙";
   if (ext === ".txt") return "📄";
   return "📄";
 }
@@ -90,6 +88,7 @@ function FileTypePill({ label }: { label: string }) {
 
 export default function DocumentsPage() {
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const { userId } = usePrivateRoute();
 
   const [isDragging, setIsDragging] = useState(false);
   const [files, setFiles] = useState<UploadedFileItem[]>([]);
@@ -105,12 +104,74 @@ export default function DocumentsPage() {
 
   const [activeFolderId, setActiveFolderId] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (!userId) return;
+
+    const loadDocuments = async () => {
+      try {
+        const response = await fetch(`/api/documents?user_id=${encodeURIComponent(userId)}`, {
+          method: "GET",
+          cache: "no-store",
+        });
+
+        const data = await response.json().catch(() => null);
+
+        if (!response.ok || !data || !Array.isArray(data.documents)) {
+          throw new Error(
+            data && typeof data.error === "string" ? data.error : "Could not load documents."
+          );
+        }
+
+        const loadedFiles: UploadedFileItem[] = data.documents.map((doc: any) => ({
+          id: String(doc.id),
+          name: String(doc.file_name ?? doc.original_name ?? "Untitled"),
+          originalName: String(doc.original_name ?? doc.file_name ?? "Untitled"),
+          size: Number(doc.file_size ?? 0),
+          type: String(doc.file_type ?? ""),
+          status:
+            doc.status === "ready" || doc.status === "processing" || doc.status === "failed"
+              ? doc.status
+              : "failed",
+          uploadedAt: String(doc.created_at ?? new Date().toISOString()),
+          folderId: doc.folder_name ? String(doc.folder_name) : null,
+        }));
+
+        const folderNames = Array.from(
+          new Set(
+            data.documents
+              .map((doc: any) => (doc.folder_name ? String(doc.folder_name) : null))
+              .filter(Boolean)
+          )
+        ) as string[];
+
+        const loadedFolders: FolderItem[] = folderNames.map((name) => ({
+          id: name,
+          name,
+          createdAt: new Date().toISOString(),
+        }));
+
+        setFiles(loadedFiles);
+        setFolders(loadedFolders);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Could not load documents.";
+        setError(message);
+      }
+    };
+
+    void loadDocuments();
+  }, [userId]);
+
   const hasFiles = files.length > 0;
   const hasFolders = folders.length > 0;
 
-  const visibleFiles = useMemo(() => {
+   const visibleFiles = useMemo(() => {
     return [...files]
-      .filter((file) => file.folderId === activeFolderId)
+      .filter((file) => {
+        if (activeFolderId === null) {
+          return true;
+        }
+        return file.folderId === activeFolderId;
+      })
       .sort((a, b) => b.uploadedAt.localeCompare(a.uploadedAt));
   }, [files, activeFolderId]);
 
@@ -135,7 +196,7 @@ export default function DocumentsPage() {
 
     const invalidFiles = nextFiles.filter((file) => !isAcceptedFile(file));
     if (invalidFiles.length > 0) {
-      setError("Only PDF, DOCX, PPTX, and TXT files are supported right now.");
+      setError("Only PDF, DOCX, and TXT files are supported right now.");
     } else {
       setError(null);
     }
@@ -154,10 +215,10 @@ export default function DocumentsPage() {
     setShowPendingReview(true);
   };
 
-  const confirmPendingUpload = () => {
+  const confirmPendingUpload = async () => {
     if (pendingFiles.length === 0) return;
 
-    const mappedFiles: UploadedFileItem[] = pendingFiles.map((file) => {
+    const pendingMappedFiles: UploadedFileItem[] = pendingFiles.map((file) => {
       const extension = getFileExtension(file.name);
       const typedName = (pendingNames[file.name] ?? "").trim();
       const finalBaseName = typedName || getBaseName(file.name);
@@ -174,20 +235,86 @@ export default function DocumentsPage() {
       };
     });
 
-    setFiles((current) => [...mappedFiles, ...current]);
+    setFiles((current) => [...pendingMappedFiles, ...current]);
+    setError(null);
+
+    const filesToUpload = [...pendingFiles];
+    const folderIdForUpload = selectedFolderId === "none" ? null : selectedFolderId;
+    const folderNameForUpload = folderIdForUpload ? folderMap.get(folderIdForUpload) ?? null : null;
+    const renamedNames = { ...pendingNames };
+
     setPendingFiles([]);
     setPendingNames({});
     setShowPendingReview(false);
 
-    window.setTimeout(() => {
-      setFiles((current) =>
-        current.map((item) =>
-          mappedFiles.some((mapped) => mapped.id === item.id)
-            ? { ...item, status: "ready" }
-            : item
-        )
-      );
-    }, 1200);
+    for (let index = 0; index < filesToUpload.length; index += 1) {
+      const file = filesToUpload[index];
+      const optimisticFile = pendingMappedFiles[index];
+      const typedName = (renamedNames[file.name] ?? "").trim();
+
+      try {
+        if (!userId) {
+          throw new Error("You must be signed in to upload files.");
+        }
+
+        const formData = new FormData();
+        formData.append("user_id", userId);
+
+        if (folderNameForUpload) {
+          formData.append("folder_name", folderNameForUpload);
+        }
+
+        if (typedName) {
+          formData.append("display_name", typedName);
+        }
+
+        formData.append("file", file);
+
+        const response = await fetch("/api/documents/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        const data = await response.json().catch(() => null);
+
+        if (!response.ok || !data || typeof data !== "object") {
+          throw new Error(
+            data && "error" in data && typeof data.error === "string"
+              ? data.error
+              : "Upload failed."
+          );
+        }
+
+        setFiles((current) =>
+          current.map((item) =>
+            item.id === optimisticFile.id
+              ? {
+                  ...item,
+                  id: typeof data.document_id === "string" ? data.document_id : item.id,
+                  name: typeof data.file_name === "string" ? data.file_name : item.name,
+                  originalName:
+                    typeof data.original_name === "string" ? data.original_name : item.originalName,
+                  size: typeof data.file_size === "number" ? data.file_size : item.size,
+                  status:
+                    data.status === "ready" || data.status === "processing" || data.status === "failed"
+                      ? data.status
+                      : "failed",
+                }
+              : item
+          )
+        );
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Upload failed.";
+
+        setFiles((current) =>
+          current.map((item) =>
+            item.id === optimisticFile.id ? { ...item, status: "failed" } : item
+          )
+        );
+
+        setError(message);
+      }
+    }
   };
 
   const cancelPendingUpload = () => {
@@ -249,8 +376,16 @@ export default function DocumentsPage() {
     const trimmedName = newFolderName.trim();
     if (!trimmedName) return;
 
+    const alreadyExists = folders.some(
+      (folder) => folder.name.toLowerCase() === trimmedName.toLowerCase()
+    );
+    if (alreadyExists) {
+      setNewFolderName("");
+      return;
+    }
+
     const folder: FolderItem = {
-      id: createId(),
+      id: trimmedName,
       name: trimmedName,
       createdAt: new Date().toISOString(),
     };
@@ -299,12 +434,12 @@ export default function DocumentsPage() {
             <p className="text-sm uppercase tracking-[0.2em] text-[#8a8580]">Documents</p>
             <h1 className="mt-1 text-2xl font-bold">Upload files for personalized document Q&amp;A</h1>
             <p className="mt-2 max-w-3xl text-sm text-[#6f6a64]">
-              Add tax documents, benefit letters, forms, notes, or financial files so MapleMind can
+              Add tax documents, benefit letters, forms, notes, or financial files so Yuth can
               answer questions using your own materials.
             </p>
           </div>
 
-          {(hasFiles || hasFolders) ? (
+          {hasFiles || hasFolders ? (
             <button
               type="button"
               onClick={() => inputRef.current?.click()}
@@ -386,7 +521,7 @@ export default function DocumentsPage() {
           ref={inputRef}
           type="file"
           multiple
-          accept=".pdf,.docx,.pptx,.txt"
+          accept=".pdf,.docx,.txt"
           onChange={handleInputChange}
           className="hidden"
         />
@@ -426,14 +561,13 @@ export default function DocumentsPage() {
             <h2 className="mt-6 text-3xl font-bold text-[#1c1b19]">Upload your first file</h2>
 
             <p className="mt-3 max-w-2xl text-base leading-7 text-[#6f6a64]">
-              Drag and drop knowledge documents here, or click below to add files MapleMind can later
+              Drag and drop knowledge documents here, or click below to add files Yuth can later
               use to answer questions about your own content.
             </p>
 
             <div className="mt-5 flex flex-wrap justify-center gap-2">
               <FileTypePill label="PDF" />
               <FileTypePill label="DOCX" />
-              <FileTypePill label="PPTX" />
               <FileTypePill label="TXT" />
             </div>
 
@@ -534,7 +668,7 @@ export default function DocumentsPage() {
           </section>
         ) : null}
 
-        {(hasFiles || hasFolders) ? (
+        {hasFiles || hasFolders ? (
           <div className="mt-5 space-y-5">
             <div
               onDragOver={(event) => {
@@ -554,9 +688,7 @@ export default function DocumentsPage() {
                   <p className="text-sm font-semibold text-[#1c1b19]">
                     {activeFolder ? `Drop more files into ${activeFolder.name}` : "Drop more files here"}
                   </p>
-                  <p className="mt-1 text-sm text-[#6f6a64]">
-                    Supported: PDF, DOCX, PPTX, and TXT
-                  </p>
+                  <p className="mt-1 text-sm text-[#6f6a64]">Supported: PDF, DOCX, and TXT</p>
                 </div>
 
                 <button

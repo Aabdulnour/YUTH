@@ -1,0 +1,4 @@
+This is a Yuth test document.
+My favorite color is purple.
+My car is a Toyota Corolla.
+My tuition is $4200.

@@ -131,7 +131,7 @@ def answer_question_with_documents(
     context = "\n\n---\n\n".join(context_blocks)
 
     prompt = f"""
-You are MapleMind, a helpful financial AI assistant.
+You are Yuth, a helpful financial AI assistant.
 
 Answer the user's question using ONLY the document context below.
 If the answer is not clearly supported by the context, say you cannot confirm it from the uploaded documents.

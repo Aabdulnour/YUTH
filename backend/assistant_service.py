@@ -12,7 +12,6 @@ async def create_assistant():
 
     assistant = await client.create_assistant(
         name="Yuth Assistant",
-        system_prompt=prompt, 
-        model="gpt-5-mini"
+        system_prompt=prompt
     )
-    return assistant 
+    return assistant

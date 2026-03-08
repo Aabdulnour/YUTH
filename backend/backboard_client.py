@@ -1,20 +1,16 @@
 import os
-from supabase import create_client, Client
 from dotenv import load_dotenv
+from pathlib import Path
+from backboard import BackboardClient
 
-load_dotenv()
+env_path = Path(__file__).resolve().parent / ".env"
+load_dotenv(env_path)
 
+def create_client():
+    api_key = os.getenv("BACKBOARD_API_KEY")
+    if not api_key:
+        raise ValueError("Missing BACKBOARD_API_KEY in .env")
+    return BackboardClient(api_key=api_key)
 
-def get_supabase_client() -> Client:
-    url = os.getenv("NEXT_PUBLIC_SUPABASE_URL")
-    key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
-
-    if not url:
-        raise ValueError("Missing NEXT_PUBLIC_SUPABASE_URL in .env")
-
-    if not key:
-        raise ValueError("Missing SUPABASE_SERVICE_ROLE_KEY in .env")
-
-    return create_client(url, key) 
-
-    
+def get_client():
+    return create_client()

@@ -131,16 +131,15 @@ export default function AskAIPage() {
     setIsSending(true);
 
     try {
-      const response = await fetch("/api/ask-ai", {
+        const response = await fetch("/api/ask-ai", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           userId,
-          profile,
-          recommendation: recommendations,
-          question: nextQuestion
+          question: nextQuestion,
+          matchCount: 5,
         }),
       });
 
@@ -163,7 +162,7 @@ export default function AskAIPage() {
         metaLabel:
           typeof rawData.metaLabel === "string"
             ? rawData.metaLabel
-            : "Based on your profile and matched programs",
+            : "Based on your uploaded documents",
       };
 
       setMessages((currentMessages) => [...currentMessages, assistantMessage]);
@@ -225,7 +224,7 @@ export default function AskAIPage() {
           <p className="text-sm uppercase tracking-[0.2em] text-[#8a8580]">Ask AI</p>
           <h1 className="mt-2 text-3xl font-bold">Complete onboarding to open your chat</h1>
           <p className="mt-3 text-[#6f6a64]">
-            MapleMind AI needs your saved profile to provide grounded, personalized guidance.
+            Yuth needs your saved profile to provide grounded, personalized guidance.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link href="/onboarding" className="rounded-2xl bg-[#f04d2d] px-6 py-3 font-semibold text-white">
@@ -277,7 +276,7 @@ export default function AskAIPage() {
             <div className="max-w-2xl rounded-2xl border border-[#e4ddd5] bg-[#f4efe8] p-5 text-[#4b4642]">
               <p className="font-semibold">Start with a practical question.</p>
               <p className="mt-2 text-sm text-[#6f6a64]">
-                MapleMind AI uses your profile, matched programs, and trusted source metadata to respond.
+                Yuth uses your profile, matched programs, and trusted source metadata to respond.
               </p>
             </div>
           ) : (
@@ -291,7 +290,7 @@ export default function AskAIPage() {
                     }`}
                   >
                     <p className={`text-xs uppercase tracking-[0.12em] ${isUser ? "text-white/70" : "text-[#8a8580]"}`}>
-                      {isUser ? "You" : "MapleMind AI"}
+                      {isUser ? "You" : "Yuth"}
                     </p>
                     <p className="mt-2 whitespace-pre-wrap">{message.content}</p>
                     {!isUser && message.metaLabel ? (
@@ -331,9 +330,9 @@ export default function AskAIPage() {
           {isSending ? (
             <div className="flex justify-start">
               <div className="max-w-2xl rounded-2xl border border-[#e5ddd4] bg-white p-4 text-[#6f6a64] shadow-sm">
-                <p className="text-xs uppercase tracking-[0.12em] text-[#8a8580]">MapleMind AI</p>
+                <p className="text-xs uppercase tracking-[0.12em] text-[#8a8580]">Yuth</p>
                 <span className="mt-2 inline-block animate-pulse">
-                  Reviewing your profile and matched programs...
+                  Reviewing your documents, profile, and conversation...
                 </span>
               </div>
             </div>
