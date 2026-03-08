@@ -82,26 +82,26 @@ extension/
 ```
 ## System Architecture
 ```text
-    User
-    │
-    ├── Web Application (Next.js)
-    │       ├── Onboarding
-    │       ├── Profile System
-    │       ├── Dashboard
-    │       └── Program Discovery Engine
-    │
-    ├── Backend APIs
-    │       ├── Profile persistence
-    │       ├── Program matching engine
-    │       └── AI assistance layer
-    │
-    ├── Database
-    │       └── Supabase
-    │
-    └── Browser Extension
-            ├── Content script
-            ├── Purchase metadata extraction
-            └── Side panel financial insights
+User
+│
+├── Web Application (Next.js)
+│   ├── Onboarding
+│   ├── Profile System
+│   ├── Dashboard
+│   └── Program Discovery Engine
+│
+├── Backend APIs
+│   ├── Profile persistence
+│   ├── Program matching engine
+│   └── AI assistance layer
+│
+├── Database
+│   └── Supabase
+│
+└── Browser Extension
+    ├── Content script
+    ├── Purchase metadata extraction
+    └── Side panel financial insights
 ```
 ## Tech Stack
 
