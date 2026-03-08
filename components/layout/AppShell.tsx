@@ -30,9 +30,14 @@ function joinClasses(...classes: Array<string | false | undefined>): string {
 
 export function AppShell({ activePath, children, maxWidthClassName = "max-w-6xl" }: AppShellProps) {
   return (
-    <main className="min-h-screen bg-[#f5f2ee] text-[#151311]">
-      <div className={joinClasses("mx-auto px-6 py-6", maxWidthClassName)}>
-        <header className="sticky top-0 z-20 -mx-6 mb-6 border-b border-[#e2dbd4]/60 bg-[#f5f2ee]/95 px-6 py-3 backdrop-blur-sm">
+    <main className="relative isolate min-h-screen overflow-hidden text-[#151311]">
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,#fff8f3_0%,#fff0e5_100%)]" />
+      <div className="pointer-events-none absolute left-[-180px] top-[-120px] h-[420px] w-[420px] rounded-full bg-[#ffc78e] opacity-[0.22] blur-[140px]" />
+      <div className="pointer-events-none absolute right-[-120px] top-[18%] h-[360px] w-[360px] rounded-full bg-[#ff8fa3] opacity-[0.15] blur-[140px]" />
+      <div className="pointer-events-none absolute bottom-[-180px] left-[20%] h-[420px] w-[420px] rounded-full bg-[#ffe0c3] opacity-[0.26] blur-[150px]" />
+
+      <div className={joinClasses("relative mx-auto px-6 py-6", maxWidthClassName)}>
+        <header className="sticky top-0 z-20 -mx-6 mb-6 border-b border-[#e2dbd4]/60 bg-[#f7f1ea]/88 px-6 py-3 backdrop-blur-md">
           <div className="mx-auto flex flex-wrap items-center justify-between gap-3" style={{ maxWidth: "inherit" }}>
             <Link href="/dashboard" className="text-sm font-bold tracking-[0.18em] text-[#151311] transition hover:text-[#c82233]">
               YUTH

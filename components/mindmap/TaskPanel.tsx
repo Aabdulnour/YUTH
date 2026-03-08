@@ -370,7 +370,6 @@ function MindMapInner() {
             branch={branch}
             index={i}
             branchHeights={branchHeights}
-            gap={GAP}
             onHeightChange={updateBranchHeight}
           />
         ))}
@@ -394,13 +393,11 @@ function BranchHeightWrapper({
   branch,
   index,
   branchHeights,
-  gap,
   onHeightChange,
 }: {
   branch: BranchNode;
   index: number;
   branchHeights: number[];
-  gap: number;
   onHeightChange: (index: number, height: number) => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);

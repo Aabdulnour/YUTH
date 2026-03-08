@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AppPageHeader, AppShell } from "@/components/layout/AppShell";
+import { AppShell } from "@/components/layout/AppShell";
 import { usePrivateRoute } from "@/lib/auth/usePrivateRoute";
 import {
   loadPersistedActionCompletion,
@@ -13,7 +13,6 @@ import { loadPersistedUserProfile } from "@/lib/persistence/profile-store";
 import { getRecommendations } from "@/lib/recommendations/engine";
 import {
   ALL_NODES,
-  CHILD_NODES,
   DOMAIN_NODES,
   ROOT_NODE,
   computeNodeStatus,
@@ -38,6 +37,8 @@ const CHILD_RADIUS = 200;
 const ROOT_R = 48;
 const DOMAIN_R = 38;
 const CHILD_R = 26;
+const INITIAL_ZOOM = 0.95;
+const INITIAL_PAN = { x: -40, y: 12 };
 
 /* ── Position helpers ── */
 
@@ -112,10 +113,13 @@ function DetailPanel({
 
   const statusColor = NODE_STATUS_COLORS[status];
   const isRoot = node.id === "you";
+  const nextAction =
+    relatedActions.find((action) => !actionCompletion[action.id]) ?? relatedActions[0] ?? null;
+  const featuredBenefit = relatedBenefits[0] ?? null;
+  const askAiLabel = isRoot ? "Ask AI about your priorities" : "Ask AI about this";
 
   return (
-    <div className="mindmap-panel-animated absolute right-0 top-0 z-30 flex h-full w-[360px] flex-col border-l border-[#e8e3dd] bg-[#fdfcfb] shadow-[-4px_0_24px_rgba(20,15,12,0.06)]">
-      {/* ── Header ── */}
+    <div className="mindmap-panel-animated absolute right-0 top-0 z-30 flex h-full w-[380px] flex-col border-l border-[#e8e3dd] bg-[linear-gradient(180deg,#fffdfb_0%,#f9f5f1_100%)] shadow-[-10px_0_36px_rgba(20,15,12,0.08)]">
       <div className="flex items-center justify-between px-6 py-5">
         <div className="flex items-center gap-3">
           <span
@@ -146,17 +150,13 @@ function DetailPanel({
         </button>
       </div>
 
-      {/* ── Divider ── */}
       <div className="mx-6 h-px bg-[#eae5df]" />
 
-      {/* ── Body ── */}
       <div className="flex-1 overflow-y-auto px-6 py-5">
-        {/* Description */}
         <p className="text-[13px] leading-[1.65] text-[#6b655e]">
           {node.description}
         </p>
 
-        {/* Why it matters */}
         <div className="mt-5 rounded-xl bg-[#f7f4f1] px-4 py-3.5">
           <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#a09890]">
             Why it matters
@@ -166,7 +166,6 @@ function DetailPanel({
           </p>
         </div>
 
-        {/* Next step */}
         {node.nextStep && (
           <div className="mt-4 rounded-xl border border-[#e8e3dd] bg-white px-4 py-3.5">
             <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#a09890]">
@@ -178,7 +177,6 @@ function DetailPanel({
           </div>
         )}
 
-        {/* Related actions */}
         {relatedActions.length > 0 && (
           <div className="mt-5">
             <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#a09890]">
@@ -212,7 +210,6 @@ function DetailPanel({
           </div>
         )}
 
-        {/* Related benefits */}
         {relatedBenefits.length > 0 && (
           <div className="mt-5">
             <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#a09890]">
@@ -236,28 +233,102 @@ function DetailPanel({
           </div>
         )}
 
-        {/* Ask AI — sticky at bottom of content */}
-        {!isRoot && (
-          <div className="mt-6 pt-4" style={{ borderTop: "1px solid #eae5df" }}>
+        <div className="mt-6 border-t border-[#eae5df] pt-4">
+          <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#a09890]">
+            Next move
+          </p>
+          <div className="space-y-2.5">
             <Link
               href={`/ask-ai?topic=${encodeURIComponent(node.askAiPrompt)}`}
-              className="group flex items-center gap-3 rounded-xl border border-[#e8e3dd] bg-white px-4 py-3 transition-all hover:border-[#d4cec6] hover:shadow-[0_2px_12px_rgba(200,34,51,0.06)]"
+              className="group flex items-center gap-3 rounded-xl border border-[#f0d8dc] bg-[#fff7f8] px-4 py-3 transition-all hover:border-[#e5b7bf] hover:shadow-[0_2px_12px_rgba(200,34,51,0.08)]"
             >
               <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#fff1f2] text-sm transition-transform group-hover:scale-105">
                 🤖
               </span>
               <div className="min-w-0 flex-1">
-                <p className="text-[12px] font-semibold text-[#151311]">
-                  Ask AI about this
-                </p>
-                <p className="truncate text-[11px] text-[#8a8580]">
-                  {node.askAiPrompt}
-                </p>
+                <p className="text-[12px] font-semibold text-[#151311]">{askAiLabel}</p>
+                <p className="truncate text-[11px] text-[#8a8580]">{node.askAiPrompt}</p>
               </div>
               <svg className="h-4 w-4 shrink-0 text-[#c4bdb5] transition-colors group-hover:text-[#c82233]" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </Link>
+
+            {nextAction ? (
+              nextAction.externalLink ? (
+                <a
+                  href={nextAction.externalLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex items-center gap-3 rounded-xl border border-[#e8e3dd] bg-white px-4 py-3 transition-all hover:border-[#d4cec6] hover:shadow-[0_2px_12px_rgba(20,15,12,0.06)]"
+                >
+                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#f5f2ee] text-sm">↗</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[12px] font-semibold text-[#151311]">
+                      {nextAction.externalLinkLabel ?? "View related action"}
+                    </p>
+                    <p className="truncate text-[11px] text-[#8a8580]">{nextAction.title}</p>
+                  </div>
+                  <svg className="h-4 w-4 shrink-0 text-[#c4bdb5] transition-colors group-hover:text-[#151311]" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </a>
+              ) : (
+                <Link
+                  href="/dashboard"
+                  className="group flex items-center gap-3 rounded-xl border border-[#e8e3dd] bg-white px-4 py-3 transition-all hover:border-[#d4cec6] hover:shadow-[0_2px_12px_rgba(20,15,12,0.06)]"
+                >
+                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#f5f2ee] text-sm">→</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[12px] font-semibold text-[#151311]">Go to dashboard area</p>
+                    <p className="truncate text-[11px] text-[#8a8580]">{nextAction.title}</p>
+                  </div>
+                  <svg className="h-4 w-4 shrink-0 text-[#c4bdb5] transition-colors group-hover:text-[#151311]" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </Link>
+              )
+            ) : (
+              <Link
+                href="/dashboard"
+                className="group flex items-center gap-3 rounded-xl border border-[#e8e3dd] bg-white px-4 py-3 transition-all hover:border-[#d4cec6] hover:shadow-[0_2px_12px_rgba(20,15,12,0.06)]"
+              >
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#f5f2ee] text-sm">→</span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[12px] font-semibold text-[#151311]">Go to dashboard area</p>
+                  <p className="truncate text-[11px] text-[#8a8580]">
+                    Review the actions and benefits connected to this path.
+                  </p>
+                </div>
+                <svg className="h-4 w-4 shrink-0 text-[#c4bdb5] transition-colors group-hover:text-[#151311]" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </Link>
+            )}
+
+            {featuredBenefit ? (
+              featuredBenefit.sourceUrl ? (
+                <a
+                  href={featuredBenefit.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex items-center gap-3 rounded-xl border border-[#e8e3dd] bg-white px-4 py-3 transition-all hover:border-[#d4cec6] hover:shadow-[0_2px_12px_rgba(20,15,12,0.06)]"
+                >
+                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#eef6ef] text-sm">+</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[12px] font-semibold text-[#151311]">Explore benefit</p>
+                    <p className="truncate text-[11px] text-[#8a8580]">{featuredBenefit.name}</p>
+                  </div>
+                  <svg className="h-4 w-4 shrink-0 text-[#c4bdb5] transition-colors group-hover:text-[#151311]" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </a>
+              ) : (
+                <Link
+                  href="/hub"
+                  className="group flex items-center gap-3 rounded-xl border border-[#e8e3dd] bg-white px-4 py-3 transition-all hover:border-[#d4cec6] hover:shadow-[0_2px_12px_rgba(20,15,12,0.06)]"
+                >
+                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#eef6ef] text-sm">+</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[12px] font-semibold text-[#151311]">Explore benefit</p>
+                    <p className="truncate text-[11px] text-[#8a8580]">{featuredBenefit.name}</p>
+                  </div>
+                  <svg className="h-4 w-4 shrink-0 text-[#c4bdb5] transition-colors group-hover:text-[#151311]" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </Link>
+              )
+            ) : null}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
@@ -285,8 +356,9 @@ function MapNode({
   const iconSize = isRoot ? 24 : isDomain ? 18 : 14;
   const fontSize = isRoot ? 14 : isDomain ? 11.5 : 10;
   const labelOffset = pos.r + 16;
+  const animationDelay = isRoot ? "0s" : isDomain ? "0.08s" : "0.16s";
 
-  // Softer node fill — light tint when relevant, white otherwise
+  // Softer node fill with a light tint when relevant.
   const baseFill = isRoot
     ? "#fff8f8"
     : status === "relevant_now"
@@ -307,9 +379,9 @@ function MapNode({
     <g
       className="mindmap-node-animated cursor-pointer"
       onClick={onClick}
-      style={{ "--node-delay": `${Math.random() * 0.35}s` } as React.CSSProperties}
+      style={{ "--node-delay": animationDelay } as React.CSSProperties}
     >
-      {/* Hover target — larger invisible circle for easier clicking */}
+      {/* Larger invisible hover target for easier clicking */}
       <circle
         cx={pos.x}
         cy={pos.y}
@@ -331,7 +403,7 @@ function MapNode({
         />
       )}
 
-      {/* Subtle status dot — bottom-right of node */}
+      {/* Subtle status dot in the lower corner */}
       {status !== "explore_later" && !isRoot && (
         <circle
           cx={pos.x + pos.r * 0.65}
@@ -472,7 +544,7 @@ function ZoomControls({
   onReset: () => void;
 }) {
   return (
-    <div className="absolute bottom-4 left-4 z-20 flex items-center gap-0.5 rounded-lg border border-[#e8e3dd] bg-white/90 p-0.5 shadow-sm backdrop-blur-sm">
+    <div className="absolute bottom-4 left-4 z-20 flex items-center gap-0.5 rounded-xl border border-white/70 bg-white/85 p-1 shadow-[0_10px_24px_rgba(20,15,12,0.08)] backdrop-blur-sm">
       <button
         type="button"
         onClick={onZoomOut}
@@ -515,7 +587,7 @@ function Legend() {
   ];
 
   return (
-    <div className="absolute left-4 top-4 z-20 flex items-center gap-3 rounded-lg border border-[#e8e3dd] bg-white/90 px-3 py-2 shadow-sm backdrop-blur-sm">
+    <div className="absolute right-4 top-4 z-20 flex items-center gap-3 rounded-xl border border-white/70 bg-white/85 px-3 py-2 shadow-[0_10px_24px_rgba(20,15,12,0.08)] backdrop-blur-sm">
       {items.map((item) => (
         <div key={item.status} className="flex items-center gap-1.5">
           <span
@@ -543,12 +615,11 @@ export default function MindMapPage() {
   const [actionCompletion, setActionCompletion] = useState<ActionCompletionMap>(
     {}
   );
-  const [isDataLoading, setIsDataLoading] = useState(true);
+  const [loadedMindMapUserId, setLoadedMindMapUserId] = useState<string | null>(null);
 
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-  const [expandedDomains, setExpandedDomains] = useState<Set<string>>(new Set());
-  const [zoom, setZoom] = useState(0.8);
-  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(INITIAL_ZOOM);
+  const [pan, setPan] = useState(INITIAL_PAN);
   const [isPanning, setIsPanning] = useState(false);
   const panStart = useRef({ x: 0, y: 0, panX: 0, panY: 0 });
   const didDrag = useRef(false);
@@ -558,10 +629,6 @@ export default function MindMapPage() {
 
   useEffect(() => {
     if (!isAuthenticated || !userId) {
-      if (!isLoading) {
-        setProfile(null);
-        setIsDataLoading(false);
-      }
       return;
     }
 
@@ -575,7 +642,7 @@ export default function MindMapPage() {
       if (!cancelled) {
         setProfile(loadedProfile);
         setActionCompletion(completionMap);
-        setIsDataLoading(false);
+        setLoadedMindMapUserId(userId);
       }
     };
 
@@ -633,25 +700,19 @@ export default function MindMapPage() {
     return ALL_NODES.find((n) => n.id === selectedNodeId) ?? null;
   }, [selectedNodeId]);
 
+  const expandedDomainId = useMemo(() => {
+    if (!selectedNode || selectedNode.id === ROOT_NODE.id) {
+      return null;
+    }
+
+    return selectedNode.parentId === ROOT_NODE.id ? selectedNode.id : selectedNode.parentId;
+  }, [selectedNode]);
+
   /* ── Node click handler ── */
 
   const handleNodeClick = useCallback((nodeId: string) => {
     if (didDrag.current) return;
     setSelectedNodeId((prev) => (prev === nodeId ? null : nodeId));
-
-    // Progressive disclosure: expand domain children when domain is clicked
-    const clickedNode = ALL_NODES.find((n) => n.id === nodeId);
-    if (clickedNode && clickedNode.parentId === "you") {
-      setExpandedDomains((prev) => {
-        const next = new Set(prev);
-        if (next.has(nodeId)) {
-          next.delete(nodeId);
-        } else {
-          next.add(nodeId);
-        }
-        return next;
-      });
-    }
   }, []);
 
   /* ── Pan & Zoom handlers ── */
@@ -698,14 +759,23 @@ export default function MindMapPage() {
     setIsPanning(false);
   }, []);
 
+  const handleCanvasClick = useCallback(() => {
+    if (didDrag.current) {
+      didDrag.current = false;
+      return;
+    }
+
+    setSelectedNodeId(null);
+  }, []);
+
   const handleReset = useCallback(() => {
-    setZoom(0.8);
-    setPan({ x: 0, y: 0 });
+    setZoom(INITIAL_ZOOM);
+    setPan(INITIAL_PAN);
   }, []);
 
   /* ── Loading states ── */
 
-  if (isLoading || profile === undefined || isDataLoading) {
+  if (isLoading || (isAuthenticated && userId && loadedMindMapUserId !== userId)) {
     return (
       <AppShell activePath="/mindmap">
         <div className="flex items-center justify-center rounded-2xl border border-[#e8e3dd] bg-[#faf8f6] p-16">
@@ -733,28 +803,48 @@ export default function MindMapPage() {
   const relevantCount = Array.from(nodeStatuses.values()).filter(
     (s) => s === "relevant_now"
   ).length;
+  const visibleNodes = ALL_NODES.filter((node) => {
+    if (node.id === ROOT_NODE.id || node.parentId === ROOT_NODE.id) {
+      return true;
+    }
+
+    return node.parentId === expandedDomainId;
+  });
 
   return (
     <AppShell activePath="/mindmap" maxWidthClassName="max-w-[1440px]">
-      <div className="mb-3">
+      <div className="mb-4">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9a7b72]">MindMap</p>
-        <h1 className="mt-1 text-2xl font-bold text-[#151311]">Your adult-life map</h1>
-        <p className="mt-1 text-sm text-[#5f5953]">
-          {relevantCount > 0
-            ? `${relevantCount} area${relevantCount > 1 ? "s" : ""} relevant to you right now. Click a domain to expand.`
-            : "Explore the domains of Canadian adulthood. Click a domain to expand its topics."}
-        </p>
+        <h1 className="mt-1 text-2xl font-bold text-[#151311]">Your adult life map</h1>
       </div>
 
       <div
-        className="relative overflow-hidden rounded-2xl border border-[#e8e3dd] bg-[#fdfcfa]"
+        className="relative overflow-hidden rounded-[28px] border border-[#e8e3dd] bg-[#fdfbf9] shadow-[0_14px_42px_rgba(20,15,12,0.06)]"
         style={{
-          height: "calc(100vh - 240px)",
-          minHeight: 520,
-          backgroundImage:
-            "radial-gradient(circle at 50% 50%, #faf8f5 0%, #f5f2ee 100%)",
+          height: "calc(100vh - 228px)",
+          minHeight: 580,
+          backgroundImage: "linear-gradient(180deg, #fffdfa 0%, #f6f0e9 100%)",
         }}
       >
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute left-[12%] top-[10%] h-[320px] w-[320px] rounded-full bg-[#f4be73] opacity-[0.18] blur-[120px]" />
+          <div className="absolute left-1/2 top-1/2 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#f2d7bd] opacity-[0.3] blur-[120px]" />
+          <div className="absolute right-[8%] top-[18%] h-[300px] w-[300px] rounded-full bg-[#ef7a88] opacity-[0.16] blur-[130px]" />
+          <div className="absolute bottom-[-40px] left-[28%] h-[220px] w-[220px] rounded-full bg-[#fff6ea] opacity-[0.8] blur-[80px]" />
+        </div>
+
+        <div className="absolute left-4 top-4 z-20 max-w-[280px] rounded-2xl border border-white/60 bg-white/80 px-4 py-3 shadow-[0_10px_24px_rgba(20,15,12,0.07)] backdrop-blur-sm">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#9a7b72]">Focus view</p>
+          <p className="mt-1 text-sm font-semibold text-[#151311]">
+            {relevantCount > 0
+              ? `${relevantCount} area${relevantCount > 1 ? "s are" : " is"} relevant right now`
+              : "Explore the domains of Canadian adulthood"}
+          </p>
+          <p className="mt-1 text-xs leading-relaxed text-[#6b655e]">
+            Click one domain at a time for a cleaner path, then drag or zoom to explore the map.
+          </p>
+        </div>
+
         <Legend />
         <ZoomControls
           zoom={zoom}
@@ -763,7 +853,6 @@ export default function MindMapPage() {
           onReset={handleReset}
         />
 
-        {/* Canvas container */}
         <div
           ref={containerRef}
           className="h-full w-full"
@@ -781,10 +870,18 @@ export default function MindMapPage() {
             style={{
               transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
               transformOrigin: "center center",
-              transition: isPanning ? "none" : "transform 0.15s ease-out",
+              transition: isPanning ? "none" : "transform 0.18s ease-out",
             }}
           >
-            {/* Subtle radial guide */}
+            <rect
+              x="0"
+              y="0"
+              width={CANVAS_W}
+              height={CANVAS_H}
+              fill="transparent"
+              onClick={handleCanvasClick}
+            />
+
             <circle
               cx={CENTER_X}
               cy={CENTER_Y}
@@ -793,20 +890,22 @@ export default function MindMapPage() {
               stroke="#ece7e0"
               strokeWidth={0.8}
               strokeDasharray="6 10"
-              opacity={0.3}
+              opacity={0.38}
             />
 
-            {/* Connection lines — only show for visible nodes */}
-            <ConnectionLines nodes={ALL_NODES.filter((n) => {
-              if (!n.parentId || n.parentId === "you") return true;
-              return expandedDomains.has(n.parentId);
-            })} />
+            <circle
+              cx={CENTER_X}
+              cy={CENTER_Y}
+              r={DOMAIN_RADIUS + 70}
+              fill="none"
+              stroke="#f2dfd3"
+              strokeWidth={1}
+              opacity={0.32}
+            />
 
-            {/* Nodes — progressive disclosure: only show domains + root, plus children of expanded domains */}
-            {ALL_NODES.filter((node) => {
-              if (node.id === "you" || node.parentId === "you") return true; // root + domains always visible
-              return node.parentId ? expandedDomains.has(node.parentId) : false;
-            }).map((node) => {
+            <ConnectionLines nodes={visibleNodes} />
+
+            {visibleNodes.map((node) => {
               const pos = NODE_POSITIONS.get(node.id);
               if (!pos) return null;
 
@@ -824,7 +923,6 @@ export default function MindMapPage() {
           </svg>
         </div>
 
-        {/* Detail panel */}
         {selectedNode && (
           <DetailPanel
             node={selectedNode}

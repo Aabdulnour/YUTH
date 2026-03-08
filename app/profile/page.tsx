@@ -20,11 +20,11 @@ export default function ProfilePage() {
   const router = useRouter();
   const { isAuthenticated, isLoading, userId } = usePrivateRoute();
   const [profile, setProfile] = useState<UserProfile | null | undefined>(undefined);
+  const [loadedProfileUserId, setLoadedProfileUserId] = useState<string | null>(null);
   const [isSigningOut, setIsSigningOut] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated || !userId) {
-      if (!isLoading) setProfile(null);
       return;
     }
 
@@ -32,7 +32,10 @@ export default function ProfilePage() {
 
     const loadProfile = async () => {
       const p = await loadPersistedUserProfile(userId);
-      if (!isCancelled) setProfile(p);
+      if (!isCancelled) {
+        setProfile(p);
+        setLoadedProfileUserId(userId);
+      }
     };
 
     void loadProfile();
@@ -66,7 +69,7 @@ export default function ProfilePage() {
     }
   };
 
-  if (isLoading || profile === undefined) {
+  if (isLoading || (isAuthenticated && userId && loadedProfileUserId !== userId)) {
     return (
       <AppShell activePath="/profile">
         <div className="rounded-2xl border border-[#e2dbd4] bg-[#faf8f6] p-8 text-[#5f5953]">
@@ -77,6 +80,10 @@ export default function ProfilePage() {
   }
 
   if (!isAuthenticated || !userId || profile === null) {
+    return null;
+  }
+
+  if (!profile) {
     return null;
   }
 

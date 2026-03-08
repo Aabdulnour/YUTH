@@ -159,7 +159,7 @@ export default function AuthPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#0c0a09] px-6 py-10 text-[#171412]" style={{ fontFamily: "'Inter', 'Avenir Next', 'Segoe UI', sans-serif" }}>
+    <main className="min-h-screen bg-[#0c0a09] px-6 py-10 font-sans text-[#171412]">
       <div className="mx-auto max-w-5xl">
         <header className="flex items-center justify-between">
           <Link href="/" className="text-sm font-bold tracking-[0.2em] text-[#151311]">
@@ -167,7 +167,7 @@ export default function AuthPage() {
           </Link>
           <Link
             href="/"
-            className="rounded-lg border border-[#d4cec8] px-4 py-2 text-sm font-semibold text-[#2a2521] transition hover:border-[#b8b2ac] hover:bg-[#f7f5f3]"
+            className="rounded-lg border border-[#d4cec8] px-4 py-2 text-sm font-semibold text-[#FFFFFF] transition hover:border-[#b8b2ac] hover:bg-[#f7f5f3]"
           >
             Back to home
           </Link>
@@ -221,7 +221,9 @@ export default function AuthPage() {
                 <span className="text-sm font-semibold text-[#b8b0a8]">Email</span>
                 <input
                   type="email"
-                  autoComplete="email"
+                  name="email"
+                  autoComplete={mode === "signup" ? "email" : "username"}
+                  inputMode="email"
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                   className="mt-2 w-full rounded-xl border border-[#2e2826] bg-[#1c1917] px-4 py-3 text-white placeholder-[#5a524c] outline-none transition focus:border-[#c82233]"
@@ -233,6 +235,7 @@ export default function AuthPage() {
                 <span className="text-sm font-semibold text-[#b8b0a8]">Password</span>
                 <input
                   type="password"
+                  name="password"
                   autoComplete={mode === "signup" ? "new-password" : "current-password"}
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
