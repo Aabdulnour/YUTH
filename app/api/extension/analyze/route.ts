@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
         error:
           error instanceof Error
             ? error.message
-            : "Failed to analyze MapleMind spending context.",
+            : "Failed to analyze YUTH spending context.",
       },
       { status: 500 }
     );

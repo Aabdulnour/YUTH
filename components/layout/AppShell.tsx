@@ -1,13 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
-import { useState } from "react";
-import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 interface AppShellProps {
-  activePath: "/dashboard" | "/ask-ai" | "/profile" | "/mindmap";
+  activePath: "/dashboard" | "/ask-ai" | "/profile" | "/mindmap" | "/hub";
   children: ReactNode;
   maxWidthClassName?: string;
 }
@@ -22,6 +19,7 @@ interface AppPageHeaderProps {
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/mindmap", label: "MindMap" },
+  { href: "/hub", label: "Hub" },
   { href: "/ask-ai", label: "Ask AI" },
   { href: "/profile", label: "Profile" },
 ] as const;
@@ -31,21 +29,6 @@ function joinClasses(...classes: Array<string | false | undefined>): string {
 }
 
 export function AppShell({ activePath, children, maxWidthClassName = "max-w-6xl" }: AppShellProps) {
-  const router = useRouter();
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
-
-  const handleLogout = async () => {
-    setIsLoggingOut(true);
-
-    try {
-      const supabase = getSupabaseBrowserClient();
-      await supabase.auth.signOut();
-    } finally {
-      setIsLoggingOut(false);
-      router.replace("/auth?mode=login");
-    }
-  };
-
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,_#faf8f6,_#f5f2ee_48%,_#f3efe9_100%)] text-[#151311]">
       <div className={joinClasses("mx-auto px-6 py-8", maxWidthClassName)}>
@@ -60,38 +43,25 @@ export function AppShell({ activePath, children, maxWidthClassName = "max-w-6xl"
               </span>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
-              <nav className="flex flex-wrap items-center gap-2">
-                {NAV_ITEMS.map((item) => {
-                  const isActive = item.href === activePath;
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={joinClasses(
-                        "rounded-xl px-4 py-2 text-sm font-medium transition",
-                        isActive
-                          ? "bg-[#c82233] text-white"
-                          : "border border-[#e2dbd4] bg-[#faf8f6] text-[#4d473f] hover:border-[#d0c9c1]"
-                      )}
-                    >
-                      {item.label}
-                    </Link>
-                  );
-                })}
-              </nav>
-
-              <button
-                type="button"
-                onClick={() => {
-                  void handleLogout();
-                }}
-                disabled={isLoggingOut}
-                className="rounded-xl border border-[#e2dbd4] bg-[#faf8f6] px-3 py-2 text-xs font-medium text-[#5f5953] transition hover:border-[#d0c9c1] disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                {isLoggingOut ? "Logging out..." : "Log out"}
-              </button>
-            </div>
+            <nav className="flex flex-wrap items-center gap-2">
+              {NAV_ITEMS.map((item) => {
+                const isActive = item.href === activePath;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={joinClasses(
+                      "rounded-xl px-4 py-2 text-sm font-medium transition",
+                      isActive
+                        ? "bg-[#c82233] text-white"
+                        : "border border-[#e2dbd4] bg-[#faf8f6] text-[#4d473f] hover:border-[#d0c9c1]"
+                    )}
+                  >
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </nav>
           </div>
         </header>
         {children}

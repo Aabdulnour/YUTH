@@ -240,7 +240,7 @@ function DetailPanel({
         {!isRoot && (
           <div className="mt-6 pt-4" style={{ borderTop: "1px solid #eae5df" }}>
             <Link
-              href="/ask-ai"
+              href={`/ask-ai?topic=${encodeURIComponent(node.askAiPrompt)}`}
               className="group flex items-center gap-3 rounded-xl border border-[#e8e3dd] bg-white px-4 py-3 transition-all hover:border-[#d4cec6] hover:shadow-[0_2px_12px_rgba(200,34,51,0.06)]"
             >
               <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#fff1f2] text-sm transition-transform group-hover:scale-105">
@@ -546,6 +546,7 @@ export default function MindMapPage() {
   const [isDataLoading, setIsDataLoading] = useState(true);
 
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [expandedDomains, setExpandedDomains] = useState<Set<string>>(new Set());
   const [zoom, setZoom] = useState(0.8);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
@@ -637,6 +638,20 @@ export default function MindMapPage() {
   const handleNodeClick = useCallback((nodeId: string) => {
     if (didDrag.current) return;
     setSelectedNodeId((prev) => (prev === nodeId ? null : nodeId));
+
+    // Progressive disclosure: expand domain children when domain is clicked
+    const clickedNode = ALL_NODES.find((n) => n.id === nodeId);
+    if (clickedNode && clickedNode.parentId === "you") {
+      setExpandedDomains((prev) => {
+        const next = new Set(prev);
+        if (next.has(nodeId)) {
+          next.delete(nodeId);
+        } else {
+          next.add(nodeId);
+        }
+        return next;
+      });
+    }
   }, []);
 
   /* ── Pan & Zoom handlers ── */
@@ -721,15 +736,15 @@ export default function MindMapPage() {
 
   return (
     <AppShell activePath="/mindmap" maxWidthClassName="max-w-[1440px]">
-      <AppPageHeader
-        eyebrow="MindMap"
-        title="Your adult-life map"
-        description={
-          relevantCount > 0
-            ? `${relevantCount} area${relevantCount > 1 ? "s" : ""} relevant to you right now. Click any node to explore.`
-            : "Explore the domains of Canadian adulthood. Click any node to dive deeper."
-        }
-      />
+      <div className="mb-3">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9a7b72]">MindMap</p>
+        <h1 className="mt-1 text-2xl font-bold text-[#151311]">Your adult-life map</h1>
+        <p className="mt-1 text-sm text-[#5f5953]">
+          {relevantCount > 0
+            ? `${relevantCount} area${relevantCount > 1 ? "s" : ""} relevant to you right now. Click a domain to expand.`
+            : "Explore the domains of Canadian adulthood. Click a domain to expand its topics."}
+        </p>
+      </div>
 
       <div
         className="relative overflow-hidden rounded-2xl border border-[#e8e3dd] bg-[#fdfcfa]"
@@ -781,11 +796,17 @@ export default function MindMapPage() {
               opacity={0.3}
             />
 
-            {/* Connection lines */}
-            <ConnectionLines nodes={ALL_NODES} />
+            {/* Connection lines — only show for visible nodes */}
+            <ConnectionLines nodes={ALL_NODES.filter((n) => {
+              if (!n.parentId || n.parentId === "you") return true;
+              return expandedDomains.has(n.parentId);
+            })} />
 
-            {/* Nodes */}
-            {ALL_NODES.map((node) => {
+            {/* Nodes — progressive disclosure: only show domains + root, plus children of expanded domains */}
+            {ALL_NODES.filter((node) => {
+              if (node.id === "you" || node.parentId === "you") return true; // root + domains always visible
+              return node.parentId ? expandedDomains.has(node.parentId) : false;
+            }).map((node) => {
               const pos = NODE_POSITIONS.get(node.id);
               if (!pos) return null;
 
