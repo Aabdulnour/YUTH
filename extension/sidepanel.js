@@ -1,5 +1,5 @@
 const EXTENSION_CONFIG = globalThis.MAPLEMIND_EXTENSION_CONFIG ?? {
-  dashboardUrl: "http://localhost:3000/dashboard",
+  dashboardUrl: "https://yuthcanada.com/dashboard",
 };
 
 const RECOMMENDATION_COPY = {
@@ -383,7 +383,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (openDashboardBtn) {
     openDashboardBtn.addEventListener("click", () => {
       chrome.tabs.create({
-        url: EXTENSION_CONFIG.dashboardUrl ?? "http://localhost:3000/dashboard",
+        url: EXTENSION_CONFIG.dashboardUrl ?? "https://yuthcanada.com/dashboard",
       });
     });
   }

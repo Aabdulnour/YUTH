@@ -13,7 +13,7 @@
     "*://*.bestbuy.ca/*",
     "*://*.sephora.ca/*",
     "*://*.sephora.com/*",
-    "http://localhost:3000/*"
+    "https://yuthcanada.com/*"
   ],
   "background": {
     "service_worker": "background.js"
@@ -31,7 +31,7 @@
       "run_at": "document_idle"
     },
     {
-      "matches": ["http://localhost:3000/*"],
+      "matches": ["https://yuthcanada.com/*"],
       "js": ["app-user-sync.js"],
       "run_at": "document_idle"
     }
