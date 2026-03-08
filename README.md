@@ -1,6 +1,6 @@
-# MapleMind
+# YUTH.
 
-MapleMind is an AI-powered assistant that helps young Canadian adults discover government benefits, financial opportunities, and important next steps based on their life situation. By combining structured program data with personalized profiles and AI guidance, MapleMind helps users understand what money they may be missing and what financial actions they should take.
+YUTH is an AI-powered assistant that helps the next generation of young Canadian adults discover government benefits, financial opportunities, and important next steps based on their life situation. By combining structured program data with personalized profiles and AI guidance, YUTH helps users understand what money they may be missing and what financial actions they should take — from filing taxes and building credit to choosing between accounts like a TFSA or FHSA.
 
 ## Features
 add all features
