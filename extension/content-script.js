@@ -1,5 +1,5 @@
 const EXTENSION_CONFIG = globalThis.MAPLEMIND_EXTENSION_CONFIG ?? {
-  apiBaseUrl: "http://localhost:3000",
+  apiBaseUrl: "https://yuthcanada.com",
   previewMode: true,
 };
 
