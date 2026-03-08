@@ -11,7 +11,8 @@ async def create_assistant():
     prompt = load_system_prompt()
 
     assistant = await client.create_assistant(
-        name="MapleMind Assistant",
-        system_prompt=prompt
+        name="Yuth Assistant",
+        system_prompt=prompt, 
+        model="gpt-5-mini"
     )
     return assistant 

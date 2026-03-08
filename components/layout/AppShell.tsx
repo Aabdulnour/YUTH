@@ -7,7 +7,7 @@ import { useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 interface AppShellProps {
-  activePath: "/dashboard" | "/ask-ai" | "/profile";
+  activePath: "/dashboard" | "/ask-ai" | "/documents" | "/profile";
   children: ReactNode;
   maxWidthClassName?: string;
 }
@@ -22,6 +22,7 @@ interface AppPageHeaderProps {
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/ask-ai", label: "Ask AI" },
+  { href: "/documents", label: "Documents" },
   { href: "/profile", label: "Profile" },
 ] as const;
 

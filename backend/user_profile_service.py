@@ -3,25 +3,34 @@ from supabase_client import get_supabase_client
 def load_user_profile(user_id: str):
     supabase = get_supabase_client()
 
-    profile_response = (
-        supabase.table("user_profiles")
-        .select("*")
-        .eq("user_id", user_id)
-        .maybe_single()
-        .execute()
-    )
+    try:
+        profile_response = (
+            supabase.table("user_profiles")
+            .select("*")
+            .eq("user_id", user_id)
+            .maybe_single()
+            .execute()
+        )
+    except Exception:
+        profile_response = None
 
-    financial_response = (
-        supabase.table("financial_data")
-        .select("*")
-        .eq("user_id", user_id)
-        .maybe_single()
-        .execute()
-    )
+    try:
+        financial_response = (
+            supabase.table("financial_data")
+            .select("*")
+            .eq("user_id", user_id)
+            .maybe_single()
+            .execute()
+        )
+    except Exception:
+        financial_response = None
+
+    profile_data = profile_response.data if profile_response and hasattr(profile_response, "data") else {}
+    financial_data = financial_response.data if financial_response and hasattr(financial_response, "data") else {}
 
     return {
-        "profile": profile_response.data or {},
-        "financial": financial_response.data or {}
+        "profile": profile_data or {},
+        "financial": financial_data or {}
     }
 
 

@@ -470,24 +470,88 @@ export default function DashboardPage() {
         </aside>
       </div>
 
-      <section>
-        <div className="mb-4">
-          <h3 className="text-2xl font-bold">Personalized insights</h3>
-          <p className="mt-1 text-sm text-[#6f6a64]">Short guidance based on your current profile and action readiness.</p>
+      <section className="mb-8">
+  <div className="mb-4">
+    <h3 className="text-2xl font-bold">Tools</h3>
+    <p className="mt-1 text-sm text-[#6f6a64]">
+      Add personal documents and expand what MapleMind can help you understand.
+    </p>
+  </div>
+
+  <div className="grid gap-4 md:grid-cols-2">
+    <Link
+      href="/documents"
+      className="group rounded-2xl border border-[#ebe4dc] bg-white p-5 shadow-[0_8px_20px_rgba(35,31,26,0.05)] transition hover:-translate-y-[1px] hover:border-[#ddd4cb]"
+    >
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-xs uppercase tracking-[0.12em] text-[#8a8580]">New</p>
+          <h4 className="mt-2 text-xl font-semibold text-[#1c1b19]">Documents</h4>
+          <p className="mt-2 text-sm text-[#615c56]">
+            Upload files like tax forms, letters, notes, and documents so MapleMind can answer
+            questions using your own materials.
+          </p>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
-          {insightCards.map((card, index) => (
-            <article
-              key={`${card.title}-${index}`}
-              className="rounded-2xl border border-[#ebe4dc] bg-white p-5 shadow-[0_8px_20px_rgba(35,31,26,0.05)]"
-            >
-              <p className="text-xs uppercase tracking-[0.12em] text-[#8a8580]">{card.title}</p>
-              <p className="mt-3 text-lg">{card.body}</p>
-            </article>
-          ))}
+        <div className="rounded-2xl bg-[#fff2ef] p-3 text-[#b14634]">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
+            <path
+              d="M14 3H8C6.89543 3 6 3.89543 6 5V19C6 20.1046 6.89543 21 8 21H16C17.1046 21 18 20.1046 18 19V7L14 3Z"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M14 3V7H18"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
         </div>
-      </section>
+      </div>
+
+      <div className="mt-4 flex items-center justify-between">
+        <div className="flex flex-wrap gap-2">
+          <span className="rounded-full border border-[#e4ddd5] bg-[#faf7f3] px-2.5 py-1 text-[11px] font-medium text-[#5e5852]">
+            PDF
+          </span>
+          <span className="rounded-full border border-[#e4ddd5] bg-[#faf7f3] px-2.5 py-1 text-[11px] font-medium text-[#5e5852]">
+            DOCX
+          </span>
+          <span className="rounded-full border border-[#e4ddd5] bg-[#faf7f3] px-2.5 py-1 text-[11px] font-medium text-[#5e5852]">
+            TXT
+          </span>
+        </div>
+
+        <span className="text-sm font-medium text-[#1c1b19] transition group-hover:text-[#f04d2d]">
+          Open →
+        </span>
+      </div>
+    </Link>
+  </div>
+</section>
+
+<section>
+  <div className="mb-4">
+    <h3 className="text-2xl font-bold">Personalized insights</h3>
+    <p className="mt-1 text-sm text-[#6f6a64]">Short guidance based on your current profile and action readiness.</p>
+  </div>
+
+  <div className="grid gap-4 md:grid-cols-3">
+    {insightCards.map((card, index) => (
+      <article
+        key={`${card.title}-${index}`}
+        className="rounded-2xl border border-[#ebe4dc] bg-white p-5 shadow-[0_8px_20px_rgba(35,31,26,0.05)]"
+      >
+        <p className="text-xs uppercase tracking-[0.12em] text-[#8a8580]">{card.title}</p>
+        <p className="mt-3 text-lg">{card.body}</p>
+      </article>
+    ))}
+  </div>
+</section>
     </AppShell>
   );
 }

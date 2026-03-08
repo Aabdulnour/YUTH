@@ -137,10 +137,10 @@ export default function AskAIPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          userId,
           profile,
           recommendation: recommendations,
-          question: nextQuestion,
-          history: historyForRequest,
+          question: nextQuestion
         }),
       });
 
