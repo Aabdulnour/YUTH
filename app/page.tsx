@@ -360,8 +360,8 @@ export default function HomePage() {
       </section>
 
       <footer className="bg-[#0c0a09]">
-        <div className="mx-auto w-full max-w-[1200px] border-t border-[#1e1c1a] px-6 py-6 md:px-10">
-          <div className="flex flex-col items-center justify-between gap-2 text-xs text-[#6a6460] sm:flex-row">
+        <div className="mx-auto w-full max-w-[1200px] border-t border-[#1e1c1a] px-2 py-6 md:px-10">
+          <div className="flex flex-col items-center justify-between text-xs text-[#6a6460] sm:flex-row">
             <span className="font-bold tracking-[0.18em] text-[#a09890]">YUTH</span>
             <span>Built for young adults navigating Canada.</span>
           </div>
