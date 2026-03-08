@@ -41,6 +41,7 @@ export default function AuthPage() {
     const originalOverflow = document.body.style.overflow;
 
     document.body.style.overflow = "hidden";
+    document.body.style.backgroundColor = "#faf8f6";
 
     return () => {
       document.body.style.overflow = originalOverflow;
@@ -169,7 +170,7 @@ export default function AuthPage() {
   }
 
   return (
-    <main className="min-h-screen bg-white px-6 py-10 text-[#171412]" style={{ fontFamily: "'Inter', 'Avenir Next', 'Segoe UI', sans-serif" }}>
+    <main className="min-h-screen bg-[#faf8f6] px-6 py-10 text-[#171412]" style={{ fontFamily: "'Inter', 'Avenir Next', 'Segoe UI', sans-serif" }}>
       <div className="mx-auto max-w-5xl">
         <header className="flex items-center justify-between">
           <Link href="/" className="text-sm font-bold tracking-[0.2em] text-[#151311] hover:opacity-80">
