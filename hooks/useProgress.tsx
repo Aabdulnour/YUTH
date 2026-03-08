@@ -100,6 +100,16 @@ export function useProgress() {
     }
   };
 
+  // Synchronously writes to localStorage — use before router.back() to avoid
+  // the race condition where navigation fires before the React state flush.
+  const markComplete = (taskId: string) => {
+    setProgress((prev) => {
+      const next = { ...prev, [taskId]: true };
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch {}
+      return next;
+    });
+  };
+
   // ─── Progress calculators ─────────────────────────────────────────────────
 
   const isComplete = (taskId: string): boolean => !!progress[taskId];
@@ -133,6 +143,7 @@ export function useProgress() {
   return {
     progress,
     smartToggle,
+    markComplete,
     isTaskUnlocked,
     isComplete,
     getNodeProgress,

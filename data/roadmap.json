@@ -1,193 +1,97 @@
 {
   "id": "root",
   "label": "Financial Freedom",
-  "children": [
+  "sections": [
     {
-      "id": "foundation",
-      "label": "Foundation",
+      "id": "setup",
+      "label": "Setup",
+      "type": "setup",
+      "icon": "✦",
       "color": "#c82233",
-      "children": [
+      "half": "top",
+      "groups": [
         {
-          "id": "banking-setup",
-          "label": "Banking Setup",
+          "id": "phase-1",
+          "label": "Phase 1: The Foundation",
+          "icon": "🏗️",
           "color": "#e8394c",
           "tasks": [
-            { "id": "banking-setup-1", "label": "Open chequing account" },
-            { "id": "banking-setup-2", "label": "Open high-interest savings account" },
-            { "id": "banking-setup-3", "label": "Set up automatic transfers", "prerequisite": "banking-setup-1" },
-            { "id": "banking-setup-4", "label": "Enable online banking", "prerequisite": "banking-setup-1" }
+            { "id": "banking-1", "label": "Open chequing account" },
+            { "id": "banking-2", "label": "Open high-interest savings account", "prerequisite": "banking-1" },
+            { "id": "banking-4", "label": "Enable online banking",              "prerequisite": "banking-1" },
+            { "id": "banking-3", "label": "Set up automatic transfers",         "prerequisite": "banking-4" },
+            { "id": "debt-1",    "label": "List all debts" },
+            { "id": "debt-2",    "label": "Understand interest rates",          "prerequisite": "debt-1", "learn": true }
           ]
         },
         {
-          "id": "credit-building",
-          "label": "Credit Building",
+          "id": "phase-2",
+          "label": "Phase 2: Management & Security",
+          "icon": "🛡️",
           "color": "#d42d3f",
           "tasks": [
-            { "id": "credit-building-1", "label": "Understand credit score" },
-            { "id": "credit-building-2", "label": "Open first credit card", "prerequisite": "credit-building-1" },
-            { "id": "credit-building-3", "label": "Keep utilization below 30%", "prerequisite": "credit-building-2" },
-            { "id": "credit-building-4", "label": "Pay balance on time", "prerequisite": "credit-building-2" },
-            { "id": "credit-building-5", "label": "Check credit report annually", "prerequisite": "credit-building-2" }
+            { "id": "budget-1",  "label": "Create a budget",          "prerequisite": "banking-3", "learn": true },
+            { "id": "budget-2",  "label": "Automate bill payments",   "prerequisite": "budget-1" },
+            { "id": "credit-1",  "label": "Understand credit score",                               "learn": true },
+            { "id": "credit-2",  "label": "Open first credit card",   "prerequisite": "credit-1" },
+            { "id": "protect-1", "label": "Get health insurance" },
+            { "id": "protect-2", "label": "Get disability insurance", "prerequisite": "protect-1" },
+            { "id": "protect-3", "label": "Get life insurance",       "prerequisite": "protect-1" }
           ]
         },
         {
-          "id": "budgeting",
-          "label": "Budgeting",
+          "id": "phase-3",
+          "label": "The Growth Ladder",
+          "icon": "📈",
           "color": "#bf1f30",
           "tasks": [
-            { "id": "budgeting-1", "label": "Track monthly expenses" },
-            { "id": "budgeting-2", "label": "Create a budget", "prerequisite": "budgeting-1" },
-            { "id": "budgeting-3", "label": "Reduce unnecessary expenses", "prerequisite": "budgeting-2" },
-            { "id": "budgeting-4", "label": "Automate bill payments", "prerequisite": "budgeting-2" },
-            { "id": "budgeting-5", "label": "Review budget monthly", "prerequisite": "budgeting-2" }
+            { "id": "efund-1", "label": "Save $1,000 starter fund",  "prerequisite": "budget-1" },
+            { "id": "efund-2", "label": "Save 3 months of expenses", "prerequisite": "efund-1" },
+            { "id": "efund-3", "label": "Save 6 months of expenses", "prerequisite": "efund-2" },
+            { "id": "debt-3",  "label": "Choose repayment strategy", "prerequisite": "debt-2", "learn": true }
           ]
         }
       ]
     },
     {
-      "id": "stability",
-      "label": "Stability",
-      "color": "#9a7b72",
-      "children": [
-        {
-          "id": "emergency-fund",
-          "label": "Emergency Fund",
-          "color": "#b09088",
-          "tasks": [
-            { "id": "emergency-fund-1", "label": "Calculate monthly expenses" },
-            { "id": "emergency-fund-2", "label": "Save $1,000 starter fund", "prerequisite": "emergency-fund-1" },
-            { "id": "emergency-fund-3", "label": "Save 3 months of expenses", "prerequisite": "emergency-fund-2" },
-            { "id": "emergency-fund-4", "label": "Save 6 months of expenses", "prerequisite": "emergency-fund-3" }
-          ]
-        },
-        {
-          "id": "debt-management",
-          "label": "Debt Management",
-          "color": "#a08078",
-          "tasks": [
-            { "id": "debt-management-1", "label": "List all debts" },
-            { "id": "debt-management-2", "label": "Understand interest rates", "prerequisite": "debt-management-1" },
-            { "id": "debt-management-3", "label": "Choose a repayment strategy (snowball or avalanche)", "prerequisite": "debt-management-2" },
-            { "id": "debt-management-4", "label": "Pay off credit cards", "prerequisite": "debt-management-3" },
-            { "id": "debt-management-5", "label": "Reduce high-interest debt", "prerequisite": "debt-management-3" }
-          ]
-        },
-        {
-          "id": "protection",
-          "label": "Protection",
-          "color": "#8a6e66",
-          "tasks": [
-            { "id": "protection-1", "label": "Get health insurance" },
-            { "id": "protection-2", "label": "Get disability insurance" },
-            { "id": "protection-3", "label": "Get life insurance" },
-            { "id": "protection-4", "label": "Set up identity protection" }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "growth",
-      "label": "Growth",
-      "color": "#c8a882",
-      "children": [
-        {
-          "id": "taxes",
-          "label": "Taxes",
-          "color": "#d4b48e",
-          "tasks": [
-            { "id": "taxes-1", "label": "Set up CRA My Account" },
-            { "id": "taxes-2", "label": "File taxes every year", "prerequisite": "taxes-1" },
-            { "id": "taxes-3", "label": "Claim all eligible tax credits", "prerequisite": "taxes-1" },
-            { "id": "taxes-4", "label": "Track TFSA contribution room", "prerequisite": "taxes-1" },
-            { "id": "taxes-5", "label": "Understand RRSP deductions", "prerequisite": "taxes-1" }
-          ]
-        },
-        {
-          "id": "investing",
-          "label": "Investing",
-          "color": "#c8a070",
-          "tasks": [
-            { "id": "investing-1", "label": "Learn investing basics" },
-            { "id": "investing-2", "label": "Understand your risk tolerance", "prerequisite": "investing-1" },
-            { "id": "investing-3", "label": "Understand diversification", "prerequisite": "investing-1" },
-            { "id": "investing-4", "label": "Understand asset allocation", "prerequisite": "investing-1" },
-            { "id": "investing-5", "label": "Understand compound growth", "prerequisite": "investing-1" }
-          ]
-        },
-        {
-          "id": "investment-accounts",
-          "label": "Investment Accounts",
-          "color": "#bc9466",
-          "tasks": [
-            { "id": "investment-accounts-1", "label": "Open a TFSA" },
-            { "id": "investment-accounts-2", "label": "Open an RRSP", "prerequisite": "investment-accounts-1" },
-            { "id": "investment-accounts-3", "label": "Open an FHSA", "prerequisite": "investment-accounts-1" },
-            { "id": "investment-accounts-4", "label": "Understand taxable accounts", "prerequisite": "investment-accounts-1" }
-          ]
-        },
-        {
-          "id": "portfolio-building",
-          "label": "Portfolio Building",
-          "color": "#d4b080",
-          "tasks": [
-            { "id": "portfolio-building-1", "label": "Buy your first ETF" },
-            { "id": "portfolio-building-2", "label": "Build a diversified portfolio", "prerequisite": "portfolio-building-1" },
-            { "id": "portfolio-building-3", "label": "Set monthly contributions", "prerequisite": "portfolio-building-1" },
-            { "id": "portfolio-building-4", "label": "Reinvest dividends", "prerequisite": "portfolio-building-2" },
-            { "id": "portfolio-building-5", "label": "Rebalance portfolio annually", "prerequisite": "portfolio-building-2" }
-          ]
-        },
-        {
-          "id": "income-growth",
-          "label": "Income Growth",
-          "color": "#c8a478",
-          "tasks": [
-            { "id": "income-growth-1", "label": "Develop high-value skills" },
-            { "id": "income-growth-2", "label": "Negotiate your salary", "prerequisite": "income-growth-1" },
-            { "id": "income-growth-3", "label": "Change jobs strategically", "prerequisite": "income-growth-1" },
-            { "id": "income-growth-4", "label": "Start a side income", "prerequisite": "income-growth-1" },
-            { "id": "income-growth-5", "label": "Increase your savings rate", "prerequisite": "income-growth-1" }
-          ]
-        },
-        {
-          "id": "expense-optimization",
-          "label": "Expense Optimization",
-          "color": "#b89060",
-          "tasks": [
-            { "id": "expense-optimization-1", "label": "Reduce housing costs" },
-            { "id": "expense-optimization-2", "label": "Reduce transportation costs" },
-            { "id": "expense-optimization-3", "label": "Audit and cut subscriptions" },
-            { "id": "expense-optimization-4", "label": "Compare insurance plans" }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "independence",
-      "label": "Independence",
+      "id": "maintenance",
+      "label": "Maintenance",
+      "type": "maintenance",
+      "icon": "↻",
       "color": "#7a6e68",
-      "children": [
+      "half": "bottom",
+      "groups": [
         {
-          "id": "long-term-planning",
-          "label": "Long-Term Planning",
+          "id": "monthly-pulse",
+          "label": "The Monthly Pulse",
+          "icon": "📅",
+          "color": "#a09080",
+          "tasks": [
+            { "id": "maint-1", "label": "Track monthly expenses",     "description": "Log your spending as it happens." },
+            { "id": "maint-2", "label": "Review budget monthly",      "description": "Compare what you spent vs. what you planned.",       "prerequisite": "budget-1" },
+            { "id": "maint-3", "label": "Pay balance on time",        "description": "Ensure credit cards and bills are cleared.",         "prerequisite": "credit-2" },
+            { "id": "maint-4", "label": "Keep utilization below 30%", "description": "Monitor your credit card usage relative to your limit.", "prerequisite": "credit-2", "learn": true },
+            { "id": "maint-5", "label": "Pay off credit cards",       "description": "Clear any revolving balances to avoid interest.",    "prerequisite": "credit-2" }
+          ]
+        },
+        {
+          "id": "quarterly-checkup",
+          "label": "The Quarterly / Annual Check-up",
+          "icon": "🔍",
           "color": "#8a7e78",
           "tasks": [
-            { "id": "long-term-planning-1", "label": "Start retirement planning" },
-            { "id": "long-term-planning-2", "label": "Estimate retirement expenses", "prerequisite": "long-term-planning-1" },
-            { "id": "long-term-planning-3", "label": "Determine your retirement number", "prerequisite": "long-term-planning-2" },
-            { "id": "long-term-planning-4", "label": "Plan a withdrawal strategy", "prerequisite": "long-term-planning-3" },
-            { "id": "long-term-planning-5", "label": "Monitor net worth regularly", "prerequisite": "long-term-planning-1" }
+            { "id": "maint-6", "label": "Check credit report annually",               "description": "Look for errors or identity theft signs.",     "prerequisite": "credit-2" },
+            { "id": "maint-7", "label": "Update monthly expense calculations yearly", "description": "Adjust for inflation or lifestyle changes.",    "prerequisite": "maint-1" },
+            { "id": "maint-8", "label": "Reduce unnecessary expenses",                "description": "Audit subscriptions and lifestyle creep.",      "prerequisite": "budget-1" }
           ]
         },
         {
-          "id": "financial-independence",
-          "label": "Financial Independence",
-          "color": "#c82233",
+          "id": "strategic-focus",
+          "label": "The Strategic Focus",
+          "icon": "🎯",
+          "color": "#7a7068",
           "tasks": [
-            { "id": "financial-independence-1", "label": "Achieve investment income > expenses" },
-            { "id": "financial-independence-2", "label": "Maintain a diversified portfolio", "prerequisite": "financial-independence-1" },
-            { "id": "financial-independence-3", "label": "Continue long-term investing", "prerequisite": "financial-independence-1" },
-            { "id": "financial-independence-4", "label": "Adjust lifestyle as needed", "prerequisite": "financial-independence-1" }
+            { "id": "maint-9", "label": "Reduce high-interest debt", "description": "Continually funnel extra cash toward high APR loans until gone.", "prerequisite": "debt-3" }
           ]
         }
       ]
