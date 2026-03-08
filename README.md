@@ -18,16 +18,16 @@ add project architecture
 | Browser Extension | Chrome Extension (Manifest v3) |
 | UI Integration | Chrome Side Panel API |
 
-## Smart Spend Chrome Extension
+## Chrome Extension Preview
 
-The YUTH. Chrome Extension provides **real-time financial context while users shop online**.  
+The MapleMind Chrome Extension provides **real-time financial context while users shop online**.  
 When a supported product page is opened, the extension analyzes the purchase against the user's financial profile and displays a quick recommendation in the browser side panel.
 
 This enables users to understand how a purchase fits into their financial plan **before completing the transaction**.
 
 ### Overview
 
-YUTH's Smart Spender brings financial intelligence directly into your browser. As you browse the web, it understands the financial context of the page. From purchases and subscriptions to travel and everyday spending, it provides instant insights to help you make smarter decisions before money leaves your account.
+MapleMind's browser decision support brings financial context directly into your browser. As you browse, it checks purchase fit against budget, goals, and deadlines so you can make better decisions before money leaves your account.
 
 The result is presented in a **lightweight side panel dashboard** that summarizes whether the purchase fits the user’s financial plan.
 

@@ -7,7 +7,7 @@ const STEPS = [
   {
     number: "01",
     title: "Install The Chrome Extension",
-    body: "Add YUTH to Chrome and pin it to your browser for instant access while you're online.",
+    body: "Add MapleMind to Chrome and pin it for instant decision support while you browse.",
   },
   {
     number: "02",

@@ -1,5 +1,5 @@
 chrome.runtime.onInstalled.addListener(() => {
-  console.log("MapleMind extension installed");
+  console.log("MapleMind browser decision support extension installed (preview mode).");
 });
 
 chrome.sidePanel
