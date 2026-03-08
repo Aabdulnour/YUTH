@@ -2,7 +2,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f5f2ee;
+  --background: #f7f1ea;
   --foreground: #151311;
   --font-sans: "Inter", "Avenir Next", "Segoe UI", "Trebuchet MS", sans-serif;
   --font-mono: "SFMono-Regular", "Menlo", "Monaco", monospace;
@@ -23,6 +23,10 @@
 
   body {
     background-color: var(--background);
+    background-image:
+      radial-gradient(circle at 12% 12%, rgba(244, 190, 115, 0.14), transparent 24%),
+      radial-gradient(circle at 88% 18%, rgba(232, 87, 108, 0.1), transparent 26%),
+      linear-gradient(180deg, #faf5ef 0%, #f6efe8 100%);
     color: var(--foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
@@ -62,6 +66,8 @@
 .mindmap-node-animated {
   animation: mindmap-node-appear 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
   animation-delay: var(--node-delay, 0s);
+  transform-box: fill-box;
+  transform-origin: center;
 }
 
 @keyframes mindmap-panel-slide {
@@ -76,7 +82,7 @@
 }
 
 .mindmap-panel-animated {
-  animation: mindmap-panel-slide 0.2s ease-out both;
+  animation: mindmap-panel-slide 0.24s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @keyframes mindmap-pulse-ring {
@@ -94,7 +100,7 @@
 
 /* Node hover */
 .mindmap-node-circle {
-  transition: filter 0.15s ease, stroke-width 0.15s ease;
+  transition: filter 0.18s ease, stroke-width 0.18s ease, fill 0.18s ease, stroke 0.18s ease;
 }
 
 .mindmap-node-animated:hover .mindmap-node-circle {

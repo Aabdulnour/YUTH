@@ -77,7 +77,6 @@ function TaskNode({ task, allTasks, color }: { task: Task; allTasks: Task[]; col
 function LeafNodeComponent({
   node,
   onHeightChange,
-  onSelect,
 }: {
   node: LeafNode;
   onHeightChange?: (height: number) => void;

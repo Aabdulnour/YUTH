@@ -24,7 +24,7 @@ import type {
   ExtensionDecisionsResponse,
   Recommendation,
 } from "@/types/extension";
-import type { UserProfile } from "@/types/profile";
+import { PROFILE_FLAG_KEYS, type UserProfile } from "@/types/profile";
 
 /* ── Visual tokens ── */
 
@@ -89,35 +89,6 @@ const extensionRecommendationClasses: Record<Recommendation, string> = {
 
 function formatPriority(priority: ActionPriority): string {
   return priority.toUpperCase();
-}
-
-function formatDecisionTimestamp(value: string): string {
-  const timestamp = new Date(value);
-  if (Number.isNaN(timestamp.getTime())) {
-    return "Recently";
-  }
-
-  return new Intl.DateTimeFormat("en-CA", {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(timestamp);
-}
-
-function formatDecisionMerchant(merchant: string): string {
-  if (merchant.toLowerCase() === "bestbuy") {
-    return "Best Buy";
-  }
-
-  return merchant.charAt(0).toUpperCase() + merchant.slice(1);
-}
-
-function formatDecisionCategory(category: string): string {
-  return category
-    .replace(/([a-z])([A-Z])/g, "$1 $2")
-    .replace(/_/g, " ")
-    .replace(/^./, (value) => value.toUpperCase());
 }
 
 /* ── Score ring ── */
@@ -189,6 +160,39 @@ function ScoreRing({ score, tier }: { score: number; tier: AdultScoreTier }) {
   );
 }
 
+function IncompleteScoreRing() {
+  return (
+    <div className="relative flex flex-col items-center">
+      <svg width={RING_SIZE} height={RING_SIZE} viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`}>
+        <circle
+          cx={RING_SIZE / 2}
+          cy={RING_SIZE / 2}
+          r={RING_RADIUS}
+          fill="none"
+          stroke="#eadfd6"
+          strokeWidth={RING_STROKE}
+        />
+        <circle
+          cx={RING_SIZE / 2}
+          cy={RING_SIZE / 2}
+          r={RING_RADIUS}
+          fill="none"
+          stroke="#d8cdc3"
+          strokeWidth={RING_STROKE}
+          strokeDasharray="8 10"
+          strokeLinecap="round"
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="text-5xl font-semibold text-[#9a7b72]">?</span>
+        <span className="mt-1 rounded-full bg-[#fff5f0] px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#b46a22]">
+          Incomplete
+        </span>
+      </div>
+    </div>
+  );
+}
+
 /* ── Source cue ── */
 
 function SourceCue({ label, url }: { label?: string; url?: string }) {
@@ -215,6 +219,7 @@ function SourceCue({ label, url }: { label?: string; url?: string }) {
 /* ── Dashboard page ── */
 
 const MAX_VISIBLE_ACTIONS = 6;
+const SCORE_READY_SIGNAL_COUNT = 2;
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -227,7 +232,6 @@ export default function DashboardPage() {
   const [actionSaveError, setActionSaveError] = useState<string | null>(null);
   const [recentExtensionDecisions, setRecentExtensionDecisions] = useState<ExtensionDecision[]>([]);
   const [isDecisionHistoryLoading, setIsDecisionHistoryLoading] = useState(true);
-  const [decisionHistoryStorage, setDecisionHistoryStorage] = useState<"supabase" | "local">("local");
   const [decisionHistoryError, setDecisionHistoryError] = useState<string | null>(null);
   const [showAllActions, setShowAllActions] = useState(false);
   const [showCompletedActions, setShowCompletedActions] = useState(false);
@@ -320,9 +324,6 @@ export default function DashboardPage() {
 
         if (!isCancelled) {
           setRecentExtensionDecisions(payload.decisions as ExtensionDecision[]);
-          if (payload.storage === "supabase" || payload.storage === "local") {
-            setDecisionHistoryStorage(payload.storage);
-          }
         }
       } catch {
         if (!isCancelled) {
@@ -380,6 +381,23 @@ export default function DashboardPage() {
     return calculateAdultScore(profile, completedActionCount, recommendations.matchedActions.length);
   }, [completedActionCount, profile, recommendations]);
 
+  const activeProfileSignalCount = useMemo(() => {
+    if (!profile) {
+      return 0;
+    }
+
+    return PROFILE_FLAG_KEYS.filter((key) => profile[key]).length;
+  }, [profile]);
+
+  const adultScoreIsReady = useMemo(() => {
+    if (!profile) {
+      return false;
+    }
+
+    const hasCoreProfile = profile.age !== undefined && Boolean(profile.province);
+    return hasCoreProfile && (activeProfileSignalCount >= SCORE_READY_SIGNAL_COUNT || completedActionCount > 0);
+  }, [activeProfileSignalCount, completedActionCount, profile]);
+
   const insightCards = useMemo(() => {
     if (!recommendations) {
       return [];
@@ -403,13 +421,15 @@ export default function DashboardPage() {
   // Profile completeness
   const profileCompletion = useMemo(() => {
     if (!profile) return 0;
-    const flags = ["employed", "student", "renter", "hasCar", "hasDebt", "livesWithParents", "filesTaxes", "noEmployerBenefits", "isPostSecondary", "isNewcomer", "isIndigenous", "hasEmergencySavings", "hasDependent"] as const;
-    const filled = flags.filter((k) => profile[k]).length + (profile.age !== undefined ? 1 : 0) + (profile.province ? 1 : 0);
-    return Math.round((filled / (flags.length + 2)) * 100);
+    const filled =
+      PROFILE_FLAG_KEYS.filter((key) => profile[key]).length +
+      (profile.age !== undefined ? 1 : 0) +
+      (profile.province ? 1 : 0);
+    return Math.round((filled / (PROFILE_FLAG_KEYS.length + 2)) * 100);
   }, [profile]);
 
   useEffect(() => {
-    if (!userId || !adultScore || !recommendations) {
+    if (!userId || !adultScore || !adultScoreIsReady || !recommendations) {
       return;
     }
 
@@ -418,7 +438,7 @@ export default function DashboardPage() {
       adultScore: adultScore.score,
       benefitIds: recommendations.matchedBenefits.map((benefit) => benefit.id),
     });
-  }, [adultScore, completedActionCount, recommendations, userId]);
+  }, [adultScore, adultScoreIsReady, completedActionCount, recommendations, userId]);
 
   const handleSetActionCompletion = async (actionId: string, completed: boolean) => {
     if (!userId) {
@@ -530,11 +550,11 @@ export default function DashboardPage() {
 
       {/* ── Profile completeness (shown when < 100%) ── */}
       {profileCompletion < 100 && (
-        <div className="mb-5 rounded-xl border border-[#e2dbd4] bg-gradient-to-r from-[#faf8f6] to-white px-5 py-3 flex items-center justify-between gap-4">
+        <div className="mb-5 flex items-center justify-between gap-4 rounded-xl border border-[#e2dbd4] bg-gradient-to-r from-[#faf8f6] to-white px-5 py-3">
           <div className="flex items-center gap-3 min-w-0">
             <div className="flex flex-col min-w-0">
               <p className="text-sm font-semibold text-[#151311]">Profile {profileCompletion}% complete</p>
-              <p className="text-xs text-[#5f5953]">Complete your profile for better recommendations.</p>
+              <p className="text-xs text-[#5f5953]">Add a few more details to sharpen your score and recommendations.</p>
             </div>
           </div>
           <Link
@@ -549,17 +569,53 @@ export default function DashboardPage() {
       {/* ── Row 1: Adult Score + Top Insight ── */}
       <div className="mb-5 grid gap-4 lg:grid-cols-[auto_1fr]">
         {/* Score ring card */}
-        <section className="flex flex-col items-center rounded-2xl border border-[#e2dbd4] bg-gradient-to-b from-[#faf8f6] to-white px-8 py-6 shadow-[0_4px_16px_rgba(20,15,12,0.06)]">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-[#9a7b72]">
-            Adult Score
-          </p>
-          <ScoreRing score={adultScore.score} tier={adultScore.tier} />
-          <p className="mt-3 text-sm font-medium text-[#151311]">
-            {adultScore.completedActions}/{adultScore.totalActions} actions completed
-          </p>
-          <p className="mt-1 max-w-[220px] text-center text-xs leading-relaxed text-[#9a7b72]">
-            Taxes, savings, debt, housing, benefits, and follow-through.
-          </p>
+        <section className="relative overflow-hidden rounded-2xl border border-[#e2dbd4] bg-gradient-to-b from-[#faf8f6] to-white px-8 py-6 shadow-[0_4px_16px_rgba(20,15,12,0.06)]">
+          <div className="pointer-events-none absolute left-1/2 top-3 h-28 w-28 -translate-x-1/2 rounded-full bg-[#f4d1b2] opacity-35 blur-[70px]" />
+          <div className="relative flex flex-col items-center">
+            <div className="mb-3 flex items-center gap-2">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9a7b72]">
+                Adult Score
+              </p>
+              {!adultScoreIsReady ? (
+                <span className="rounded-full bg-[#fff5f0] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#b46a22]">
+                  Needs context
+                </span>
+              ) : null}
+            </div>
+
+            {adultScoreIsReady ? (
+              <ScoreRing score={adultScore.score} tier={adultScore.tier} />
+            ) : (
+              <IncompleteScoreRing />
+            )}
+
+            {adultScoreIsReady ? (
+              <>
+                <p className="mt-3 text-sm font-medium text-[#151311]">
+                  {adultScore.completedActions}/{adultScore.totalActions} actions completed
+                </p>
+                <p className="mt-1 max-w-[220px] text-center text-xs leading-relaxed text-[#9a7b72]">
+                  Taxes, savings, debt, housing, benefits, and follow-through.
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="mt-3 text-sm font-medium text-[#151311]">
+                  Add a bit more profile context first
+                </p>
+                <p className="mt-1 max-w-[240px] text-center text-xs leading-relaxed text-[#9a7b72]">
+                  Your Adult Score becomes meaningful once YUTH knows more about your setup, like work, school,
+                  housing, or debt.
+                </p>
+                <Link
+                  href="/onboarding"
+                  className="mt-4 rounded-lg border border-[#e2dbd4] bg-white px-3 py-1.5 text-xs font-medium text-[#151311] transition hover:border-[#d0c9c1]"
+                >
+                  Continue setup
+                </Link>
+              </>
+            )}
+          </div>
         </section>
 
         {/* Top insight card */}

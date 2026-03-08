@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect, createContext, useContext } from "react";
-import React from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -35,20 +34,24 @@ type ProgressMap = Record<string, boolean>;
 
 const STORAGE_KEY = "maplemind_progress";
 
+function loadStoredProgress(): ProgressMap {
+  if (typeof window === "undefined") {
+    return {};
+  }
+
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return stored ? (JSON.parse(stored) as ProgressMap) : {};
+  } catch {
+    console.warn("Could not load progress from localStorage");
+    return {};
+  }
+}
+
 // ─── Core Hook ────────────────────────────────────────────────────────────────
 
 export function useProgress() {
-  const [progress, setProgress] = useState<ProgressMap>({});
-
-  // Load from localStorage on mount
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) setProgress(JSON.parse(stored));
-    } catch {
-      console.warn("Could not load progress from localStorage");
-    }
-  }, []);
+  const [progress, setProgress] = useState<ProgressMap>(() => loadStoredProgress());
 
   // Persist to localStorage whenever progress changes
   useEffect(() => {
