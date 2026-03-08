@@ -32,14 +32,14 @@ export async function resolveExtensionProfile(input: {
         profile,
         source: "authenticated_user_profile",
         mode: "live",
-        note: "Using your MapleMind profile.",
+        note: "Using your YUTH profile.",
       };
     }
   }
 
   const fallbackNote = requestedLiveProfile
-    ? "Preview mode: authenticated extension profile sync is not wired yet, so MapleMind is using a demo spending profile."
-    : "Preview mode: MapleMind is using a demo spending profile for extension analysis.";
+    ? "Preview mode: authenticated extension profile sync is not wired yet, so YUTH is using a demo spending profile."
+    : "Preview mode: YUTH is using a demo spending profile for extension analysis.";
 
   return {
     profile: demoProfile as SpendingProfile,
