@@ -112,7 +112,7 @@ export default function ProfilePage() {
       <AppPageHeader
         eyebrow="Settings"
         title="Profile and preferences"
-        description="Update the profile information MapleMind uses for recommendations and AI guidance."
+        description="Update the profile information YUTH uses for recommendations and AI guidance."
         actions={
           <button
             type="button"

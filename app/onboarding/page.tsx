@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { usePrivateRoute } from "@/lib/auth/usePrivateRoute";
 import {
   ONBOARDING_AGE_MAX,
@@ -12,7 +12,10 @@ import {
   buildProfileFromOnboarding,
   validateOnboardingAgeInput,
 } from "@/lib/onboarding";
-import { loadPersistedUserProfile, savePersistedUserProfile } from "@/lib/persistence/profile-store";
+import {
+  loadPersistedUserProfile,
+  savePersistedUserProfile,
+} from "@/lib/persistence/profile-store";
 import { PROFILE_FLAG_KEYS, type UserProfileFlagKey } from "@/types/profile";
 
 const SECTION_META: { letter: string; label: string }[] = [
@@ -43,12 +46,14 @@ export default function OnboardingPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
+  const ageInputRef = useRef<HTMLInputElement | null>(null);
+  const provinceSelectRef = useRef<HTMLSelectElement | null>(null);
+
   useEffect(() => {
     if (!isAuthenticated || !userId) {
       if (!isLoading) {
         setIsInitializing(false);
       }
-
       return;
     }
 
@@ -56,9 +61,7 @@ export default function OnboardingPage() {
 
     const hydrateFromSavedProfile = async () => {
       const profile = await loadPersistedUserProfile(userId);
-      if (isCancelled) {
-        return;
-      }
+      if (isCancelled) return;
 
       if (profile) {
         setSelectedFlags(PROFILE_FLAG_KEYS.filter((key) => profile[key]));
@@ -82,21 +85,23 @@ export default function OnboardingPage() {
     };
   }, [isAuthenticated, isLoading, userId]);
 
-  const profileSignalCount = useMemo(() => {
-    return selectedFlags.length;
-  }, [selectedFlags]);
+  const profileSignalCount = useMemo(() => selectedFlags.length, [selectedFlags]);
 
   const totalSignalCount = useMemo(() => {
-    return ONBOARDING_OPTION_GROUPS.reduce((count, group) => count + group.options.length, 0);
+    return ONBOARDING_OPTION_GROUPS.reduce(
+      (count, group) => count + group.options.length,
+      0
+    );
   }, []);
 
+  const completedBasicsCount =
+    (ageInput.trim() ? 1 : 0) + (province.trim() ? 1 : 0);
+
   const progressPercent = useMemo(() => {
-    // Basics (age + province) count as 2 signals worth
-    const basicsComplete = (ageInput.trim() ? 1 : 0) + (province.trim() ? 1 : 0);
     const total = totalSignalCount + 2;
-    const filled = profileSignalCount + basicsComplete;
+    const filled = profileSignalCount + completedBasicsCount;
     return Math.round((filled / total) * 100);
-  }, [ageInput, province, profileSignalCount, totalSignalCount]);
+  }, [completedBasicsCount, profileSignalCount, totalSignalCount]);
 
   const toggleOption = (flag: UserProfileFlagKey) => {
     setSelectedFlags((currentFlags) =>
@@ -106,25 +111,66 @@ export default function OnboardingPage() {
     );
   };
 
+  const scrollToField = (
+    field: "age" | "province",
+    behavior: ScrollBehavior = "smooth"
+  ) => {
+    const target =
+      field === "age" ? ageInputRef.current : provinceSelectRef.current;
+
+    if (!target) return;
+
+    target.scrollIntoView({
+      behavior,
+      block: "center",
+    });
+
+    window.setTimeout(() => {
+      target.focus();
+    }, 180);
+  };
+
   const handleContinue = async () => {
-    if (!userId || isSaving) {
-      return;
-    }
+    if (!userId || isSaving) return;
+
+    const trimmedAge = ageInput.trim();
+    const trimmedProvince = province.trim();
 
     const nextErrors: FieldErrors = {};
-    const validatedAge = validateOnboardingAgeInput(ageInput);
-    if (validatedAge.error) {
-      nextErrors.age = validatedAge.error;
-    }
+    let firstInvalidField: "age" | "province" | null = null;
 
-    if (!province.trim()) {
-      nextErrors.province = "Province or territory is required.";
-    }
+    if (!trimmedAge) {
+  nextErrors.age = "Required.";
+  firstInvalidField = "age";
+} else {
+  const validatedAge = validateOnboardingAgeInput(trimmedAge);
+
+  if (validatedAge.error) {
+    nextErrors.age = validatedAge.error;
+    firstInvalidField = "age";
+  }
+}
+
+if (!trimmedProvince) {
+  nextErrors.province = "Required.";
+
+  if (!firstInvalidField) {
+    firstInvalidField = "province";
+  }
+}
 
     setFieldErrors(nextErrors);
     setSaveError(null);
 
-    if (Object.keys(nextErrors).length > 0 || validatedAge.age === undefined) {
+    if (firstInvalidField) {
+      scrollToField(firstInvalidField);
+      return;
+    }
+
+    const validatedAge = validateOnboardingAgeInput(trimmedAge);
+
+    if (validatedAge.age === undefined) {
+      scrollToField("age");
       return;
     }
 
@@ -134,7 +180,7 @@ export default function OnboardingPage() {
       const profile = buildProfileFromOnboarding({
         selectedFlags,
         ageInput: String(validatedAge.age),
-        province,
+        province: trimmedProvince,
       });
 
       await savePersistedUserProfile(userId, profile);
@@ -149,8 +195,11 @@ export default function OnboardingPage() {
 
   if (isLoading || (isAuthenticated && isInitializing)) {
     return (
-      <main className="min-h-screen bg-[#faf8f6] px-6 py-10 text-[#151311]" style={{ fontFamily: "'Inter', 'Avenir Next', 'Segoe UI', sans-serif" }}>
-        <div className="mx-auto max-w-5xl rounded-2xl border border-[#e2dbd4] bg-white p-8 text-[#5f5953]">
+      <main
+        className="min-h-screen bg-[#faf8f6] px-6 py-12 text-[#151311]"
+        style={{ fontFamily: "'Inter', 'Avenir Next', 'Segoe UI', sans-serif" }}
+      >
+        <div className="mx-auto max-w-5xl rounded-2xl border border-[#e2dbd4] bg-white p-10 text-[#5f5953]">
           Loading your account…
         </div>
       </main>
@@ -163,49 +212,53 @@ export default function OnboardingPage() {
 
   return (
     <main
-      className="min-h-screen bg-[#faf8f6] px-6 py-10 text-[#151311]"
+      className="min-h-screen bg-[#faf8f6] px-6 py-12 text-[#151311]"
       style={{ fontFamily: "'Inter', 'Avenir Next', 'Segoe UI', sans-serif" }}
     >
       <div className="mx-auto max-w-5xl">
-        {/* ── Header ── */}
         <header className="flex items-center justify-between">
-          <p className="text-sm font-bold uppercase tracking-[0.18em] text-[#151311]">MAPLEMIND</p>
-          <p className="rounded-full bg-[#fff1f2] px-4 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-[#c82233]">
+          <p className="text-sm font-bold uppercase tracking-[0.18em] text-[#151311]">
+            YUTH
+          </p>
+          <p className="rounded-full bg-[#fff1f2] px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-[#c82233]">
             Profile setup
           </p>
         </header>
 
-        {/* ── Progress bar ── */}
-        <div className="mt-5">
+        <div className="mt-6">
           <div className="flex items-center justify-between text-xs text-[#9a7b72]">
             <span>{progressPercent}% complete</span>
-            <span>{profileSignalCount + (ageInput.trim() ? 1 : 0) + (province.trim() ? 1 : 0)}/{totalSignalCount + 2} fields</span>
+            <span>
+              {profileSignalCount + completedBasicsCount} / {totalSignalCount + 2} fields
+            </span>
           </div>
-          <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-[#ebe4dd]">
+
+          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#ebe4dd]">
             <div
-              className="h-1 rounded-full bg-[#c82233] transition-all duration-500"
+              className="h-1.5 rounded-full bg-[#c82233] transition-all duration-500"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
         </div>
 
-        {/* ── Main card ── */}
-        <section className="mt-6 rounded-2xl border border-[#e2dbd4] bg-white p-7 shadow-[0_12px_36px_rgba(20,15,12,0.06)] sm:p-8 lg:p-10">
+        <section className="mt-8 rounded-2xl border border-[#e2dbd4] bg-white p-8 shadow-[0_12px_36px_rgba(20,15,12,0.06)] sm:p-10 lg:p-12">
           <h1 className="text-3xl font-bold leading-tight text-[#151311] sm:text-4xl">
-            Set up your MapleMind profile
+            Set up your YUTH profile
           </h1>
-          <p className="mt-3 max-w-3xl text-base leading-relaxed text-[#5f5953]">
-            This takes about two minutes. Your answers personalize recommendations, action priorities, and AI guidance.
+
+          <p className="mt-4 text-base leading-relaxed text-[#5f5953]">
+            This takes about two minutes. Your answers personalize recommendations,
+            action priorities, and AI guidance.
           </p>
 
-          <div className="mt-8 grid gap-8 lg:grid-cols-[1.65fr_0.95fr]">
+          <div className="mt-10">
             <div className="space-y-6">
-              {/* ── Section A: Basics ── */}
-              <section className="rounded-2xl border border-[#e2dbd4] bg-[#faf8f6] p-5 sm:p-6">
-                <div className="mb-4 flex items-center gap-2.5">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#c82233] text-xs font-bold text-white">
+              <section className="rounded-2xl border border-[#e2dbd4] bg-[#faf8f6] p-6 sm:p-7">
+                <div className="mb-5 flex items-center gap-3">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#c82233] text-xs font-bold text-white">
                     A
                   </span>
+
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#9a7b72]">
                       Section A
@@ -214,78 +267,147 @@ export default function OnboardingPage() {
                   </div>
                 </div>
 
-                <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid gap-5 sm:grid-cols-2">
                   <label className="block">
-                    <span className="text-sm font-medium text-[#322d28]">Age</span>
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-sm font-semibold text-[#322d28]">Age</span>
+                      {fieldErrors.age === "Required." ? (
+                        <span className="text-xs font-semibold text-[#c82233]">
+                          *Required
+                        </span>
+                      ) : null}
+                    </div>
+
                     <input
+                      ref={ageInputRef}
                       type="text"
                       inputMode="numeric"
                       value={ageInput}
                       onChange={(event) => {
                         const nextAge = event.target.value.replace(/\D/g, "").slice(0, 3);
                         setAgeInput(nextAge);
+
                         if (fieldErrors.age) {
-                          setFieldErrors((current) => ({ ...current, age: undefined }));
+                          setFieldErrors((current) => ({
+                            ...current,
+                            age: undefined,
+                          }));
                         }
                       }}
                       placeholder="24"
-                      className="mt-2 w-full rounded-xl border border-[#d8d1c9] bg-white px-4 py-3 text-base outline-none transition focus:border-[#c82233] focus:ring-1 focus:ring-[#c82233]/20"
+                      aria-describedby="age-hint age-error"
+                      aria-invalid={!!fieldErrors.age}
+                      className={`mt-2 w-full rounded-xl border bg-white px-4 py-3.5 text-base outline-none transition focus:ring-2 ${
+                        fieldErrors.age
+                          ? "border-[#c82233] focus:border-[#c82233] focus:ring-[#c82233]/20"
+                          : "border-[#d8d1c9] focus:border-[#c82233] focus:ring-[#c82233]/20"
+                      }`}
                     />
-                    <p className="mt-2 text-xs text-[#9a7b72]">
-                      Required. Enter a number between {ONBOARDING_AGE_MIN} and {ONBOARDING_AGE_MAX}.
+
+                    <p id="age-hint" className="mt-2 text-xs leading-relaxed text-[#9a7b72]">
+                      Enter a number between {ONBOARDING_AGE_MIN} and{" "}
+                      {ONBOARDING_AGE_MAX}.
                     </p>
-                    {fieldErrors.age ? (
-                      <p className="mt-2 text-sm font-medium text-[#c82233]">{fieldErrors.age}</p>
-                    ) : null}
+
+                  
                   </label>
 
                   <label className="block">
-                    <span className="text-sm font-medium text-[#322d28]">Province or territory</span>
-                    <select
-                      value={province}
-                      onChange={(event) => {
-                        setProvince(event.target.value);
-                        if (fieldErrors.province) {
-                          setFieldErrors((current) => ({ ...current, province: undefined }));
-                        }
-                      }}
-                      className="mt-2 w-full rounded-xl border border-[#d8d1c9] bg-white px-4 py-3 text-base outline-none transition focus:border-[#c82233] focus:ring-1 focus:ring-[#c82233]/20"
-                    >
-                      <option value="">Select province or territory</option>
-                      {PROVINCE_OPTIONS.map((provinceOption) => (
-                        <option key={provinceOption} value={provinceOption}>
-                          {provinceOption}
-                        </option>
-                      ))}
-                    </select>
-                    <p className="mt-2 text-xs text-[#9a7b72]">
-                      Required for province-specific programs and tax credits.
-                    </p>
-                    {fieldErrors.province ? (
-                      <p className="mt-2 text-sm font-medium text-[#c82233]">{fieldErrors.province}</p>
-                    ) : null}
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-sm font-semibold text-[#322d28]">
+                        Province or territory
+                      </span>
+                      {fieldErrors.province === "Required." ? (
+                        <span className="text-xs font-semibold text-[#c82233]">
+                          *Required
+                        </span>
+                      ) : null}
+                    </div>
+
+                    <div className="relative mt-2">
+                      <select
+                        ref={provinceSelectRef}
+                        value={province}
+                        onChange={(event) => {
+                          setProvince(event.target.value);
+
+                          if (fieldErrors.province) {
+                            setFieldErrors((current) => ({
+                              ...current,
+                              province: undefined,
+                            }));
+                          }
+                        }}
+                        aria-describedby="province-hint province-error"
+                        aria-invalid={!!fieldErrors.province}
+                        className={`w-full appearance-none rounded-xl border bg-white px-4 py-3.5 pr-10 text-base outline-none transition focus:ring-2 ${
+                          fieldErrors.province
+                            ? "border-[#c82233] focus:border-[#c82233] focus:ring-[#c82233]/20"
+                            : "border-[#d8d1c9] focus:border-[#c82233] focus:ring-[#c82233]/20"
+                        }`}
+                      >
+                        <option value="">Select province or territory</option>
+                        {PROVINCE_OPTIONS.map((provinceOption) => (
+                          <option key={provinceOption} value={provinceOption}>
+                            {provinceOption}
+                          </option>
+                        ))}
+                      </select>
+
+                      <svg
+                        className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#7a6e68]"
+                        viewBox="0 0 20 20"
+                        fill="none"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M5 7.5L10 12.5L15 7.5"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </div>
+
+                    <p
+  id="province-hint"
+  className="mt-2 text-xs leading-relaxed text-[#9a7b72]"
+>
+  Used for province-specific programs and tax credits.
+</p>
+
+                    
                   </label>
                 </div>
               </section>
 
-              {/* ── Sections B, C, D ── */}
               {ONBOARDING_OPTION_GROUPS.map((group, index) => {
                 const meta = SECTION_META[index + 1];
 
                 return (
-                  <section key={group.id} className="rounded-2xl border border-[#e2dbd4] bg-[#faf8f6] p-5 sm:p-6">
-                    <div className="mb-4 flex items-center gap-2.5">
-                      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#c82233] text-xs font-bold text-white">
+                  <section
+                    key={group.id}
+                    className="rounded-2xl border border-[#e2dbd4] bg-[#faf8f6] p-6 sm:p-7"
+                  >
+                    <div className="mb-5 flex items-center gap-3">
+                      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#c82233] text-xs font-bold text-white">
                         {meta.letter}
                       </span>
+
                       <div>
                         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#9a7b72]">
                           Section {meta.letter}
                         </p>
-                        <h2 className="text-xl font-bold text-[#151311]">{group.title}</h2>
+                        <h2 className="text-xl font-bold text-[#151311]">
+                          {group.title}
+                        </h2>
                       </div>
                     </div>
-                    <p className="mb-4 text-sm leading-relaxed text-[#5f5953]">{group.description}</p>
+
+                    <p className="mb-5 text-sm leading-relaxed text-[#5f5953]">
+                      {group.description}
+                    </p>
 
                     <div className="grid gap-3 sm:grid-cols-2">
                       {group.options.map((option) => {
@@ -296,15 +418,16 @@ export default function OnboardingPage() {
                             key={option.key}
                             type="button"
                             onClick={() => toggleOption(option.key)}
-                            className={`group relative rounded-xl border px-4 py-3.5 text-left transition ${
+                            aria-pressed={active}
+                            className={`group relative rounded-2xl border px-5 py-4 text-left transition-all duration-300 ease-[cubic-bezier(.22,1,.36,1)] ${
                               active
-                                ? "border-[#c82233] bg-[#fff1f2] shadow-[0_0_0_1px_rgba(200,34,51,0.15)]"
-                                : "border-[#e2dbd4] bg-white hover:border-[#d0c9c1] hover:shadow-[0_2px_8px_rgba(20,15,12,0.04)]"
+                                ? "border-[#d92d3f] bg-[#fff7f8] shadow-[0_8px_20px_rgba(200,34,51,0.08)]"
+                                : "border-[#e2dbd4] bg-white hover:border-[#d6cec6] hover:bg-[#fdfcfa] hover:shadow-[0_6px_16px_rgba(20,15,12,0.04)]"
                             }`}
                           >
-                            <div className="flex items-start gap-3">
-                              {/* Checkbox indicator */}
+                            <div className="flex items-start gap-4">
                               <span
+                                aria-hidden="true"
                                 className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition ${
                                   active
                                     ? "border-[#c82233] bg-[#c82233] text-white"
@@ -313,13 +436,24 @@ export default function OnboardingPage() {
                               >
                                 {active ? (
                                   <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                                    <path d="M2.5 6L5 8.5L9.5 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                    <path
+                                      d="M2.5 6L5 8.5L9.5 3.5"
+                                      stroke="currentColor"
+                                      strokeWidth="1.5"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
                                   </svg>
                                 ) : null}
                               </span>
-                              <div>
-                                <p className="text-sm font-semibold text-[#151311]">{option.label}</p>
-                                <p className="mt-0.5 text-sm leading-relaxed text-[#5f5953]">{option.helperText}</p>
+
+                              <div className="min-w-0">
+                                <p className="text-[15px] font-semibold leading-snug text-[#151311]">
+                                  {option.label}
+                                </p>
+                                <p className="mt-1.5 text-sm leading-relaxed text-[#5f5953]">
+                                  {option.helperText}
+                                </p>
                               </div>
                             </div>
                           </button>
@@ -330,66 +464,35 @@ export default function OnboardingPage() {
                 );
               })}
 
-              {/* ── Error / CTA ── */}
-              {saveError ? (
-                <p className="rounded-xl border border-[#f0cfd3] bg-[#fff1f2] px-4 py-3 text-sm text-[#c82233]">
-                  {saveError}
-                </p>
-              ) : null}
+              <div className="space-y-4 border-t border-[#eee7e0] pt-7">
+                {saveError ? (
+                  <div
+                    role="alert"
+                    className="rounded-2xl border border-[#f3c9cf] bg-[#fff5f6] px-5 py-4"
+                  >
+                    <p className="text-sm font-medium text-[#b42334]">{saveError}</p>
+                  </div>
+                ) : null}
 
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <button
-                  type="button"
-                  onClick={() => {
-                    void handleContinue();
-                  }}
-                  disabled={isSaving}
-                  className="rounded-xl bg-[#c82233] px-8 py-3 text-center text-base font-semibold text-white shadow-[0_0_20px_rgba(200,34,51,0.25)] transition hover:bg-[#b01e2d] disabled:cursor-not-allowed disabled:opacity-70"
-                >
-                  {isSaving ? "Saving…" : "Continue to dashboard"}
-                </button>
-                <Link
-                  href="/dashboard"
-                  className="rounded-xl border border-[#e2dbd4] bg-white px-8 py-3 text-center text-base font-medium text-[#151311] transition hover:border-[#d0c9c1]"
-                >
-                  Back
-                </Link>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <button
+                    type="button"
+                    onClick={() => void handleContinue()}
+                    disabled={isSaving}
+                    className="inline-flex items-center justify-center rounded-xl bg-[#c82233] px-8 py-4 text-center text-base font-semibold text-white transition-all duration-300 ease-[cubic-bezier(.22,1,.36,1)] hover:bg-[#b01e2d] hover:shadow-[0_4px_15px_rgba(200,34,51,0.26)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c82233] disabled:cursor-not-allowed disabled:opacity-70 cursor-pointer"
+                  >
+                    {isSaving ? "Saving…" : "Continue"}
+                  </button>
+
+                  <Link
+                    href="/"
+                    className="inline-flex items-center justify-center rounded-xl border border-[#e2dbd4] bg-white px-8 py-4 text-center text-base font-medium text-[#151311] transition-all duration-300 ease-[cubic-bezier(.22,1,.36,1)] hover:border-[#d0c9c1] hover:bg-[#faf8f6] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#151311]"
+                  >
+                    Back
+                  </Link>
+                </div>
               </div>
             </div>
-
-            {/* ── Sidebar ── */}
-            <aside className="space-y-4">
-              <div className="rounded-2xl border border-[#e2dbd4] bg-white p-5">
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#9a7b72]">
-                  Profile snapshot
-                </p>
-                <dl className="mt-4 space-y-3 text-sm">
-                  <div className="flex items-center justify-between gap-3">
-                    <dt className="text-[#5f5953]">Age</dt>
-                    <dd className="font-semibold text-[#151311]">{ageInput || "Required"}</dd>
-                  </div>
-                  <div className="flex items-center justify-between gap-3">
-                    <dt className="text-[#5f5953]">Province</dt>
-                    <dd className="font-semibold text-[#151311]">{province || "Required"}</dd>
-                  </div>
-                  <div className="flex items-center justify-between gap-3">
-                    <dt className="text-[#5f5953]">Signals selected</dt>
-                    <dd className="font-semibold text-[#151311]">
-                      {profileSignalCount}/{totalSignalCount}
-                    </dd>
-                  </div>
-                </dl>
-              </div>
-
-              <div className="rounded-2xl border border-[#e2dbd4] bg-white p-5">
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#9a7b72]">
-                  Trust and privacy
-                </p>
-                <p className="mt-3 text-sm leading-relaxed text-[#5f5953]">
-                  MapleMind uses this information to tailor guidance. You can update your profile any time in settings.
-                </p>
-              </div>
-            </aside>
           </div>
         </section>
       </div>

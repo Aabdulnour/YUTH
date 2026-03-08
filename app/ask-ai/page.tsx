@@ -230,7 +230,7 @@ export default function AskAIPage() {
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9a7b72]">Ask AI</p>
           <h1 className="mt-2 text-2xl font-bold text-[#151311]">Complete onboarding to open your chat</h1>
           <p className="mt-2 text-sm text-[#5f5953]">
-            MapleMind AI needs your saved profile to provide grounded, personalized guidance.
+            YUTH AI needs your saved profile to provide grounded, personalized guidance.
           </p>
           <div className="mt-5 flex flex-wrap gap-3">
             <Link href="/onboarding" className="rounded-xl bg-[#c82233] px-6 py-2.5 text-sm font-semibold text-white shadow-[0_0_16px_rgba(200,34,51,0.2)] transition hover:bg-[#b01e2d]">
@@ -306,7 +306,7 @@ export default function AskAIPage() {
                       }`}
                     >
                       <p className={`text-[10px] font-semibold uppercase tracking-[0.12em] ${isUser ? "text-white/70" : "text-[#9a7b72]"}`}>
-                        {isUser ? "You" : "MapleMind AI"}
+                        {isUser ? "You" : "YUTH AI"}
                       </p>
                       <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed">{message.content}</p>
                       {!isUser && message.metaLabel ? (
@@ -345,7 +345,7 @@ export default function AskAIPage() {
               {isSending ? (
                 <div className="flex justify-start">
                   <div className="max-w-[75%] rounded-2xl border border-[#e2dbd4] bg-white p-4">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#9a7b72]">MapleMind AI</p>
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#9a7b72]">YUTH AI</p>
                     <span className="mt-1.5 inline-block animate-pulse text-sm text-[#5f5953]">
                       Reviewing your profile and matched programs...
                     </span>

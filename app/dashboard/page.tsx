@@ -434,7 +434,7 @@ export default function DashboardPage() {
         <AppPageHeader
           eyebrow="Dashboard"
           title="No profile yet"
-          description="Complete onboarding so MapleMind can personalize your benefits, actions, and financial next steps."
+          description="Complete onboarding so YUTH can personalize your benefits, actions, and financial next steps."
         />
         <div className="rounded-2xl border border-[#e2dbd4] bg-[#faf8f6] p-8">
           <Link

@@ -37,6 +37,16 @@ export default function AuthPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
 
+ useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, []);
+
   useEffect(() => {
     if (typeof window === "undefined") {
       return;
@@ -152,7 +162,7 @@ export default function AuthPage() {
     return (
       <main className="min-h-screen bg-white px-6 py-16 text-[#171412]">
         <div className="mx-auto max-w-2xl rounded-2xl border border-[#e6e0d8] bg-[#faf8f6] p-8">
-          <p className="text-sm text-[#5f5953]">Redirecting to your MapleMind account...</p>
+          <p className="text-sm text-[#5f5953]">Redirecting to your YUTH account...</p>
         </div>
       </main>
     );
@@ -162,8 +172,8 @@ export default function AuthPage() {
     <main className="min-h-screen bg-white px-6 py-10 text-[#171412]" style={{ fontFamily: "'Inter', 'Avenir Next', 'Segoe UI', sans-serif" }}>
       <div className="mx-auto max-w-5xl">
         <header className="flex items-center justify-between">
-          <Link href="/" className="text-sm font-bold tracking-[0.2em] text-[#151311]">
-            MAPLEMIND
+          <Link href="/" className="text-sm font-bold tracking-[0.2em] text-[#151311] hover:opacity-80">
+            YUTH
           </Link>
           <Link
             href="/"
@@ -177,7 +187,7 @@ export default function AuthPage() {
           <div className="rounded-2xl border border-[#2a2520] bg-[#141210] p-6">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#7a6e68]">Your account</p>
             <h1 className="mt-4 text-3xl font-bold leading-tight text-white md:text-4xl">
-              Sign in or create your MapleMind account.
+              Sign in or create your YUTH account.
             </h1>
             <p className="mt-4 max-w-xl text-base text-[#9a9290]">
               Pick up where you left off, or build your profile in about two minutes.
@@ -254,7 +264,7 @@ export default function AuthPage() {
                 disabled={isSubmitting}
                 className="w-full rounded-xl bg-[#c82233] px-4 py-3 font-bold text-white shadow-[0_0_16px_rgba(200,34,51,0.35)] transition hover:bg-[#b01e2d] disabled:cursor-not-allowed disabled:opacity-70"
               >
-                {isSubmitting ? "Please wait..." : mode === "signup" ? "Create account" : "Log in"}
+                {isSubmitting ? "Please wait..." : mode === "signup" ? "Sign up" : "Log in"}
               </button>
             </form>
           </div>

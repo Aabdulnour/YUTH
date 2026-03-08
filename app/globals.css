@@ -2,7 +2,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
+  --background: #faf8f6;
   --foreground: #151311;
   --font-sans: "Inter", "Avenir Next", "Segoe UI", "Trebuchet MS", sans-serif;
   --font-mono: "SFMono-Regular", "Menlo", "Monaco", monospace;
@@ -17,7 +17,7 @@
 
 @layer base {
   html{
-    background-color: black;
+    background-color: var(--background);
   }
 
   body{
@@ -26,7 +26,6 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    overscroll-behavior-y: none;
   }
 }
 
