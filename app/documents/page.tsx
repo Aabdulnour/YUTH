@@ -30,10 +30,6 @@ const ACCEPTED_MIME_TYPES = [
   "text/plain",
 ];
 
-function createId(): string {
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-}
-
 function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
@@ -94,6 +90,7 @@ export default function DocumentsPage() {
   const [files, setFiles] = useState<UploadedFileItem[]>([]);
   const [folders, setFolders] = useState<FolderItem[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const [newFolderName, setNewFolderName] = useState("");
   const [selectedFolderId, setSelectedFolderId] = useState<string>("none");
@@ -104,81 +101,90 @@ export default function DocumentsPage() {
 
   const [activeFolderId, setActiveFolderId] = useState<string | null>(null);
 
-  useEffect(() => {
+  const loadDocuments = async () => {
     if (!userId) return;
 
-    const loadDocuments = async () => {
-      try {
-        const response = await fetch(`/api/documents?user_id=${encodeURIComponent(userId)}`, {
-          method: "GET",
-          cache: "no-store",
-        });
+    try {
+      setIsRefreshing(true);
 
-        const data = await response.json().catch(() => null);
+      const response = await fetch(`/api/documents?user_id=${encodeURIComponent(userId)}`, {
+        method: "GET",
+        cache: "no-store",
+      });
 
-        if (!response.ok || !data || !Array.isArray(data.documents)) {
-          throw new Error(
-            data && typeof data.error === "string" ? data.error : "Could not load documents."
-          );
-        }
+      const data = await response.json().catch(() => null);
 
-        const loadedFiles: UploadedFileItem[] = data.documents.map((doc: any) => ({
-          id: String(doc.id),
-          name: String(doc.file_name ?? doc.original_name ?? "Untitled"),
-          originalName: String(doc.original_name ?? doc.file_name ?? "Untitled"),
-          size: Number(doc.file_size ?? 0),
-          type: String(doc.file_type ?? ""),
-          status:
-            doc.status === "ready" || doc.status === "processing" || doc.status === "failed"
-              ? doc.status
-              : "failed",
-          uploadedAt: String(doc.created_at ?? new Date().toISOString()),
-          folderId: doc.folder_name ? String(doc.folder_name) : null,
-        }));
-
-        const folderNames = Array.from(
-          new Set(
-            data.documents
-              .map((doc: any) => (doc.folder_name ? String(doc.folder_name) : null))
-              .filter(Boolean)
-          )
-        ) as string[];
-
-        const loadedFolders: FolderItem[] = folderNames.map((name) => ({
-          id: name,
-          name,
-          createdAt: new Date().toISOString(),
-        }));
-
-        setFiles(loadedFiles);
-        setFolders(loadedFolders);
-      } catch (error) {
-        const message = error instanceof Error ? error.message : "Could not load documents.";
-        setError(message);
+      if (!response.ok || !data || !Array.isArray(data.documents)) {
+        throw new Error(
+          data && typeof data.error === "string" ? data.error : "Could not load documents."
+        );
       }
+
+      const loadedFiles: UploadedFileItem[] = data.documents.map((doc: any) => ({
+        id: String(doc.id),
+        name: String(doc.file_name ?? doc.original_name ?? "Untitled"),
+        originalName: String(doc.original_name ?? doc.file_name ?? "Untitled"),
+        size: Number(doc.file_size ?? 0),
+        type: String(doc.file_type ?? ""),
+        status:
+          doc.status === "ready" || doc.status === "processing" || doc.status === "failed"
+            ? doc.status
+            : "failed",
+        uploadedAt: String(doc.created_at ?? new Date().toISOString()),
+        folderId: doc.folder_name ? String(doc.folder_name) : null,
+      }));
+
+      const folderNames = Array.from(
+        new Set(
+          data.documents
+            .map((doc: any) => (doc.folder_name ? String(doc.folder_name) : null))
+            .filter(Boolean)
+        )
+      ) as string[];
+
+      const loadedFolders: FolderItem[] = folderNames.map((name) => ({
+        id: name,
+        name,
+        createdAt: new Date().toISOString(),
+      }));
+
+      setFiles(loadedFiles);
+      setFolders(loadedFolders);
+      setError(null);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Could not load documents.");
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    void loadDocuments();
+  }, [userId]);
+
+  useEffect(() => {
+    const handleFocus = () => {
+      void loadDocuments();
     };
 
-    void loadDocuments();
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
   }, [userId]);
 
   const hasFiles = files.length > 0;
   const hasFolders = folders.length > 0;
 
-   const visibleFiles = useMemo(() => {
+  const visibleFiles = useMemo(() => {
     return [...files]
       .filter((file) => {
-        if (activeFolderId === null) {
-          return true;
-        }
+        if (activeFolderId === null) return true;
         return file.folderId === activeFolderId;
       })
       .sort((a, b) => b.uploadedAt.localeCompare(a.uploadedAt));
   }, [files, activeFolderId]);
 
   const visibleFolders = useMemo(() => {
-    if (activeFolderId !== null) {
-      return [];
-    }
+    if (activeFolderId !== null) return [];
     return [...folders].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   }, [folders, activeFolderId]);
 
@@ -216,46 +222,21 @@ export default function DocumentsPage() {
   };
 
   const confirmPendingUpload = async () => {
-    if (pendingFiles.length === 0) return;
-
-    const pendingMappedFiles: UploadedFileItem[] = pendingFiles.map((file) => {
-      const extension = getFileExtension(file.name);
-      const typedName = (pendingNames[file.name] ?? "").trim();
-      const finalBaseName = typedName || getBaseName(file.name);
-
-      return {
-        id: createId(),
-        name: `${finalBaseName}${extension}`,
-        originalName: file.name,
-        size: file.size,
-        type: file.type,
-        status: "processing",
-        uploadedAt: new Date().toISOString(),
-        folderId: selectedFolderId === "none" ? null : selectedFolderId,
-      };
-    });
-
-    setFiles((current) => [...pendingMappedFiles, ...current]);
-    setError(null);
+    if (pendingFiles.length === 0 || !userId) return;
 
     const filesToUpload = [...pendingFiles];
+    const renamedNames = { ...pendingNames };
     const folderIdForUpload = selectedFolderId === "none" ? null : selectedFolderId;
     const folderNameForUpload = folderIdForUpload ? folderMap.get(folderIdForUpload) ?? null : null;
-    const renamedNames = { ...pendingNames };
 
     setPendingFiles([]);
     setPendingNames({});
     setShowPendingReview(false);
+    setError(null);
 
-    for (let index = 0; index < filesToUpload.length; index += 1) {
-      const file = filesToUpload[index];
-      const optimisticFile = pendingMappedFiles[index];
-      const typedName = (renamedNames[file.name] ?? "").trim();
-
+    for (const file of filesToUpload) {
       try {
-        if (!userId) {
-          throw new Error("You must be signed in to upload files.");
-        }
+        const typedName = (renamedNames[file.name] ?? "").trim();
 
         const formData = new FormData();
         formData.append("user_id", userId);
@@ -285,36 +266,15 @@ export default function DocumentsPage() {
           );
         }
 
-        setFiles((current) =>
-          current.map((item) =>
-            item.id === optimisticFile.id
-              ? {
-                  ...item,
-                  id: typeof data.document_id === "string" ? data.document_id : item.id,
-                  name: typeof data.file_name === "string" ? data.file_name : item.name,
-                  originalName:
-                    typeof data.original_name === "string" ? data.original_name : item.originalName,
-                  size: typeof data.file_size === "number" ? data.file_size : item.size,
-                  status:
-                    data.status === "ready" || data.status === "processing" || data.status === "failed"
-                      ? data.status
-                      : "failed",
-                }
-              : item
-          )
-        );
+        if ("error" in data && typeof data.error === "string") {
+          throw new Error(data.error);
+        }
       } catch (error) {
-        const message = error instanceof Error ? error.message : "Upload failed.";
-
-        setFiles((current) =>
-          current.map((item) =>
-            item.id === optimisticFile.id ? { ...item, status: "failed" } : item
-          )
-        );
-
-        setError(message);
+        setError(error instanceof Error ? error.message : "Upload failed.");
       }
     }
+
+    await loadDocuments();
   };
 
   const cancelPendingUpload = () => {
@@ -336,37 +296,81 @@ export default function DocumentsPage() {
     startPendingUpload(event.dataTransfer.files);
   };
 
-  const handleRemoveFile = (id: string) => {
+  const handleRemoveFile = async (id: string) => {
+    if (!userId) return;
+
     const confirmed = window.confirm("Delete this file?");
     if (!confirmed) return;
-    setFiles((current) => current.filter((file) => file.id !== id));
+
+    try {
+      const response = await fetch("/api/documents/delete", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId,
+          documentId: id,
+        }),
+      });
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok || (data && typeof data.error === "string")) {
+        throw new Error(data?.error ?? "Could not delete file.");
+      }
+
+      await loadDocuments();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Could not delete file.");
+    }
   };
 
-  const handleRenameFile = (id: string) => {
+  const handlePreviewFile = (id: string) => {
+    if (!userId) return;
+    window.open(
+      `/api/documents/file?user_id=${encodeURIComponent(userId)}&document_id=${encodeURIComponent(id)}`,
+      "_blank"
+    );
+  };
+
+  const handleRenameFile = async (id: string) => {
     const targetFile = files.find((file) => file.id === id);
-    if (!targetFile) return;
+    if (!targetFile || !userId) return;
 
-    const extension = getFileExtension(targetFile.name);
     const currentBaseName = getBaseName(targetFile.name);
+    const extension = getFileExtension(targetFile.name);
 
-    const nextBaseName = window.prompt("Rename file", currentBaseName);
-    if (nextBaseName === null) return;
+    const nextName = window.prompt("Rename file", currentBaseName);
+    if (nextName === null) return;
 
-    const trimmed = nextBaseName.trim();
+    const trimmed = nextName.trim();
     if (!trimmed) return;
+
+    const renamedFile = `${trimmed}${extension}`;
 
     setFiles((current) =>
       current.map((file) =>
-        file.id === id ? { ...file, name: `${trimmed}${extension}` } : file
+        file.id === id
+          ? {
+              ...file,
+              name: renamedFile,
+            }
+          : file
       )
     );
   };
 
-  const handleMoveFile = (id: string, nextFolderId: string) => {
+  const handleMoveFile = async (id: string, nextFolderId: string) => {
+    const folderId = nextFolderId === "none" ? null : nextFolderId;
+
     setFiles((current) =>
       current.map((file) =>
         file.id === id
-          ? { ...file, folderId: nextFolderId === "none" ? null : nextFolderId }
+          ? {
+              ...file,
+              folderId,
+            }
           : file
       )
     );
@@ -439,15 +443,24 @@ export default function DocumentsPage() {
             </p>
           </div>
 
-          {hasFiles || hasFolders ? (
+          <div className="flex gap-3">
             <button
               type="button"
-              onClick={() => inputRef.current?.click()}
-              className="rounded-2xl bg-[#f04d2d] px-5 py-3 font-semibold text-white transition hover:opacity-90"
+              onClick={() => void loadDocuments()}
+              className="rounded-2xl border border-[#d9d1c8] bg-white px-4 py-3 text-sm font-medium text-[#1c1b19] transition hover:border-[#cfc5ba]"
             >
-              Add files
+              {isRefreshing ? "Refreshing..." : "Refresh"}
             </button>
-          ) : null}
+            {hasFiles || hasFolders ? (
+              <button
+                type="button"
+                onClick={() => inputRef.current?.click()}
+                className="rounded-2xl bg-[#f04d2d] px-5 py-3 font-semibold text-white transition hover:opacity-90"
+              >
+                Add files
+              </button>
+            ) : null}
+          </div>
         </div>
 
         <div className="mb-5 rounded-2xl border border-[#ebe4dc] bg-[#fcfaf7] p-4">
@@ -705,9 +718,7 @@ export default function DocumentsPage() {
               <section className="rounded-2xl border border-[#ebe4dc] bg-[#fcfaf7] p-4">
                 <div className="mb-3">
                   <h2 className="text-lg font-semibold">Folders</h2>
-                  <p className="mt-1 text-sm text-[#6f6a64]">
-                    Open a folder to focus on its documents.
-                  </p>
+                  <p className="mt-1 text-sm text-[#6f6a64]">Open a folder to focus on its documents.</p>
                 </div>
 
                 <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
@@ -807,7 +818,9 @@ export default function DocumentsPage() {
                             <div className="min-w-0">
                               <p className="truncate text-base font-semibold text-[#1c1b19]">{file.name}</p>
                               {file.name !== file.originalName ? (
-                                <p className="mt-1 text-sm text-[#8a8580]">Original file: {file.originalName}</p>
+                                <p className="mt-1 text-sm text-[#8a8580]">
+                                  Original file: {file.originalName}
+                                </p>
                               ) : null}
                               <p className="mt-1 text-sm text-[#6f6a64]">
                                 {formatFileSize(file.size)} • Added{" "}
@@ -820,6 +833,7 @@ export default function DocumentsPage() {
                         <div className="flex flex-wrap items-center gap-2">
                           <button
                             type="button"
+                            onClick={() => handlePreviewFile(file.id)}
                             className="rounded-xl border border-[#d9d1c8] bg-[#fbf8f4] px-3 py-1.5 text-sm font-medium text-[#1c1b19] transition hover:border-[#cfc5ba]"
                           >
                             View

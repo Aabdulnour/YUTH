@@ -1,24 +1,26 @@
 from pathlib import Path
+import mimetypes
+import os
 import shutil
 
+from dotenv import load_dotenv
 from fastapi import FastAPI, File, Form, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from fastapi.responses import FileResponse
 from openai import OpenAI
-import os
-from dotenv import load_dotenv
-from vector_store import list_documents
+from pydantic import BaseModel
 
 from assistant_service import create_assistant
 from chat_service import create_thread, ask_question
-from thread_service import get_saved_thread, save_thread
 from rag_pipeline import ingest_document, answer_question_with_documents
+from thread_service import get_saved_thread, save_thread
+from vector_store import delete_document, get_document, list_documents
 
-app = FastAPI()
 load_dotenv()
 llm_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-# Allow frontend / Next.js to talk to backend during development
+app = FastAPI()
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -32,7 +34,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Local upload storage root
 UPLOAD_ROOT = Path(__file__).resolve().parent / "data" / "uploads"
 UPLOAD_ROOT.mkdir(parents=True, exist_ok=True)
 
@@ -51,27 +52,21 @@ class AskAIRequest(BaseModel):
     question: str
     match_count: int = 5
 
+
 class HybridAskRequest(BaseModel):
     user_id: str
     question: str
     match_count: int = 5
 
+
+class DeleteDocumentRequest(BaseModel):
+    user_id: str
+    document_id: str
+
+
 @app.get("/")
 async def root():
     return {"message": "Yuth backend is running"}
-
-
-@app.get("/documents")
-async def get_documents(user_id: str):
-    try:
-        if not user_id.strip():
-            return {"error": "user_id is required"}
-
-        documents = list_documents(user_id.strip())
-        return {"documents": documents}
-
-    except Exception as e:
-        return {"error": str(e)}
 
 
 @app.post("/setup")
@@ -179,6 +174,69 @@ async def upload_document(
             "file_size": file_size,
             "folder_name": folder_name,
         }
+
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@app.get("/documents")
+async def get_documents_endpoint(user_id: str):
+    try:
+        if not user_id.strip():
+            return {"error": "user_id is required"}
+
+        documents = list_documents(user_id.strip())
+        return {"documents": documents}
+
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@app.get("/documents/file")
+async def get_document_file(user_id: str, document_id: str):
+    try:
+        document = get_document(document_id=document_id, user_id=user_id)
+        if not document:
+            return {"error": "Document not found"}
+
+        file_path = document.get("file_path")
+        if not file_path or not Path(file_path).exists():
+            return {"error": "Stored file not found on disk"}
+
+        media_type, _ = mimetypes.guess_type(file_path)
+        return FileResponse(
+            path=file_path,
+            media_type=media_type or "application/octet-stream",
+            filename=document.get("original_name") or document.get("file_name") or "document"
+        )
+
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@app.post("/documents/delete")
+async def remove_document(request: DeleteDocumentRequest):
+    try:
+        user_id = request.user_id.strip()
+        document_id = request.document_id.strip()
+
+        if not user_id:
+            return {"error": "user_id is required"}
+
+        if not document_id:
+            return {"error": "document_id is required"}
+
+        document = get_document(document_id=document_id, user_id=user_id)
+        if not document:
+            return {"error": "Document not found"}
+
+        file_path = document.get("file_path")
+        if file_path and Path(file_path).exists():
+            Path(file_path).unlink(missing_ok=True)
+
+        delete_document(document_id=document_id, user_id=user_id)
+
+        return {"message": "Document deleted successfully"}
 
     except Exception as e:
         return {"error": str(e)}

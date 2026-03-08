@@ -4,7 +4,13 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 interface AppShellProps {
-  activePath: "/dashboard" | "/ask-ai" | "/profile" | "/mindmap" | "/hub";
+  activePath:
+    | "/dashboard"
+    | "/documents"
+    | "/ask-ai"
+    | "/profile"
+    | "/mindmap"
+    | "/hub";
   children: ReactNode;
   maxWidthClassName?: string;
 }
@@ -18,6 +24,7 @@ interface AppPageHeaderProps {
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard" },
+  { href: "/documents", label: "Documents" },   // ← RESTORED
   { href: "/mindmap", label: "MindMap" },
   { href: "/hub", label: "Hub" },
   { href: "/ask-ai", label: "Ask AI" },
@@ -38,8 +45,14 @@ export function AppShell({ activePath, children, maxWidthClassName = "max-w-6xl"
 
       <div className={joinClasses("relative mx-auto px-6 py-6", maxWidthClassName)}>
         <header className="sticky top-0 z-20 -mx-6 mb-6 border-b border-[#e2dbd4]/60 bg-[#f7f1ea]/88 px-6 py-3 backdrop-blur-md">
-          <div className="mx-auto flex flex-wrap items-center justify-between gap-3" style={{ maxWidth: "inherit" }}>
-            <Link href="/dashboard" className="text-sm font-bold tracking-[0.18em] text-[#151311] transition hover:text-[#c82233]">
+          <div
+            className="mx-auto flex flex-wrap items-center justify-between gap-3"
+            style={{ maxWidth: "inherit" }}
+          >
+            <Link
+              href="/dashboard"
+              className="text-sm font-bold tracking-[0.18em] text-[#151311] transition hover:text-[#c82233]"
+            >
               YUTH
             </Link>
 
@@ -64,6 +77,7 @@ export function AppShell({ activePath, children, maxWidthClassName = "max-w-6xl"
             </nav>
           </div>
         </header>
+
         {children}
       </div>
     </main>
@@ -74,11 +88,20 @@ export function AppPageHeader({ eyebrow, title, description, actions }: AppPageH
   return (
     <section className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#9a7b72]">{eyebrow}</p>
-        <h1 className="mt-1.5 text-3xl font-bold leading-tight md:text-4xl">{title}</h1>
-        {description ? <p className="mt-2 max-w-3xl text-base text-[#6f6a64]">{description}</p> : null}
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#9a7b72]">
+          {eyebrow}
+        </p>
+        <h1 className="mt-1.5 text-3xl font-bold leading-tight md:text-4xl">
+          {title}
+        </h1>
+        {description ? (
+          <p className="mt-2 max-w-3xl text-base text-[#6f6a64]">{description}</p>
+        ) : null}
       </div>
-      {actions ? <div className="flex flex-wrap items-center gap-3">{actions}</div> : null}
+
+      {actions ? (
+        <div className="flex flex-wrap items-center gap-3">{actions}</div>
+      ) : null}
     </section>
   );
 }

@@ -88,16 +88,6 @@ def match_document_chunks(
     return response.data
 
 
-def delete_document(document_id: str, user_id: str) -> None:
-    (
-        supabase.table("documents")
-        .delete()
-        .eq("id", document_id)
-        .eq("user_id", user_id)
-        .execute()
-    )
-
-
 def list_documents(user_id: str) -> list[dict[str, Any]]:
     response = (
         supabase.table("documents")
@@ -107,3 +97,40 @@ def list_documents(user_id: str) -> list[dict[str, Any]]:
         .execute()
     )
     return response.data
+
+
+def get_document(document_id: str, user_id: str) -> dict[str, Any] | None:
+    response = (
+        supabase.table("documents")
+        .select("*")
+        .eq("id", document_id)
+        .eq("user_id", user_id)
+        .limit(1)
+        .execute()
+    )
+
+    if not response.data:
+        return None
+    return response.data[0]
+
+
+def delete_document_chunks(document_id: str, user_id: str) -> None:
+    (
+        supabase.table("document_chunks")
+        .delete()
+        .eq("document_id", document_id)
+        .eq("user_id", user_id)
+        .execute()
+    )
+
+
+def delete_document(document_id: str, user_id: str) -> None:
+    delete_document_chunks(document_id, user_id)
+
+    (
+        supabase.table("documents")
+        .delete()
+        .eq("id", document_id)
+        .eq("user_id", user_id)
+        .execute()
+    )
