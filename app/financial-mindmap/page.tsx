@@ -12,6 +12,8 @@ type RoadmapData = {
   children: BranchNode[];
 };
 
+// ─── Constants ────────────────────────────────────────────────────────────────
+
 const NODE_WIDTHS = {
   root: 160,
   branch: 180,
@@ -19,89 +21,127 @@ const NODE_WIDTHS = {
   task: 220,
 };
 
-const NODE_HEIGHTS = {
-  collapsedBranch: 44,
+const GAP_BRANCH = 20;
+const GAP_LEAF   = 12;
+const GAP_TASK   = 8;
+
+// Gap between parent right-edge and child left-edge at each level
+const CURVE_GAP_BRANCH = 36; // root → branch
+const CURVE_GAP_LEAF   = 16; // branch → leaf  (the ml-4 gap)
+const CURVE_GAP_TASK   = 36; // leaf → task    (the ml-9 gap = 36px)
+
+// ─── Theme tokens ─────────────────────────────────────────────────────────────
+const T = {
+  bg:          "#0c0a09",
+  bgCard:      "#141210",
+  bgCardHover: "#1a1714",
+  border:      "#2e2824",
+  borderHover: "#3a3530",
+  accent:      "#c82233",
+  textPrimary: "#ffffff",
+  textSub:     "#a09890",
+  textMuted:   "#6a6460",
+  textFaint:   "#3a3530",
+  spine:       "rgba(160,152,144,0.15)",
+  connector:   "rgba(160,152,144,0.22)",
 };
 
-const GAP_BRANCH = 20;
-const GAP_LEAF = 12;
-const GAP_TASK = 8;
-const CONNECTOR_WIDTH = 16;
-const LEAF_EXPANDED_EXTRA_WIDTH = 260;
+// ─── BezierConnectors ─────────────────────────────────────────────────────────
+// Renders an SVG overlay of cubic bezier curves from one parent button
+// to each child node. The SVG sits absolutely over the gap div.
+//
+// x0 = 0 (left edge of SVG = right edge of parent button)
+// x1 = gapWidth (right edge of SVG = left edge of first child)
+// cp_x = gapWidth / 2  (both control points share this x)
+// y0 = parentMidY (relative to SVG top = topOffset + parentButtonHeight/2)
+// y1 = each child's midY (relative to SVG top)
 
-function TaskNode({
-  task,
-  allTasks,
+function BezierConnectors({
+  gapWidth,
+  parentButtonHeight,
+  parentTopOffset,
+  childHeights,
+  childGap,
   color,
+  totalChildrenHeight,
 }: {
-  task: Task;
-  allTasks: Task[];
+  gapWidth: number;
+  parentButtonHeight: number;
+  parentTopOffset: number;
+  childHeights: number[];
+  childGap: number;
   color: string;
+  totalChildrenHeight: number;
 }) {
+  const svgHeight = Math.max(totalChildrenHeight, parentTopOffset + parentButtonHeight);
+  const cpX = gapWidth / 2;
+  const x0 = 0;
+  const x1 = gapWidth;
+  const y0 = parentTopOffset + parentButtonHeight / 2;
+
+  return (
+    <svg
+      width={gapWidth}
+      height={svgHeight}
+      style={{ position: "absolute", left: 0, top: 0, pointerEvents: "none", overflow: "visible" }}
+    >
+      {childHeights.map((h, i) => {
+        const childTopInSvg =
+          childHeights.slice(0, i).reduce((s, ch) => s + ch + childGap, 0);
+        const y1 = childTopInSvg + h / 2;
+        return (
+          <path
+            key={i}
+            d={`M ${x0} ${y0} C ${cpX} ${y0}, ${cpX} ${y1}, ${x1} ${y1}`}
+            fill="none"
+            stroke={color}
+            strokeWidth={1}
+            strokeOpacity={0.35}
+          />
+        );
+      })}
+    </svg>
+  );
+}
+
+// ─── Task Node ────────────────────────────────────────────────────────────────
+
+function TaskNode({ task, allTasks, color }: { task: Task; allTasks: Task[]; color: string }) {
   const { smartToggle, isTaskUnlocked, isComplete } = useProgressContext();
   const unlocked = isTaskUnlocked(task);
-  const complete = isComplete(task.id);
+  const complete  = isComplete(task.id);
 
   return (
     <div className="flex items-center gap-2">
       <div
-        className="h-2 w-2 flex-shrink-0 rounded-full"
+        className="w-2 h-2 rounded-full flex-shrink-0"
         style={{ backgroundColor: color, opacity: unlocked ? 1 : 0.3 }}
       />
-
       <button
         onClick={() => unlocked && smartToggle(task, allTasks)}
         disabled={!unlocked}
-        className="flex items-center gap-2.5 rounded-lg border px-3 py-2 text-left transition-all duration-150"
+        className="flex items-center gap-2.5 px-3 py-2 rounded-lg border text-left transition-all duration-150"
         style={{
           width: NODE_WIDTHS.task,
           minWidth: NODE_WIDTHS.task,
-          backgroundColor: complete
-            ? `${color}18`
-            : unlocked
-              ? "rgba(255,255,255,0.04)"
-              : "rgba(255,255,255,0.02)",
-          borderColor: complete
-            ? `${color}50`
-            : unlocked
-              ? "rgba(255,255,255,0.1)"
-              : "rgba(255,255,255,0.05)",
+          backgroundColor: complete ? `${color}15` : unlocked ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.015)",
+          borderColor: complete ? `${color}45` : unlocked ? T.border : T.textFaint,
           opacity: unlocked ? 1 : 0.35,
           cursor: unlocked ? "pointer" : "not-allowed",
         }}
       >
         <div
-          className="flex h-3.5 w-3.5 flex-shrink-0 items-center justify-center rounded border transition-all duration-150"
+          className="w-3.5 h-3.5 rounded flex-shrink-0 border flex items-center justify-center transition-all duration-150"
           style={{
-            borderColor: complete
-              ? color
-              : unlocked
-                ? "rgba(255,255,255,0.3)"
-                : "rgba(255,255,255,0.15)",
+            borderColor: complete ? color : unlocked ? "#57504a" : "#3a3530",
             backgroundColor: complete ? color : "transparent",
           }}
         >
-          {complete && (
-            <span
-              style={{
-                fontSize: 8,
-                color: "#000",
-                fontWeight: 900,
-                lineHeight: 1,
-              }}
-            >
-              ✓
-            </span>
-          )}
+          {complete && <span style={{ fontSize: 8, color: "#fff", fontWeight: 900, lineHeight: 1 }}>✓</span>}
         </div>
-
         <span
           style={{
-            color: complete
-              ? "rgba(255,255,255,0.35)"
-              : unlocked
-                ? "rgba(255,255,255,0.85)"
-                : "rgba(255,255,255,0.3)",
+            color: complete ? T.textMuted : unlocked ? T.textSub : "#57504a",
             textDecoration: complete ? "line-through" : "none",
             fontSize: 12,
             flex: 1,
@@ -109,42 +149,39 @@ function TaskNode({
         >
           {task.label}
         </span>
-
-        {!unlocked && <span className="flex-shrink-0 text-xs opacity-40">🔒</span>}
+        {!unlocked && <span className="text-xs opacity-40 flex-shrink-0">🔒</span>}
       </button>
     </div>
   );
 }
 
+// ─── Leaf Node ────────────────────────────────────────────────────────────────
+
 function LeafNodeComponent({
   node,
   onHeightChange,
   onSelect,
-  onExpanded, 
+  onExpanded,
 }: {
   node: LeafNode;
   onHeightChange?: (height: number) => void;
   onSelect?: (node: LeafNode) => void;
-  onExpanded?: (expanded: boolean) => void; 
+  onExpanded?: (expanded: boolean) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const { getNodeProgress } = useProgressContext();
   const { pct } = getNodeProgress(node.tasks);
 
-  // 1. Measures total container height so parent can center on this node
   const containerRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!containerRef.current || !onHeightChange) return;
-
     const observer = new ResizeObserver(() => {
       onHeightChange(containerRef.current?.offsetHeight ?? 0);
     });
-
     observer.observe(containerRef.current);
     return () => observer.disconnect();
   }, [onHeightChange]);
 
-  // 2. Measures the button's own rendered height
   const leafButtonRef = useRef<HTMLDivElement>(null);
   const [leafButtonHeight, setLeafButtonHeight] = useState(36);
   useEffect(() => {
@@ -156,7 +193,6 @@ function LeafNodeComponent({
     return () => observer.disconnect();
   }, []);
 
-  // 3. Tracks each task's rendered height
   const [taskHeights, setTaskHeights] = useState<number[]>(
     () => new Array(node.tasks.length).fill(32)
   );
@@ -171,76 +207,71 @@ function LeafNodeComponent({
 
   const totalTaskHeight =
     taskHeights.reduce((s, h) => s + h, 0) + GAP_TASK * (taskHeights.length - 1);
-
-  // 4. How far to push the button down so it centers on the task list
   const leafTopOffset = Math.max(0, (totalTaskHeight - leafButtonHeight) / 2);
 
   return (
     <div ref={containerRef} className="flex items-start">
-
-      {/* Button wrapper — this is what moves the button down when expanded */}
+      {/* Leaf button */}
       <div
         ref={leafButtonRef}
         className="flex-shrink-0"
-        style={{
-          paddingTop: expanded ? leafTopOffset : 0,
-          transition: "padding-top 0.2s ease",
-        }}
+        style={{ paddingTop: expanded ? leafTopOffset : 0, transition: "padding-top 0.2s ease" }}
       >
         <button
-          onClick={
-            () => {
-              setExpanded(!expanded);
-              onExpanded?.(!expanded);
-            }
-          }
+          onClick={() => {
+            const next = !expanded;
+            setExpanded(next);
+            onExpanded?.(next);
+          }}
           className="flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
           style={{
             width: NODE_WIDTHS.leaf,
             minWidth: NODE_WIDTHS.leaf,
-            backgroundColor: expanded ? `${node.color}22` : "rgba(255,255,255,0.05)",
-            borderColor: expanded ? `${node.color}60` : "rgba(255,255,255,0.1)",
+            backgroundColor: expanded ? T.bgCardHover : T.bgCard,
+            borderColor: expanded ? T.borderHover : T.border,
           }}
         >
           <div
             className="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center"
-            style={{ background: `conic-gradient(${node.color} ${pct}%, rgba(255,255,255,0.1) 0%)` }}
+            style={{ background: `conic-gradient(${node.color} ${pct}%, rgba(255,255,255,0.08) 0%)` }}
           >
-            <div className="w-3.5 h-3.5 flex-shrink-0 rounded-full bg-[#0d0d14] flex items-center justify-center">
-              <span style={{ color: node.color, fontSize: pct === 100 ? 5 : 7, fontWeight: 700 }}>{pct}%</span>
+            <div
+              className="w-3.5 h-3.5 flex-shrink-0 rounded-full flex items-center justify-center"
+              style={{ background: T.bgCard }}
+            >
+              <span style={{ color: node.color, fontSize: pct === 100 ? 5 : 7, fontWeight: 700 }}>
+                {pct}%
+              </span>
             </div>
           </div>
-          <span className="text-xs font-medium text-white/80 flex-1 text-left">{node.label}</span>
+          <span className="text-xs font-medium flex-1 text-left" style={{ color: T.textSub }}>
+            {node.label}
+          </span>
           <span
-            className="text-white/30 text-xs transition-transform duration-200 flex-shrink-0"
-            style={{ transform: expanded ? "rotate(90deg)" : "rotate(0deg)" }}
-          >›</span>
+            className="text-xs transition-transform duration-200 flex-shrink-0"
+            style={{ color: T.textMuted, transform: expanded ? "rotate(90deg)" : "rotate(0deg)" }}
+          >
+            ›
+          </span>
         </button>
       </div>
 
-      {/* Task list — connector exits from center of the button */}
+      {/* Task list with bezier connectors */}
       {expanded && (
-        <div className="flex items-start ml-9 self-start">
-          {/* Horizontal connector aligned to button center */}
-          <div
-            className="w-5 flex-shrink-0"
-            style={{
-              height: 1,
-              backgroundColor: `${node.color}40`,
-              marginTop: leafTopOffset + leafButtonHeight / 2,
-            }}
-          />
-          <div className="flex flex-col relative" style={{ gap: GAP_TASK }}>
-            {/* Vertical spine from center of first to center of last task */}
-            <div
-              className="absolute w-px"
-              style={{
-                backgroundColor: `${node.color}30`,
-                left: "-2px",
-                top: `${taskHeights[0] / 2}px`,
-                height: `${totalTaskHeight - taskHeights[0] / 2 - taskHeights[taskHeights.length - 1] / 2}px`,
-              }}
+        <div className="flex items-start self-start" style={{ marginLeft: CURVE_GAP_TASK }}>
+          {/* SVG bezier curves: leaf button → each task */}
+          <div style={{ position: "relative", width: 0, height: 0 }}>
+            <BezierConnectors
+              gapWidth={CURVE_GAP_TASK}
+              parentButtonHeight={leafButtonHeight}
+              parentTopOffset={leafTopOffset}
+              childHeights={taskHeights}
+              childGap={GAP_TASK}
+              color={node.color}
+              totalChildrenHeight={totalTaskHeight}
             />
+          </div>
+          <div className="flex flex-col" style={{ gap: GAP_TASK }}>
             {node.tasks.map((task, i) => (
               <TaskNodeWrapper
                 key={task.id}
@@ -256,6 +287,7 @@ function LeafNodeComponent({
     </div>
   );
 }
+
 function TaskNodeWrapper({
   task,
   allTasks,
@@ -268,7 +300,6 @@ function TaskNodeWrapper({
   onHeightChange: (h: number) => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
     if (!ref.current) return;
     const observer = new ResizeObserver(() => {
@@ -284,10 +315,16 @@ function TaskNodeWrapper({
     </div>
   );
 }
+
 // ─── Branch Node ──────────────────────────────────────────────────────────────
 
-function BranchNodeComponent({ branch, onSelect, onExpanded, onLeafExpand }: { 
-  branch: BranchNode; 
+function BranchNodeComponent({
+  branch,
+  onSelect,
+  onExpanded,
+  onLeafExpand,
+}: {
+  branch: BranchNode;
   onSelect?: (node: LeafNode) => void;
   onExpanded?: (expanded: boolean) => void;
   onLeafExpand?: () => void;
@@ -297,8 +334,8 @@ function BranchNodeComponent({ branch, onSelect, onExpanded, onLeafExpand }: {
   const { pct } = getBranchProgress(branch.children);
   const branchButtonRef = useRef<HTMLDivElement>(null);
   const [branchButtonHeight, setBranchButtonHeight] = useState(44);
+  const [anyLeafExpanded, setAnyLeafExpanded] = useState(false);
 
-  // Measure actual branch button height
   useEffect(() => {
     if (!branchButtonRef.current) return;
     const observer = new ResizeObserver(() => {
@@ -309,9 +346,8 @@ function BranchNodeComponent({ branch, onSelect, onExpanded, onLeafExpand }: {
   }, []);
 
   const [childHeights, setChildHeights] = useState<number[]>(
-    () => new Array(branch.children.length).fill(40),
+    () => new Array(branch.children.length).fill(40)
   );
-
   const updateChildHeight = useCallback((index: number, height: number) => {
     setChildHeights((prev) => {
       if (prev[index] === height) return prev;
@@ -322,8 +358,7 @@ function BranchNodeComponent({ branch, onSelect, onExpanded, onLeafExpand }: {
   }, []);
 
   const totalChildrenHeight =
-    childHeights.reduce((sum, h) => sum + h, 0) +
-    GAP_LEAF * (childHeights.length - 1);
+    childHeights.reduce((sum, h) => sum + h, 0) + GAP_LEAF * (childHeights.length - 1);
   const topOffset = Math.max(0, (totalChildrenHeight - branchButtonHeight) / 2);
 
   return (
@@ -335,90 +370,74 @@ function BranchNodeComponent({ branch, onSelect, onExpanded, onLeafExpand }: {
         style={{ paddingTop: expanded ? topOffset : 0, transition: "padding-top 0.2s ease" }}
       >
         <button
-          onClick={() => setExpanded(!expanded)}
-          className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl border font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+          onClick={() => {
+            const next = !expanded;
+            setExpanded(next);
+            onExpanded?.(next);
+          }}
+          className="flex items-center gap-3 px-4 py-3.5 rounded-xl border font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
           style={{
             width: NODE_WIDTHS.branch,
             minWidth: NODE_WIDTHS.branch,
-            backgroundColor: expanded ? `${branch.color}25` : "rgba(255,255,255,0.07)",
-            borderColor: expanded ? `${branch.color}70` : "rgba(255,255,255,0.12)",
+            backgroundColor: expanded ? "#1e1714" : T.bgCard,
+            borderColor: expanded ? T.borderHover : T.border,
           }}
         >
           <div
             className="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center"
-            style={{ background: `conic-gradient(${branch.color} ${pct}%, rgba(255,255,255,0.1) 0%)` }}
+            style={{ background: `conic-gradient(${branch.color} ${pct}%, rgba(255,255,255,0.08) 0%)` }}
           >
-            <div className="w-4 h-4 rounded-full flex items-center justify-center"
-              style={{ background: "rgba(13,13,20,0.85)" }}>
-              <span style={{ color: branch.color, fontSize: pct === 100 ? 5 : 7, fontWeight: 800 }}>{pct}%</span>
+            <div className="w-4 h-4 rounded-full flex items-center justify-center" style={{ background: T.bgCard }}>
+              <span style={{ color: branch.color, fontSize: pct === 100 ? 5 : 7, fontWeight: 800 }}>
+                {pct}%
+              </span>
             </div>
-
-            <span className="flex-1 text-left text-sm" style={{ color: branch.color }}>
-              {branch.label}
-            </span>
-
-            <span
-              className="flex-shrink-0 text-sm text-white/30 transition-transform duration-200"
-              style={{ transform: expanded ? "rotate(90deg)" : "rotate(0deg)" }}
-            >
-              ›
-            </span>
-          </button>
-
-          <div className="mx-1 mt-1" style={{ width: NODE_WIDTHS.branch - 8 }}>
-            <div className="h-0.5 overflow-hidden rounded-full bg-white/10">
-              <div
-                className="h-full rounded-full transition-all duration-500"
-                style={{ width: `${pct}%`, backgroundColor: branch.color }}
-              />
-            </div>
+          </div>
+          <span className="text-sm flex-1 text-left" style={{ color: branch.color }}>
+            {branch.label}
+          </span>
+          <span
+            className="text-sm transition-transform duration-200 flex-shrink-0"
+            style={{ color: T.textMuted, transform: expanded ? "rotate(90deg)" : "rotate(0deg)" }}
+          >
+            ›
+          </span>
+        </button>
+        <div className="mt-1 mx-1" style={{ width: NODE_WIDTHS.branch - 8 }}>
+          <div className="h-0.5 rounded-full overflow-hidden" style={{ backgroundColor: T.border }}>
+            <div
+              className="h-full rounded-full transition-all duration-500"
+              style={{ width: `${pct}%`, backgroundColor: branch.color }}
+            />
           </div>
         </div>
       </div>
 
+      {/* Leaf nodes with bezier connectors */}
       {expanded && (
-        <div className="flex items-start ml-4">
-          <div className="flex-shrink-0 relative" style={{ width: 16 }}>
-            <div
-              className="absolute w-px"
-              style={{
-                backgroundColor: `${branch.color}30`,
-                left: "50%",
-                top: `${childHeights[0] / 2}px`,
-                height: `${totalChildrenHeight - childHeights[0] / 2 - childHeights[childHeights.length - 1] / 2}px`,
-              }}
+        <div className="flex items-start" style={{ marginLeft: CURVE_GAP_LEAF }}>
+          {/* SVG bezier curves: branch button → each leaf */}
+          <div style={{ position: "relative", width: 0, height: 0 }}>
+            <BezierConnectors
+              gapWidth={CURVE_GAP_LEAF}
+              parentButtonHeight={branchButtonHeight}
+              parentTopOffset={topOffset}
+              childHeights={childHeights}
+              childGap={GAP_LEAF}
+              color={branch.color}
+              totalChildrenHeight={totalChildrenHeight}
             />
-
-            {branch.children.map((_, i) => {
-              const offsetTop =
-                childHeights
-                  .slice(0, i)
-                  .reduce((sum, height) => sum + height + GAP_LEAF, 0) +
-                childHeights[i] / 2;
-
-              return (
-                <div
-                  key={i}
-                  className="absolute h-px w-full"
-                  style={{
-                    backgroundColor: `${branch.color}40`,
-                    top: `${offsetTop}px`,
-                  }}
-                />
-              );
-            })}
           </div>
-
           <div className="flex flex-col" style={{ gap: GAP_LEAF }}>
             {branch.children.map((leaf, i) => (
               <LeafNodeComponent
                 key={leaf.id}
                 node={leaf}
-                onHeightChange={(height) => updateChildHeight(i, height)}
+                onHeightChange={(h) => updateChildHeight(i, h)}
                 onSelect={onSelect}
                 onExpanded={(isExpanded) => {
-                    setAnyLeafExpanded(isExpanded);
-                    if (isExpanded) onLeafExpand?.(); // ← leaf-specific, not branch
+                  setAnyLeafExpanded(isExpanded);
+                  if (isExpanded) onLeafExpand?.();
                 }}
               />
             ))}
@@ -429,9 +448,12 @@ function BranchNodeComponent({ branch, onSelect, onExpanded, onLeafExpand }: {
   );
 }
 
+// ─── Branch Height Wrapper ────────────────────────────────────────────────────
+
 function BranchHeightWrapper({
   branch,
   index,
+  branchHeights,
   onHeightChange,
   onSelect,
   onExpanded,
@@ -446,30 +468,34 @@ function BranchHeightWrapper({
   onLeafExpand?: () => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
     if (!ref.current) return;
-
     const observer = new ResizeObserver(() => {
-      onHeightChange(index, ref.current?.offsetHeight ?? NODE_HEIGHTS.collapsedBranch);
+      onHeightChange(index, ref.current?.offsetHeight ?? 44);
     });
-
     observer.observe(ref.current);
     return () => observer.disconnect();
   }, [index, onHeightChange]);
 
   return (
-    <div ref={ref} className="flex items-start relative">
-      <div className="absolute h-px"
-        style={{ backgroundColor: `${branch.color}40`, left: 0, top: `${tickTop}px`, width: 16 }} />
-      <div style={{ marginLeft: 16 }}>
-        <BranchNodeComponent branch={branch} onSelect={onSelect} />
-      </div>
+    <div ref={ref} className="flex items-start">
+      <BranchNodeComponent
+        branch={branch}
+        onSelect={onSelect}
+        onExpanded={onExpanded}
+        onLeafExpand={onLeafExpand}
+      />
     </div>
   );
 }
 
-function MindMap({ onSelectLeaf, onBranchExpand, onLeafExpand }: { 
+// ─── Mind Map ─────────────────────────────────────────────────────────────────
+
+function MindMap({
+  onSelectLeaf,
+  onBranchExpand,
+  onLeafExpand,
+}: {
   onSelectLeaf?: (node: LeafNode) => void;
   onBranchExpand?: () => void;
   onLeafExpand?: () => void;
@@ -479,7 +505,7 @@ function MindMap({ onSelectLeaf, onBranchExpand, onLeafExpand }: {
   const { done, total, pct } = getOverallProgress(data.children);
   const [anyBranchExpanded, setAnyBranchExpanded] = useState(false);
   const [branchHeights, setBranchHeights] = useState<number[]>(
-    () => new Array(data.children.length).fill(NODE_HEIGHTS.collapsedBranch),
+    () => new Array(data.children.length).fill(44)
   );
 
   const updateBranchHeight = useCallback((index: number, height: number) => {
@@ -492,72 +518,59 @@ function MindMap({ onSelectLeaf, onBranchExpand, onLeafExpand }: {
   }, []);
 
   const totalBranchHeight =
-    branchHeights.reduce((sum, height) => sum + height, 0) +
-    GAP_BRANCH * Math.max(0, branchHeights.length - 1);
-
+    branchHeights.reduce((sum, h) => sum + h, 0) + GAP_BRANCH * (branchHeights.length - 1);
   const rootHeight = 90;
-  const mapHeight = Math.max(rootHeight, totalBranchHeight);
+  const rootTopOffset = Math.max(0, (totalBranchHeight - rootHeight) / 2);
 
   return (
-    <div className="relative p-12" style={{ minHeight: mapHeight }}>
+    <div className="flex items-start p-12">
+      {/* Root node */}
       <div
-        className="absolute flex items-center"
-        style={{
-          left: 0,
-          top: "50%",
-          transform: "translateY(-50%)",
-        }}
+        className="flex items-center flex-shrink-0"
+        style={{ paddingTop: rootTopOffset, transition: "padding-top 0.2s ease" }}
       >
         <div className="flex flex-col items-center gap-1" style={{ width: NODE_WIDTHS.root }}>
           <div
-            className="w-full rounded-2xl border-2 px-5 py-3 text-center font-bold"
+            className="w-full px-5 py-3 rounded-2xl border-2 font-bold"
             style={{
-              backgroundColor: "#1a1505",
-              borderColor: "#a63e24",
-              color: "#ff6038",
+              backgroundColor: "#180a0c",
+              borderColor: "#7a1520",
+              color: T.accent,
+              textAlign: "center",
             }}
           >
             <div style={{ fontSize: 15, fontWeight: 800 }}>Financial</div>
             <div style={{ fontSize: 15, fontWeight: 800 }}>Freedom</div>
-            <div
-              style={{
-                fontSize: 10,
-                color: "#f0c04080",
-                marginTop: 4,
-              }}
-            >
-              {pct}% complete
-            </div>
+            <div style={{ fontSize: 10, color: "#9a4a5480", marginTop: 4 }}>{pct}% complete</div>
           </div>
-
-          <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-white/10">
+          <div className="w-full h-1 rounded-full overflow-hidden mt-1" style={{ backgroundColor: T.border }}>
             <div
               className="h-full rounded-full transition-all duration-500"
-              style={{
-                width: `${pct}%`,
-                background: "linear-gradient(90deg, #ff6038, #4ade80)",
-              }}
+              style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${T.accent}, #e8394c)` }}
             />
           </div>
-
-          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>
-            {done} / {total} tasks
-          </div>
+          <div style={{ fontSize: 10, color: T.textMuted }}>{done} / {total} tasks</div>
         </div>
-        <div className="w-6 h-px bg-white/20 mx-2 flex-shrink-0" />
+      </div>
+
+      {/* Bezier curves: root → each branch */}
+      <div style={{ position: "relative", width: 0, height: 0 }}>
+        <BezierConnectors
+          gapWidth={CURVE_GAP_BRANCH}
+          parentButtonHeight={rootHeight}
+          parentTopOffset={rootTopOffset}
+          childHeights={branchHeights}
+          childGap={GAP_BRANCH}
+          color={T.connector}
+          totalChildrenHeight={totalBranchHeight}
+        />
       </div>
 
       {/* Branches */}
-      <div className="relative flex flex-col" style={{ gap: GAP_BRANCH }}>
-        <div
-          className="absolute w-px"
-          style={{
-            backgroundColor: "rgba(255,255,255,0.08)",
-            left: 0,
-            top: `${branchHeights[0] / 2}px`,
-            height: `${totalBranchHeight - branchHeights[0] / 2 - branchHeights[branchHeights.length - 1] / 2}px`,
-          }}
-        />
+      <div
+        className="flex flex-col"
+        style={{ gap: GAP_BRANCH, marginLeft: CURVE_GAP_BRANCH }}
+      >
         {data.children.map((branch, i) => (
           <BranchHeightWrapper
             key={branch.id}
@@ -566,6 +579,11 @@ function MindMap({ onSelectLeaf, onBranchExpand, onLeafExpand }: {
             branchHeights={branchHeights}
             onHeightChange={updateBranchHeight}
             onSelect={onSelectLeaf}
+            onExpanded={(expanded) => {
+              setAnyBranchExpanded(expanded);
+              if (expanded) onBranchExpand?.();
+            }}
+            onLeafExpand={onLeafExpand}
           />
         ))}
       </div>
@@ -573,117 +591,84 @@ function MindMap({ onSelectLeaf, onBranchExpand, onLeafExpand }: {
   );
 }
 
-function OverallProgressBar() {
-  const { getOverallProgress } = useProgressContext();
-  const data = roadmap as RoadmapData;
-  const { done, total, pct } = getOverallProgress(data.children);
-
-  return (
-    <div className="flex items-center gap-3">
-      <span className="text-xs text-white/40">Overall progress</span>
-      <div className="h-1.5 w-40 overflow-hidden rounded-full bg-white/10">
-        <div
-          className="h-full rounded-full transition-all duration-500"
-          style={{
-            width: `${pct}%`,
-            background: "linear-gradient(90deg, #ff6038, #4ade80)",
-          }}
-        />
-      </div>
-      <span className="text-xs font-bold text-white/60">{pct}%</span>
-      <span className="text-xs text-white/30">
-        {done}/{total}
-      </span>
-    </div>
-  );
-}
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function FinancialMindMapPage() {
   const [zoom, setZoom] = useState(1.33);
   const [selectedLeaf, setSelectedLeaf] = useState<LeafNode | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
 
-  const zoomIn = () => {
-    setZoom((value) => Math.min(2, parseFloat((value + 0.1).toFixed(1))));
-  };
-
-  const zoomOut = () => {
-    setZoom((value) => Math.max(0.4, parseFloat((value - 0.1).toFixed(1))));
-  };
-
-  const resetZoom = () => {
-    setZoom(1);
-  };
+  const zoomIn  = () => setZoom((z) => Math.min(2, parseFloat((z + 0.1).toFixed(1))));
+  const zoomOut = () => setZoom((z) => Math.max(0.4, parseFloat((z - 0.1).toFixed(1))));
+  const resetZoom = () => setZoom(1);
 
   useEffect(() => {
     const el = canvasRef.current;
     if (!el) return;
-
     const handler = (e: WheelEvent) => {
       if (e.ctrlKey || e.metaKey) {
         e.preventDefault();
-        setZoom((value) =>
-          Math.min(2, Math.max(0.4, parseFloat((value - e.deltaY * 0.001).toFixed(2)))),
-        );
+        setZoom((z) => Math.min(2, Math.max(0.4, parseFloat((z - e.deltaY * 0.001).toFixed(2)))));
       }
     };
-
     el.addEventListener("wheel", handler, { passive: false });
     return () => el.removeEventListener("wheel", handler);
   }, []);
 
   return (
     <ProgressProvider>
-      <div className="flex h-screen flex-col overflow-hidden bg-[#0d0d14]">
-        <header className="z-10 flex flex-shrink-0 items-center justify-between border-b border-white/10 bg-[#0d0d14] px-6 py-3">
+      <div
+        className="flex flex-col h-screen overflow-hidden"
+        style={{ background: T.bg, fontFamily: "'Inter', 'Avenir Next', 'Segoe UI', sans-serif" }}
+      >
+        {/* ── Navbar ── */}
+        <header
+          className="flex items-center justify-between px-6 py-3 z-10 flex-shrink-0"
+          style={{
+            borderBottom: `1px solid ${T.border}`,
+            background: `${T.bg}cc`,
+            backdropFilter: "blur(12px)",
+          }}
+        >
           <div className="flex items-center gap-4">
-            <Link
-              href="/"
-              className="text-sm text-white/40 transition-colors hover:text-white/70"
-            >
+            <Link href="/" className="text-sm transition-colors" style={{ color: T.textMuted }}>
               ← Back
             </Link>
-
-            <div
-              style={{
-                fontFamily: "serif",
-                fontSize: 18,
-                fontWeight: 800,
-                color: "#ff6038",
-              }}
-            >
-              MapleMind
-            </div>
-
-            <span className="text-sm text-white/20">/ Financial Roadmap</span>
+            <span className="font-bold tracking-[0.22em] text-sm" style={{ color: T.textPrimary }}>
+              YUTH
+            </span>
+            <span style={{ color: T.textFaint, fontSize: 13 }}>/ Financial Roadmap</span>
           </div>
 
           <OverallProgressBar />
 
           <div className="flex items-center gap-2">
-            <button
-              onClick={zoomOut}
-              className="flex h-7 w-7 items-center justify-center rounded-md border border-white/10 bg-white/5 text-sm text-white/60 transition-colors hover:bg-white/10"
-            >
-              −
-            </button>
-
-            <button
-              onClick={resetZoom}
-              className="h-7 min-w-[48px] rounded-md border border-white/10 bg-white/5 px-2 text-xs text-white/60 transition-colors hover:bg-white/10"
-            >
-              {Math.round(zoom * 100)}%
-            </button>
-
-            <button
-              onClick={zoomIn}
-              className="flex h-7 w-7 items-center justify-center rounded-md border border-white/10 bg-white/5 text-sm text-white/60 transition-colors hover:bg-white/10"
-            >
-              +
-            </button>
+            {([["−", zoomOut], [`${Math.round(zoom * 100)}%`, resetZoom], ["+", zoomIn]] as const).map(
+              ([label, action], i) => (
+                <button
+                  key={i}
+                  onClick={action}
+                  className="transition-colors flex items-center justify-center"
+                  style={{
+                    height: 28,
+                    width: i === 1 ? undefined : 28,
+                    minWidth: i === 1 ? 48 : undefined,
+                    paddingInline: i === 1 ? 8 : undefined,
+                    fontSize: i === 1 ? 12 : 14,
+                    borderRadius: 6,
+                    border: `1px solid ${T.border}`,
+                    background: "rgba(255,255,255,0.03)",
+                    color: T.textSub,
+                  }}
+                >
+                  {label}
+                </button>
+              )
+            )}
           </div>
         </header>
 
+        {/* ── Canvas + Sidebar ── */}
         <div className="flex flex-1 overflow-hidden">
           <div ref={canvasRef} className="flex-1 overflow-auto">
             <div
@@ -695,50 +680,73 @@ export default function FinancialMindMapPage() {
                 minHeight: `${100 / zoom}%`,
               }}
             >
-              <MindMap 
-                onSelectLeaf={setSelectedLeaf} 
-                onBranchExpand={() => setZoom(1.41)} 
-                onLeafExpand={() => setZoom(1.33)} 
+              <MindMap
+                onSelectLeaf={setSelectedLeaf}
+                onBranchExpand={() => setZoom(1)}
+                onLeafExpand={() => setZoom(1.33)}
               />
             </div>
           </div>
 
           {selectedLeaf && (
             <div
-              className="flex-shrink-0 overflow-y-auto border-l border-white/10 bg-[#0d0d14]"
-              style={{ width: 300, animation: "slideIn 0.2s ease" }}
+              className="flex-shrink-0 overflow-y-auto"
+              style={{
+                width: 300,
+                borderLeft: `1px solid ${T.border}`,
+                background: T.bgCard,
+                animation: "slideIn 0.2s ease",
+              }}
             >
-              <style>
-                {`@keyframes slideIn {
-                  from { transform: translateX(100%); opacity: 0; }
-                  to { transform: translateX(0); opacity: 1; }
-                }`}
-              </style>
-
+              <style>{`@keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }`}</style>
               <div className="p-5">
-                <div className="mb-4 flex items-center justify-between">
+                <div className="flex items-center justify-between mb-4">
                   <h2 className="text-sm font-bold" style={{ color: selectedLeaf.color }}>
                     {selectedLeaf.label}
                   </h2>
-
                   <button
                     onClick={() => setSelectedLeaf(null)}
-                    className="text-sm text-white/30 transition-colors hover:text-white/60"
+                    className="text-sm transition-colors"
+                    style={{ color: T.textMuted }}
                   >
                     ✕
                   </button>
                 </div>
-
-                <p className="text-xs text-white/30">Detailed view coming soon.</p>
+                <p className="text-xs" style={{ color: T.textMuted }}>Detailed view coming soon.</p>
               </div>
             </div>
           )}
         </div>
 
-        <div className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 text-xs text-white/20">
+        <div
+          className="absolute bottom-4 left-1/2 -translate-x-1/2 text-xs pointer-events-none"
+          style={{ color: T.textMuted }}
+        >
           Ctrl + scroll to zoom · use +/− buttons or click % to reset
         </div>
       </div>
     </ProgressProvider>
+  );
+}
+
+// ─── Overall Progress Bar ─────────────────────────────────────────────────────
+
+function OverallProgressBar() {
+  const { getOverallProgress } = useProgressContext();
+  const data = roadmap as RoadmapData;
+  const { done, total, pct } = getOverallProgress(data.children);
+
+  return (
+    <div className="flex items-center gap-3">
+      <span className="text-xs" style={{ color: T.textMuted }}>Overall progress</span>
+      <div className="w-40 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: T.border }}>
+        <div
+          className="h-full rounded-full transition-all duration-500"
+          style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${T.accent}, #e8394c)` }}
+        />
+      </div>
+      <span className="text-xs font-bold" style={{ color: T.textSub }}>{pct}%</span>
+      <span className="text-xs" style={{ color: T.textMuted }}>{done}/{total}</span>
+    </div>
   );
 }

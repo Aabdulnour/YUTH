@@ -5,12 +5,12 @@
     {
       "id": "foundation",
       "label": "Foundation",
-      "color": "#263B2F",
+      "color": "#c82233",
       "children": [
         {
           "id": "banking-setup",
           "label": "Banking Setup",
-          "color": "#3E5146",
+          "color": "#e8394c",
           "tasks": [
             { "id": "banking-setup-1", "label": "Open chequing account" },
             { "id": "banking-setup-2", "label": "Open high-interest savings account" },
@@ -21,7 +21,7 @@
         {
           "id": "credit-building",
           "label": "Credit Building",
-          "color": "#3E5146",
+          "color": "#d42d3f",
           "tasks": [
             { "id": "credit-building-1", "label": "Understand credit score" },
             { "id": "credit-building-2", "label": "Open first credit card", "prerequisite": "credit-building-1" },
@@ -33,7 +33,7 @@
         {
           "id": "budgeting",
           "label": "Budgeting",
-          "color": "#3E5146",
+          "color": "#bf1f30",
           "tasks": [
             { "id": "budgeting-1", "label": "Track monthly expenses" },
             { "id": "budgeting-2", "label": "Create a budget", "prerequisite": "budgeting-1" },
@@ -47,12 +47,12 @@
     {
       "id": "stability",
       "label": "Stability",
-      "color": "#263B2F",
+      "color": "#9a7b72",
       "children": [
         {
           "id": "emergency-fund",
           "label": "Emergency Fund",
-          "color": "#3E5146",
+          "color": "#b09088",
           "tasks": [
             { "id": "emergency-fund-1", "label": "Calculate monthly expenses" },
             { "id": "emergency-fund-2", "label": "Save $1,000 starter fund", "prerequisite": "emergency-fund-1" },
@@ -63,7 +63,7 @@
         {
           "id": "debt-management",
           "label": "Debt Management",
-          "color": "#3E5146",
+          "color": "#a08078",
           "tasks": [
             { "id": "debt-management-1", "label": "List all debts" },
             { "id": "debt-management-2", "label": "Understand interest rates", "prerequisite": "debt-management-1" },
@@ -75,7 +75,7 @@
         {
           "id": "protection",
           "label": "Protection",
-          "color": "#3E5146",
+          "color": "#8a6e66",
           "tasks": [
             { "id": "protection-1", "label": "Get health insurance" },
             { "id": "protection-2", "label": "Get disability insurance" },
@@ -88,12 +88,12 @@
     {
       "id": "growth",
       "label": "Growth",
-      "color": "#263B2F",
+      "color": "#c8a882",
       "children": [
         {
           "id": "taxes",
           "label": "Taxes",
-          "color": "#3E5146",
+          "color": "#d4b48e",
           "tasks": [
             { "id": "taxes-1", "label": "Set up CRA My Account" },
             { "id": "taxes-2", "label": "File taxes every year", "prerequisite": "taxes-1" },
@@ -105,7 +105,7 @@
         {
           "id": "investing",
           "label": "Investing",
-          "color": "#3E5146",
+          "color": "#c8a070",
           "tasks": [
             { "id": "investing-1", "label": "Learn investing basics" },
             { "id": "investing-2", "label": "Understand your risk tolerance", "prerequisite": "investing-1" },
@@ -117,7 +117,7 @@
         {
           "id": "investment-accounts",
           "label": "Investment Accounts",
-          "color": "#3E5146",
+          "color": "#bc9466",
           "tasks": [
             { "id": "investment-accounts-1", "label": "Open a TFSA" },
             { "id": "investment-accounts-2", "label": "Open an RRSP", "prerequisite": "investment-accounts-1" },
@@ -128,7 +128,7 @@
         {
           "id": "portfolio-building",
           "label": "Portfolio Building",
-          "color": "#3E5146",
+          "color": "#d4b080",
           "tasks": [
             { "id": "portfolio-building-1", "label": "Buy your first ETF" },
             { "id": "portfolio-building-2", "label": "Build a diversified portfolio", "prerequisite": "portfolio-building-1" },
@@ -140,7 +140,7 @@
         {
           "id": "income-growth",
           "label": "Income Growth",
-          "color": "#3E5146",
+          "color": "#c8a478",
           "tasks": [
             { "id": "income-growth-1", "label": "Develop high-value skills" },
             { "id": "income-growth-2", "label": "Negotiate your salary", "prerequisite": "income-growth-1" },
@@ -152,7 +152,7 @@
         {
           "id": "expense-optimization",
           "label": "Expense Optimization",
-          "color": "#3E5146",
+          "color": "#b89060",
           "tasks": [
             { "id": "expense-optimization-1", "label": "Reduce housing costs" },
             { "id": "expense-optimization-2", "label": "Reduce transportation costs" },
@@ -165,12 +165,12 @@
     {
       "id": "independence",
       "label": "Independence",
-      "color": "#263B2F",
+      "color": "#7a6e68",
       "children": [
         {
           "id": "long-term-planning",
           "label": "Long-Term Planning",
-          "color": "#3E5146",
+          "color": "#8a7e78",
           "tasks": [
             { "id": "long-term-planning-1", "label": "Start retirement planning" },
             { "id": "long-term-planning-2", "label": "Estimate retirement expenses", "prerequisite": "long-term-planning-1" },
@@ -182,7 +182,7 @@
         {
           "id": "financial-independence",
           "label": "Financial Independence",
-          "color": "#3E5146",
+          "color": "#c82233",
           "tasks": [
             { "id": "financial-independence-1", "label": "Achieve investment income > expenses" },
             { "id": "financial-independence-2", "label": "Maintain a diversified portfolio", "prerequisite": "financial-independence-1" },
