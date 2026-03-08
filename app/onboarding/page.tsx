@@ -140,23 +140,24 @@ export default function OnboardingPage() {
     let firstInvalidField: "age" | "province" | null = null;
 
     if (!trimmedAge) {
-      nextErrors.age = "Required.";
-      firstInvalidField = "age";
-    } else {
-      const validatedAge = validateOnboardingAgeInput(trimmedAge);
+  nextErrors.age = "Required.";
+  firstInvalidField = "age";
+} else {
+  const validatedAge = validateOnboardingAgeInput(trimmedAge);
 
-      if (validatedAge.error) {
-        nextErrors.age = validatedAge.error;
-        firstInvalidField = "age";
-      }
-    }
+  if (validatedAge.error) {
+    nextErrors.age = validatedAge.error;
+    firstInvalidField = "age";
+  }
+}
 
-    if (!trimmedProvince) {
-      nextErrors.province = "Required.";
-      if (!firstInvalidField) {
-        firstInvalidField = "province";
-      }
-    }
+if (!trimmedProvince) {
+  nextErrors.province = "Required.";
+
+  if (!firstInvalidField) {
+    firstInvalidField = "province";
+  }
+}
 
     setFieldErrors(nextErrors);
     setSaveError(null);
@@ -250,7 +251,7 @@ export default function OnboardingPage() {
             action priorities, and AI guidance.
           </p>
 
-          <div className="mt-10 grid gap-8 lg:grid-cols-[1.65fr_0.95fr]">
+          <div className="mt-10">
             <div className="space-y-6">
               <section className="rounded-2xl border border-[#e2dbd4] bg-[#faf8f6] p-6 sm:p-7">
                 <div className="mb-5 flex items-center gap-3">
@@ -304,19 +305,11 @@ export default function OnboardingPage() {
                     />
 
                     <p id="age-hint" className="mt-2 text-xs leading-relaxed text-[#9a7b72]">
-                      Required. Enter a number between {ONBOARDING_AGE_MIN} and{" "}
+                      Enter a number between {ONBOARDING_AGE_MIN} and{" "}
                       {ONBOARDING_AGE_MAX}.
                     </p>
 
-                    {fieldErrors.age ? (
-                      <p
-                        id="age-error"
-                        role="alert"
-                        className="mt-2 text-sm font-medium text-[#c82233]"
-                      >
-                        {fieldErrors.age}
-                      </p>
-                    ) : null}
+                  
                   </label>
 
                   <label className="block">
@@ -378,21 +371,13 @@ export default function OnboardingPage() {
                     </div>
 
                     <p
-                      id="province-hint"
-                      className="mt-2 text-xs leading-relaxed text-[#9a7b72]"
-                    >
-                      Required for province-specific programs and tax credits.
-                    </p>
+  id="province-hint"
+  className="mt-2 text-xs leading-relaxed text-[#9a7b72]"
+>
+  Used for province-specific programs and tax credits.
+</p>
 
-                    {fieldErrors.province ? (
-                      <p
-                        id="province-error"
-                        role="alert"
-                        className="mt-2 text-sm font-medium text-[#c82233]"
-                      >
-                        {fieldErrors.province}
-                      </p>
-                    ) : null}
+                    
                   </label>
                 </div>
               </section>
@@ -508,68 +493,6 @@ export default function OnboardingPage() {
                 </div>
               </div>
             </div>
-
-            <aside className="space-y-4">
-              <div className="rounded-2xl border border-[#e2dbd4] bg-white p-6 shadow-[0_8px_24px_rgba(20,15,12,0.04)]">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#9a7b72]">
-                      Profile snapshot
-                    </p>
-                    <p className="mt-1.5 text-sm leading-relaxed text-[#5f5953]">
-                      A quick view of the details shaping your recommendations.
-                    </p>
-                  </div>
-
-                  <div className="shrink-0 rounded-full bg-[#fff1f2] px-3 py-1 text-xs font-semibold text-[#c82233]">
-                    {progressPercent}%
-                  </div>
-                </div>
-
-                <dl className="mt-6 space-y-3 text-sm">
-                  <div className="flex items-center justify-between gap-3 rounded-xl bg-[#faf8f6] px-4 py-3.5">
-                    <dt className="text-[#5f5953]">Age</dt>
-                    <dd className="font-semibold text-[#151311]">
-                      {ageInput || <span className="text-[#c82233]">Required</span>}
-                    </dd>
-                  </div>
-
-                  <div className="flex items-center justify-between gap-3 rounded-xl bg-[#faf8f6] px-4 py-3.5">
-                    <dt className="text-[#5f5953]">Province</dt>
-                    <dd className="font-semibold text-[#151311]">
-                      {province || <span className="text-[#c82233]">Required</span>}
-                    </dd>
-                  </div>
-
-                  <div className="flex items-center justify-between gap-3 rounded-xl bg-[#faf8f6] px-4 py-3.5">
-                    <dt className="text-[#5f5953]">Signals selected</dt>
-                    <dd className="font-semibold text-[#151311]">
-                      {profileSignalCount} / {totalSignalCount}
-                    </dd>
-                  </div>
-                </dl>
-              </div>
-
-              <div className="rounded-2xl border border-[#e2dbd4] bg-white p-6 shadow-[0_8px_24px_rgba(20,15,12,0.04)]">
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#9a7b72]">
-                  Trust and privacy
-                </p>
-
-                <p className="mt-3 text-sm leading-relaxed text-[#5f5953]">
-                  YUTH uses this information to personalize recommendations and guidance.
-                  You can update your profile at any time in settings.
-                </p>
-
-                <div className="mt-4 rounded-xl bg-[#faf8f6] px-4 py-4">
-                  <p className="text-sm font-semibold text-[#151311]">
-                    You stay in control
-                  </p>
-                  <p className="mt-1.5 text-sm leading-relaxed text-[#5f5953]">
-                    Your profile can be edited later as your situation changes.
-                  </p>
-                </div>
-              </div>
-            </aside>
           </div>
         </section>
       </div>
