@@ -69,6 +69,19 @@ export default function HomePage() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+  const originalBackground = document.documentElement.style.background;
+  const originalBodyBackground = document.body.style.background;
+
+  document.documentElement.style.background = "#0c0a09";
+  document.body.style.background = "#0c0a09";
+
+  return () => {
+    document.documentElement.style.background = originalBackground;
+    document.body.style.background = originalBodyBackground;
+  };
+}, []);
+
   return (
     <main
       className="min-h-screen text-[#151311]"
