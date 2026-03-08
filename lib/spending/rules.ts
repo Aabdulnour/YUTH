@@ -48,7 +48,7 @@ function buildExplanation(input: {
   const lines: string[] = [];
 
   if (input.fitsBudget) {
-    lines.push("MapleMind sees this purchase as within your monthly spending plan.");
+    lines.push("YUTH sees this purchase as within your monthly spending plan.");
   } else {
     lines.push("This purchase would push your monthly spending plan off track.");
   }
@@ -178,7 +178,7 @@ export function analyzeSpendCheck(
     recommendation,
     explanation,
     tags: [
-      "MapleMind budget rules",
+      "YUTH budget rules",
       category,
       deadlineRisk !== "none" ? "deadline-aware" : "budget-fit",
       goalImpact === "negative" ? "goal-impact" : "goal-neutral"

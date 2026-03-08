@@ -140,7 +140,7 @@ export default function AuthPage() {
 
   if (status === "loading") {
     return (
-      <main className="min-h-screen bg-white px-6 py-16 text-[#171412]">
+      <main className="min-h-screen bg-[#0c0a09] px-6 py-16 text-[#171412]">
         <div className="mx-auto max-w-2xl rounded-2xl border border-[#e6e0d8] bg-[#faf8f6] p-8">
           <p className="text-sm text-[#5f5953]">Checking your session...</p>
         </div>
@@ -150,20 +150,20 @@ export default function AuthPage() {
 
   if (status === "authenticated") {
     return (
-      <main className="min-h-screen bg-white px-6 py-16 text-[#171412]">
+      <main className="min-h-screen bg-[#0c0a09] px-6 py-16 text-[#171412]">
         <div className="mx-auto max-w-2xl rounded-2xl border border-[#e6e0d8] bg-[#faf8f6] p-8">
-          <p className="text-sm text-[#5f5953]">Redirecting to your MapleMind account...</p>
+          <p className="text-sm text-[#5f5953]">Redirecting to your YUTH account...</p>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-white px-6 py-10 text-[#171412]" style={{ fontFamily: "'Inter', 'Avenir Next', 'Segoe UI', sans-serif" }}>
+    <main className="min-h-screen bg-[#0c0a09] px-6 py-10 text-[#171412]" style={{ fontFamily: "'Inter', 'Avenir Next', 'Segoe UI', sans-serif" }}>
       <div className="mx-auto max-w-5xl">
         <header className="flex items-center justify-between">
           <Link href="/" className="text-sm font-bold tracking-[0.2em] text-[#151311]">
-            MAPLEMIND
+            YUTH
           </Link>
           <Link
             href="/"
@@ -177,7 +177,7 @@ export default function AuthPage() {
           <div className="rounded-2xl border border-[#2a2520] bg-[#141210] p-6">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#7a6e68]">Your account</p>
             <h1 className="mt-4 text-3xl font-bold leading-tight text-white md:text-4xl">
-              Sign in or create your MapleMind account.
+              Sign in or create your YUTH account.
             </h1>
             <p className="mt-4 max-w-xl text-base text-[#9a9290]">
               Pick up where you left off, or build your profile in about two minutes.
@@ -185,7 +185,7 @@ export default function AuthPage() {
             <ul className="mt-6 space-y-2">
               {[
                 "Tax credits and benefits matched to your profile",
-                "Province-specific eligibility — not generic advice",
+                "Province-specific eligibility, not generic advice",
                 "Prioritized actions for your situation this week",
               ].map((point) => (
                 <li key={point} className="flex items-start gap-2.5 text-sm text-[#a09890]">

@@ -1,47 +1,74 @@
 # YUTH.
+Young adults in Canada often find it difficult to understand the financial systems that affect their lives. There are so many different sources of information on tax credits, benefits, government programs, and other financial obligations that are provided by the government. This information is available online but is scattered and hard to find unless you already know where to look. YUTH is a tool that can help solve this problem by using the information provided in a user’s profile to provide access to government programs and other information in an easily digestible way. 
 
-YUTH is an AI-powered assistant that helps the next generation of young Canadian adults discover government benefits, financial opportunities, and important next steps based on their life situation. By combining structured program data with personalized profiles and AI guidance, YUTH helps users understand what money they may be missing and what financial actions they should take — from filing taxes and building credit to choosing between accounts like a TFSA or FHSA.
+Rather than having to search through different government websites or try to find general information on how to manage your finances, users can find a personalized summary that highlights different opportunities they may be eligible for. 
 
-## Features
-add all features
-## Architecture
-add project architecture
-## Tech Stack
-| Layer | Technology |
-|----------|-------------|
-| Frontend | Next.js |
-| Styling | TailwindCSS |
-| Backend | Next.js API Routes |
-| AI | OpenAI API |
-| Database | Supabase |
-| Data Layer | Structured JSON |
-| Browser Extension | Chrome Extension (Manifest v3) |
-| UI Integration | Chrome Side Panel API |
+This is an effort to close the information gap that keeps so many young adults from accessing the financial help they already deserve.
 
-## Chrome Extension Preview
+## Problem
 
-The MapleMind Chrome Extension provides **real-time financial context while users shop online**.  
-When a supported product page is opened, the extension analyzes the purchase against the user's financial profile and displays a quick recommendation in the browser side panel.
+Financial support systems in Canada are fragmented by design.
 
-This enables users to understand how a purchase fits into their financial plan **before completing the transaction**.
+Federal and provincial programs operate independently, each with their
+own eligibility requirements, application processes, and timelines.
+While these programs are intended to support citizens, the lack of a
+unified discovery layer creates several challenges:
 
-### Overview
+-   Individuals often do not know which programs exist
+-   Eligibility criteria are difficult to interpret
+-   Deadlines and application processes are easy to miss
+-   Financial advice available online is typically generic rather than
+    personalized
 
-MapleMind's browser decision support brings financial context directly into your browser. As you browse, it checks purchase fit against budget, goals, and deadlines so you can make better decisions before money leaves your account.
+For young adults navigating taxes, benefits, employment changes,
+education costs, or relocation for the first time, this complexity
+creates a significant barrier.
 
-The result is presented in a **lightweight side panel dashboard** that summarizes whether the purchase fits the user’s financial plan.
+## Solution
 
-### How It Works
+YUTH provides a profile-driven platform that translates complex
+government programs into personalized financial guidance.
 
-1. A content script detects supported product pages.
-2. Product metadata is extracted from the page.
-3. The extension sends the data to the MapleMind analysis API.
-4. The backend evaluates the purchase against the user's financial profile.
-5. The result is stored locally and rendered in the side panel.
+Users complete a short onboarding process that captures key contextual
+signals such as:
 
-### Extension Structure
+-   age
+-   province
+-   life situation
+-   financial context
 
+These signals are used to match the user with relevant government
+programs and financial opportunities.
+
+The platform then surfaces:
+
+-   programs the user may qualify for
+-   financial actions they should prioritize
+-   official government resources needed to apply or learn more
+
+YUTH acts as a discovery and decision-support layer on top of existing
+government systems, making it easier for individuals to understand and
+access support available to them.
+
+
+## Key Features
+
+**Personalized Program Discovery**: Matches users with relevant federal and provincial programs using
+profile signals such as age, province, and life situation.
+
+**Financial Action Prioritization**: Highlights the most important financial actions users should consider,
+such as filing credits, applying for benefits, or reviewing eligibility.
+
+**Unified Financial Dashboard**: Consolidates fragmented information from multiple government sources
+into a single interface.
+
+**Profile-Based Guidance**: Recommendations adapt to the user's profile rather than providing
+generic financial advice.
+
+**Chrome Extension:** YUTH's Chrome Extension provides **real-time financial context** directly into the browsing experience. This enables users to understand how a financial decision fits into their plan.
 ```text
+Extension Structure:
+
 extension/
 ├── manifest.json
 ├── background.js
@@ -53,57 +80,100 @@ extension/
 ├── sidepanel.js
 └── sidepane.css
 ```
+## System Architecture
+```text
+User
+│
+├── Web Application (Next.js)
+│   ├── Onboarding
+│   ├── Profile System
+│   ├── Dashboard
+│   └── Program Discovery Engine
+│
+├── Backend APIs
+│   ├── Profile persistence
+│   ├── Program matching engine
+│   └── AI assistance layer
+│
+├── Database
+│   └── Supabase
+│
+└── Browser Extension
+    ├── Content script
+    ├── Purchase metadata extraction
+    └── Side panel financial insights
+```
+## Tech Stack
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+  |Layer             |  Technology|
+  ------------------- |----------------------------------
+  |Frontend          |  Next.js, TypeScript, TailwindCSS|
+  |Backend            | Next.js API Routes, OpenAI API|
+  |Authentication % Database      |Supabase, Auth0|
+  |Browser Extension   |Chrome Extension (Manifest v3)|
+  |UI Integration      |Chrome Side Panel API|
+
+
+## Technical Approach
+
+The platform centers around a profile-driven recommendation system.
+
+1.  A user completes onboarding with contextual signals.
+2.  These signals map to eligibility filters.
+3.  The system evaluates structured program data against those filters.
+4.  Relevant programs and actions are surfaced in the dashboard.
+
+This model allows the platform to scale as new programs and eligibility
+conditions are added.
+
+## Challenges
+
+#### Structuring Government Program Data
+
+Government program information is typically written for policy
+interpretation rather than software systems. Converting eligibility
+rules into structured logic required building a flexible schema capable
+of supporting multiple jurisdictions.
+
+#### Designing Effective Onboarding
+
+Capturing enough information to generate meaningful recommendations
+without overwhelming users required careful design of the onboarding
+flow.
+
+#### Integrating Financial Context Into Browsing
+
+Embedding financial insights directly into a browser environment
+required building a lightweight extension capable of extracting product
+information and delivering contextual feedback without interrupting the
+browsing experience.
+
+## Future Development
+
+Potential improvements include:
+
+-   automated updates for government program changes
+-   deeper eligibility modeling
+-   financial milestone tracking
+-   expanded browser financial analysis
+-   AI-assisted financial planning
+-   integrations with public and private financial services
 
 ## Getting Started
 
-First, run the development server:
+Install dependencies:
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+    npm install
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Run the development server:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+    npm run dev
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Then open:
 
-## Learn More
+    http://localhost:3000
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-
-## Future Work
-
-MapleMind is designed to expand into a broader platform for financial adulthood support in Canada.
-
-Potential future features include:
-
-- tax filing guidance
-- credit score monitoring
-- housing and insurance comparisons
-- savings and investment planning
-- financial milestone tracking
-- partner integrations and affiliate services
+------------------------------------------------------------------------
 
 ## License
-
-MIT License
+© 2026 YUTH. All rights reserved.

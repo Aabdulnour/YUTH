@@ -19,7 +19,7 @@ export async function GET() {
       metadata: {
         profileSource: "demo_profile",
         mode: "preview",
-        note: "Preview mode demo profile for the MapleMind extension.",
+        note: "Preview mode demo profile for the YUTH extension.",
       },
     })
   );

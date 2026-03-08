@@ -1,40 +1,38 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { AppPageHeader, AppShell } from "@/components/layout/AppShell";
 import { usePrivateRoute } from "@/lib/auth/usePrivateRoute";
-import { PROVINCE_OPTIONS } from "@/lib/onboarding";
-import { loadPersistedUserProfile, savePersistedUserProfile } from "@/lib/persistence/profile-store";
+import { loadPersistedUserProfile } from "@/lib/persistence/profile-store";
 import { PROFILE_FIELD_LABELS, PROFILE_FLAG_KEYS, type UserProfile } from "@/types/profile";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+
+function formatProfileValue(value: unknown): string {
+  if (typeof value === "boolean") return value ? "Yes" : "No";
+  if (typeof value === "number") return String(value);
+  if (typeof value === "string" && value.trim() !== "") return value;
+  return "-";
+}
 
 export default function ProfilePage() {
   const router = useRouter();
   const { isAuthenticated, isLoading, userId } = usePrivateRoute();
-
   const [profile, setProfile] = useState<UserProfile | null | undefined>(undefined);
-  const [draftProfile, setDraftProfile] = useState<UserProfile | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
-  const [saveMessage, setSaveMessage] = useState<string | null>(null);
-  const [saveError, setSaveError] = useState<string | null>(null);
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated || !userId) {
-      if (!isLoading) {
-        setProfile(null);
-      }
-
+      if (!isLoading) setProfile(null);
       return;
     }
 
     let isCancelled = false;
 
     const loadProfile = async () => {
-      const nextProfile = await loadPersistedUserProfile(userId);
-      if (!isCancelled) {
-        setProfile(nextProfile);
-        setDraftProfile(nextProfile);
-      }
+      const p = await loadPersistedUserProfile(userId);
+      if (!isCancelled) setProfile(p);
     };
 
     void loadProfile();
@@ -50,225 +48,152 @@ export default function ProfilePage() {
     }
   }, [isAuthenticated, profile, router]);
 
-  const completion = useMemo(() => {
-    if (!draftProfile) {
-      return 0;
-    }
+  const profileCompletion = useMemo(() => {
+    if (!profile) return 0;
+    const flags = PROFILE_FLAG_KEYS;
+    const filled = flags.filter((k) => profile[k]).length + (profile.age !== undefined ? 1 : 0) + (profile.province ? 1 : 0);
+    return Math.round((filled / (flags.length + 2)) * 100);
+  }, [profile]);
 
-    const completedFlags = PROFILE_FLAG_KEYS.filter((key) => draftProfile[key]).length;
-    const completedOptional = Number(draftProfile.age !== undefined) + Number(Boolean(draftProfile.province));
-    const totalFields = PROFILE_FLAG_KEYS.length + 2;
-    return Math.round(((completedFlags + completedOptional) / totalFields) * 100);
-  }, [draftProfile]);
-
-  const handleSave = async () => {
-    if (!userId || !draftProfile || isSaving) {
-      return;
-    }
-
-    setIsSaving(true);
-    setSaveMessage(null);
-    setSaveError(null);
-
+  const handleLogout = async () => {
+    setIsSigningOut(true);
     try {
-      const saved = await savePersistedUserProfile(userId, draftProfile);
-      setProfile(saved);
-      setDraftProfile(saved);
-      setSaveMessage("Profile saved.");
-    } catch (error) {
-      console.error("Failed to save profile", error);
-      setSaveError("Could not save your profile right now. Please try again.");
-    } finally {
-      setIsSaving(false);
+      const supabase = getSupabaseBrowserClient();
+      await supabase.auth.signOut();
+      router.replace("/");
+    } catch {
+      setIsSigningOut(false);
     }
   };
 
-  if (isLoading || profile === undefined || (profile !== null && draftProfile === null)) {
-    return (
-      <AppShell activePath="/profile">
-        <div className="rounded-2xl border border-[#e2dbd4] bg-[#faf8f6] p-8 text-[#5f5953]">Loading profile...</div>
-      </AppShell>
-    );
-  }
-
-  if (!isAuthenticated || !userId) {
-    return null;
-  }
-
-  if (!profile) {
+  if (isLoading || profile === undefined) {
     return (
       <AppShell activePath="/profile">
         <div className="rounded-2xl border border-[#e2dbd4] bg-[#faf8f6] p-8 text-[#5f5953]">
-          Redirecting to onboarding...
+          Loading profile...
         </div>
       </AppShell>
     );
   }
 
-  const editableProfile = draftProfile ?? profile;
+  if (!isAuthenticated || !userId || profile === null) {
+    return null;
+  }
 
   return (
     <AppShell activePath="/profile">
-      <AppPageHeader
-        eyebrow="Settings"
-        title="Profile and preferences"
-        description="Update the profile information MapleMind uses for recommendations and AI guidance."
-        actions={
+      <div className="mx-auto max-w-4xl">
+        <AppPageHeader
+          eyebrow="Profile"
+          title="Your YUTH profile"
+          description="Update the profile information YUTH uses for recommendations and AI guidance."
+        />
+
+        {/* ── Profile completeness (inline) ── */}
+        {profileCompletion < 100 && (
+          <div className="mb-5 rounded-xl border border-[#e2dbd4] bg-gradient-to-r from-[#faf8f6] to-white px-5 py-3 flex items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold text-[#151311]">Profile {profileCompletion}% complete</p>
+              <p className="text-xs text-[#5f5953]">More complete profiles get better recommendations.</p>
+            </div>
+            <Link
+              href="/onboarding"
+              className="shrink-0 rounded-lg border border-[#e2dbd4] bg-white px-3 py-1.5 text-xs font-medium text-[#151311] transition hover:border-[#d0c9c1]"
+            >
+              Update
+            </Link>
+          </div>
+        )}
+
+        {profileCompletion >= 100 && (
+          <div className="mb-5 rounded-xl border border-[#c8e2cd] bg-[#f4faf4] px-5 py-3 flex items-center gap-3">
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#2f7a47] text-xs text-white">✓</span>
+            <p className="text-sm font-semibold text-[#2f7a47]">Profile complete. Recommendations are fully personalized.</p>
+          </div>
+        )}
+
+        {/* ── Core details ── */}
+        <section className="mb-5 rounded-2xl border border-[#e2dbd4] bg-white p-5 shadow-[0_4px_16px_rgba(20,15,12,0.05)]">
+          <h3 className="mb-4 text-lg font-bold text-[#151311]">Core Details</h3>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-xl bg-[#faf8f6] px-4 py-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#9a7b72]">Age</p>
+              <p className="mt-1 text-base font-semibold text-[#151311]">
+                {profile.age !== undefined ? String(profile.age) : "-"}
+              </p>
+            </div>
+            <div className="rounded-xl bg-[#faf8f6] px-4 py-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#9a7b72]">Province</p>
+              <p className="mt-1 text-base font-semibold text-[#151311]">
+                {profile.province ?? "-"}
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Life signals ── */}
+        <section className="mb-5 rounded-2xl border border-[#e2dbd4] bg-white p-5 shadow-[0_4px_16px_rgba(20,15,12,0.05)]">
+          <h3 className="mb-4 text-lg font-bold text-[#151311]">Life Signals</h3>
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {PROFILE_FLAG_KEYS.map((key) => (
+              <div
+                key={key}
+                className={`flex items-center gap-3 rounded-xl px-4 py-3 ${
+                  profile[key]
+                    ? "border border-[#c82233]/10 bg-[#fff1f2]"
+                    : "border border-[#e2dbd4] bg-[#faf8f6]"
+                }`}
+              >
+                <span
+                  className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md text-[10px] font-bold ${
+                    profile[key]
+                      ? "bg-[#c82233] text-white"
+                      : "border border-[#d8d1c9] bg-white text-[#d8d1c9]"
+                  }`}
+                >
+                  {profile[key] ? "✓" : ""}
+                </span>
+                <div>
+                  <p className="text-sm font-medium text-[#151311]">
+                    {PROFILE_FIELD_LABELS[key] ?? key}
+                  </p>
+                  <p className="text-xs text-[#9a7b72]">
+                    {formatProfileValue(profile[key])}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ── Actions ── */}
+        <div className="flex flex-wrap items-center gap-3">
+          <Link
+            href="/onboarding"
+            className="rounded-xl bg-[#c82233] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#b01e2d]"
+          >
+            Edit profile
+          </Link>
+          <Link
+            href="/dashboard"
+            className="rounded-xl border border-[#e2dbd4] bg-white px-6 py-2.5 text-sm font-medium text-[#151311] transition hover:border-[#d0c9c1]"
+          >
+            Back to dashboard
+          </Link>
           <button
             type="button"
-            onClick={() => {
-              void handleSave();
-            }}
-            disabled={isSaving}
-            className="rounded-xl bg-[#c82233] px-6 py-2.5 text-sm font-semibold text-white shadow-[0_0_16px_rgba(200,34,51,0.2)] transition hover:bg-[#b01e2d] disabled:cursor-not-allowed disabled:opacity-70"
+            onClick={() => void handleLogout()}
+            disabled={isSigningOut}
+            className="rounded-xl border border-[#e2dbd4] bg-white px-6 py-2.5 text-sm font-medium text-[#c82233] transition hover:border-[#d0c9c1] disabled:opacity-60"
           >
-            {isSaving ? "Saving..." : "Save profile"}
+            {isSigningOut ? "Signing out..." : "Log out"}
           </button>
-        }
-      />
-
-      <div className="grid gap-5 lg:grid-cols-[1.5fr_1fr]">
-        {/* ── Main profile content ── */}
-        <div className="space-y-5">
-          {/* Core fields */}
-          <section className="rounded-2xl border border-[#e2dbd4] bg-gradient-to-b from-[#faf8f6] to-white p-6 shadow-[0_4px_16px_rgba(20,15,12,0.05)]">
-            <h2 className="text-lg font-bold text-[#151311]">Core details</h2>
-            <p className="mt-0.5 text-sm text-[#5f5953]">Used for recommendation matching.</p>
-
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              <label className="block rounded-xl border border-[#e2dbd4] bg-white p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#9a7b72]">{PROFILE_FIELD_LABELS.age}</p>
-                <input
-                  value={editableProfile.age !== undefined ? String(editableProfile.age) : ""}
-                  onChange={(event) => {
-                    const value = event.target.value.trim();
-                    setDraftProfile((current) =>
-                      current
-                        ? {
-                            ...current,
-                            age: value ? value : undefined,
-                          }
-                        : current
-                    );
-                  }}
-                  placeholder="24 or 18-24"
-                  className="mt-2 w-full rounded-lg border border-[#e2dbd4] bg-[#faf8f6] px-3 py-2 text-sm outline-none transition focus:border-[#c82233] focus:ring-1 focus:ring-[#c82233]/20"
-                />
-              </label>
-
-              <label className="block rounded-xl border border-[#e2dbd4] bg-white p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#9a7b72]">{PROFILE_FIELD_LABELS.province}</p>
-                <select
-                  value={editableProfile.province ?? ""}
-                  onChange={(event) => {
-                    const value = event.target.value;
-                    setDraftProfile((current) =>
-                      current
-                        ? {
-                            ...current,
-                            province: value || undefined,
-                          }
-                        : current
-                    );
-                  }}
-                  className="mt-2 w-full rounded-lg border border-[#e2dbd4] bg-[#faf8f6] px-3 py-2 text-sm outline-none transition focus:border-[#c82233] focus:ring-1 focus:ring-[#c82233]/20"
-                >
-                  <option value="">Select province or territory</option>
-                  {PROVINCE_OPTIONS.map((provinceOption) => (
-                    <option key={provinceOption} value={provinceOption}>
-                      {provinceOption}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
-          </section>
-
-          {/* Life signals */}
-          <section className="rounded-2xl border border-[#e2dbd4] bg-gradient-to-b from-[#faf8f6] to-white p-6 shadow-[0_4px_16px_rgba(20,15,12,0.05)]">
-            <h2 className="text-lg font-bold text-[#151311]">Life signals</h2>
-            <p className="mt-0.5 text-sm text-[#5f5953]">Toggle signals that apply to your current situation.</p>
-
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              {PROFILE_FLAG_KEYS.map((key) => {
-                const value = editableProfile[key];
-
-                return (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => {
-                      setDraftProfile((current) =>
-                        current
-                          ? {
-                              ...current,
-                              [key]: !current[key],
-                            }
-                          : current
-                      );
-                    }}
-                    className={`group flex items-center gap-3 rounded-xl border p-3.5 text-left transition ${
-                      value
-                        ? "border-[#c82233] bg-[#fff1f2] shadow-[0_0_0_1px_rgba(200,34,51,0.1)]"
-                        : "border-[#e2dbd4] bg-white hover:border-[#d0c9c1]"
-                    }`}
-                  >
-                    <span
-                      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition ${
-                        value
-                          ? "border-[#c82233] bg-[#c82233] text-white"
-                          : "border-[#d8d1c9] bg-white"
-                      }`}
-                    >
-                      {value ? (
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                          <path d="M2.5 6L5 8.5L9.5 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      ) : null}
-                    </span>
-                    <div>
-                      <p className="text-sm font-medium text-[#151311]">{PROFILE_FIELD_LABELS[key]}</p>
-                      <p className="text-xs text-[#9a7b72]">{value ? "Active" : "Inactive"}</p>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-
-            {saveError ? (
-              <p className="mt-4 rounded-lg border border-[#f0cfd3] bg-[#fff1f2] px-3 py-2 text-sm text-[#c82233]">{saveError}</p>
-            ) : null}
-
-            {saveMessage ? (
-              <p className="mt-4 rounded-lg border border-[#c8e2cd] bg-[#eef6ef] px-3 py-2 text-sm text-[#2f7a47]">{saveMessage}</p>
-            ) : null}
-          </section>
         </div>
 
-        {/* ── Sidebar ── */}
-        <aside className="space-y-4">
-          <div className="rounded-2xl border border-[#e2dbd4] bg-gradient-to-b from-[#faf8f6] to-white p-5 shadow-[0_4px_16px_rgba(20,15,12,0.05)]">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#9a7b72]">Profile completeness</p>
-            <p className="mt-2 text-4xl font-bold text-[#151311]">{completion}%</p>
-            <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#e2dbd4]">
-              <div
-                className="h-1.5 rounded-full bg-[#c82233] transition-all duration-500"
-                style={{ width: `${completion}%` }}
-                aria-hidden
-              />
-            </div>
-            <p className="mt-3 text-sm leading-relaxed text-[#5f5953]">
-              Keep this updated to improve recommendation quality and AI guidance relevance.
-            </p>
-          </div>
-
-          <div className="rounded-2xl border border-[#e2dbd4] bg-gradient-to-b from-[#faf8f6] to-white p-5 shadow-[0_4px_16px_rgba(20,15,12,0.05)]">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#9a7b72]">Persistence</p>
-            <p className="mt-2 text-sm leading-relaxed text-[#5f5953]">
-              Profile changes save to your account and stay available across sessions.
-            </p>
-          </div>
-        </aside>
+        {/* ── Persistence note (subtle) ── */}
+        <p className="mt-8 text-center text-xs text-[#b8b0a8]">
+          Your profile is synced to Supabase and persisted across sessions.
+        </p>
       </div>
     </AppShell>
   );

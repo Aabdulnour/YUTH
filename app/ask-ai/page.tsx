@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { type FormEvent, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { usePrivateRoute } from "@/lib/auth/usePrivateRoute";
 import { loadPersistedUserProfile } from "@/lib/persistence/profile-store";
@@ -32,8 +32,9 @@ function createMessageId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
-export default function AskAIPage() {
+function AskAIContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { isAuthenticated, isLoading, userId } = usePrivateRoute();
   const [profile, setProfile] = useState<UserProfile | null | undefined>(undefined);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -41,6 +42,7 @@ export default function AskAIPage() {
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const hasAutoSent = useRef(false);
 
   useEffect(() => {
     if (!isAuthenticated || !userId) {
@@ -194,6 +196,17 @@ export default function AskAIPage() {
     }
   };
 
+  // Auto-submit topic from query param (from mindmap)
+  useEffect(() => {
+    if (!canAsk || hasAutoSent.current) return;
+    const topic = searchParams.get("topic");
+    if (topic) {
+      hasAutoSent.current = true;
+      void submitQuestion(topic);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canAsk, searchParams]);
+
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     void submitQuestion();
@@ -230,7 +243,7 @@ export default function AskAIPage() {
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#9a7b72]">Ask AI</p>
           <h1 className="mt-2 text-2xl font-bold text-[#151311]">Complete onboarding to open your chat</h1>
           <p className="mt-2 text-sm text-[#5f5953]">
-            MapleMind AI needs your saved profile to provide grounded, personalized guidance.
+            YUTH AI needs your saved profile to provide grounded, personalized guidance.
           </p>
           <div className="mt-5 flex flex-wrap gap-3">
             <Link href="/onboarding" className="rounded-xl bg-[#c82233] px-6 py-2.5 text-sm font-semibold text-white shadow-[0_0_16px_rgba(200,34,51,0.2)] transition hover:bg-[#b01e2d]">
@@ -306,7 +319,7 @@ export default function AskAIPage() {
                       }`}
                     >
                       <p className={`text-[10px] font-semibold uppercase tracking-[0.12em] ${isUser ? "text-white/70" : "text-[#9a7b72]"}`}>
-                        {isUser ? "You" : "MapleMind AI"}
+                        {isUser ? "You" : "YUTH AI"}
                       </p>
                       <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed">{message.content}</p>
                       {!isUser && message.metaLabel ? (
@@ -345,7 +358,7 @@ export default function AskAIPage() {
               {isSending ? (
                 <div className="flex justify-start">
                   <div className="max-w-[75%] rounded-2xl border border-[#e2dbd4] bg-white p-4">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#9a7b72]">MapleMind AI</p>
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#9a7b72]">YUTH AI</p>
                     <span className="mt-1.5 inline-block animate-pulse text-sm text-[#5f5953]">
                       Reviewing your profile and matched programs...
                     </span>
@@ -382,5 +395,17 @@ export default function AskAIPage() {
         ) : null}
       </div>
     </AppShell>
+  );
+}
+
+export default function AskAIPage() {
+  return (
+    <Suspense fallback={
+      <AppShell activePath="/ask-ai">
+        <div className="rounded-2xl border border-[#e2dbd4] bg-[#faf8f6] p-8 text-[#5f5953]">Loading…</div>
+      </AppShell>
+    }>
+      <AskAIContent />
+    </Suspense>
   );
 }
