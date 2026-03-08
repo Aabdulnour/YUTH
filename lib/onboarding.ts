@@ -22,10 +22,10 @@ export const ONBOARDING_AGE_MIN = 16;
 export const ONBOARDING_AGE_MAX = 100;
 
 export const LIFE_SITUATION_OPTIONS: OnboardingOption[] = [
-  { key: "student", label: "Student", helperText: "Currently in school, college, or university." },
-  { key: "employed", label: "Employed", helperText: "Currently earning income from work." },
-  { key: "renter", label: "Renter", helperText: "Currently paying rent for housing." },
-  { key: "livesWithParents", label: "Lives with parents", helperText: "Currently living with parents or guardians." },
+  { key: "student", label: "Student", helperText: "Enrolled in high school, college, or university." },
+  { key: "employed", label: "Employed", helperText: "Working part-time, full-time, or on contract." },
+  { key: "renter", label: "Renter", helperText: "Paying rent for your current housing." },
+  { key: "livesWithParents", label: "Lives with parents", helperText: "Living at home with parents or guardians." },
 ];
 
 export const FINANCIAL_SITUATION_OPTIONS: OnboardingOption[] = [
