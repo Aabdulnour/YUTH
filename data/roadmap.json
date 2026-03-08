@@ -6,49 +6,149 @@
       "id": "setup",
       "label": "Setup",
       "type": "setup",
-      "icon": "✦",
+      "icon": "\u2726",
       "color": "#c82233",
       "half": "top",
       "groups": [
         {
           "id": "phase-1",
           "label": "Phase 1: The Foundation",
-          "icon": "🏗️",
+          "icon": "\ud83c\udfd7\ufe0f",
           "color": "#e8394c",
           "tasks": [
-            { "id": "banking-1", "label": "Open chequing account" },
-            { "id": "banking-2", "label": "Open high-interest savings account", "prerequisite": "banking-1" },
-            { "id": "banking-4", "label": "Enable online banking",              "prerequisite": "banking-1" },
-            { "id": "banking-3", "label": "Set up automatic transfers",         "prerequisite": "banking-4" },
-            { "id": "debt-1",    "label": "List all debts" },
-            { "id": "debt-2",    "label": "Understand interest rates",          "prerequisite": "debt-1", "learn": true }
+            {
+              "id": "banking-1",
+              "label": "Open chequing account",
+              "sourceLabel": "Example:",
+              "sourceUrl": "https://www.scotiabank.com/ca/en/personal/bank-accounts.html"
+            },
+            {
+              "id": "banking-2",
+              "label": "Open high-interest savings account",
+              "prerequisite": "banking-1",
+              "sourceLabel": "Example:",
+              "sourceUrl": "https://www.scotiabank.com/ca/en/personal/bank-accounts/savings-accounts.html"
+            },
+            {
+              "id": "banking-4",
+              "label": "Enable online banking",
+              "prerequisite": "banking-1",
+              "sourceLabel": "Example:",
+              "sourceUrl": "https://www.scotiabank.com/ca/en/personal/bank-your-way/online-banking.html"
+            },
+            {
+              "id": "banking-3",
+              "label": "Set up automatic transfers",
+              "prerequisite": "banking-4",
+              "sourceLabel": "Interact Automatic Transfers",
+              "sourceUrl": "https://www.interac.ca/en/how-to-use/interac-e-transfer/how-to-set-up-interac-e-transfer-autodeposit/"
+            },
+            {
+              "id": "debt-1",
+              "label": "List all debts",
+              "description": "List all your debts, including amounts, interest rates, and minimum payments."
+            },
+            {
+              "id": "debt-2",
+              "label": "Understand interest rates",
+              "prerequisite": "debt-1",
+              "learn": true
+            }
           ]
         },
         {
           "id": "phase-2",
           "label": "Phase 2: Management & Security",
-          "icon": "🛡️",
+          "icon": "\ud83d\udee1\ufe0f",
           "color": "#d42d3f",
           "tasks": [
-            { "id": "budget-1",  "label": "Create a budget",          "prerequisite": "banking-3", "learn": true },
-            { "id": "budget-2",  "label": "Automate bill payments",   "prerequisite": "budget-1" },
-            { "id": "credit-1",  "label": "Understand credit score",                               "learn": true },
-            { "id": "credit-2",  "label": "Open first credit card",   "prerequisite": "credit-1" },
-            { "id": "protect-1", "label": "Get health insurance" },
-            { "id": "protect-2", "label": "Get disability insurance", "prerequisite": "protect-1" },
-            { "id": "protect-3", "label": "Get life insurance",       "prerequisite": "protect-1" }
+            {
+              "id": "budget-1",
+              "label": "Create a budget",
+              "prerequisite": "banking-3",
+              "learn": true
+            },
+            {
+              "id": "budget-2",
+              "label": "Automate bill payments",
+              "prerequisite": "budget-1",
+              "description": "Check With Your Bank"
+            },
+            {
+              "id": "credit-1",
+              "label": "Understand credit score",
+              "learn": true
+            },
+            {
+              "id": "credit-2",
+              "label": "Open first credit card",
+              "prerequisite": "credit-1",
+              "sourceLabel": "FCAC",
+              "sourceUrl": "https://creditcardgenius.ca/credit-cards"
+            },
+            {
+              "id": "protect-1",
+              "label": "Get health insurance",
+              "sourceLabel": "Canada.ca",
+              "sourceUrl": "https://www.canada.ca/en/financial-consumer-agency/services/insurance/health.html"
+            },
+            {
+              "id": "protect-2",
+              "label": "Get disability insurance",
+              "prerequisite": "protect-1",
+              "sourceLabel": "FCAC",
+              "sourceUrl": "https://www.canada.ca/en/financial-consumer-agency/services/insurance/disability.html"
+            },
+            {
+              "id": "protect-3",
+              "label": "Get life insurance",
+              "prerequisite": "protect-1",
+              "sourceLabel": "FCAC",
+              "sourceUrl": "https://www.canada.ca/en/financial-consumer-agency/services/insurance/life.html"
+            },
+            {
+              "id": "taxes-1",
+              "label": "File your taxes",
+              "description": "Register and file with the CRA to access benefits and credits.",
+              "sourceUrl": "https://www.canada.ca/en/services/taxes/income-tax/personal-income-tax/get-ready-taxes.html",
+              "sourceLabel": "CRA Tax Return Guide"
+            },
+            {
+              "id": "taxes-2",
+              "label": "Create a CRA My Account",
+              "description": "Access your tax info, benefits, and RRSP room online.",
+              "sourceUrl": "https://www.canada.ca/en/revenue-agency/services/e-services/cra-login-services.html",
+              "sourceLabel": "CRA Login Services"
+            }
           ]
         },
         {
           "id": "phase-3",
           "label": "The Growth Ladder",
-          "icon": "📈",
+          "icon": "\ud83d\udcc8",
           "color": "#bf1f30",
           "tasks": [
-            { "id": "efund-1", "label": "Save $1,000 starter fund",  "prerequisite": "budget-1" },
-            { "id": "efund-2", "label": "Save 3 months of expenses", "prerequisite": "efund-1" },
-            { "id": "efund-3", "label": "Save 6 months of expenses", "prerequisite": "efund-2" },
-            { "id": "debt-3",  "label": "Choose repayment strategy", "prerequisite": "debt-2", "learn": true }
+            {
+              "id": "efund-1",
+              "label": "Save $1,000 starter fund",
+              "prerequisite": "budget-1"
+            },
+            {
+              "id": "efund-2",
+              "label": "Save 3 months of expenses",
+              "prerequisite": "efund-1"},
+            {
+              "id": "efund-3",
+              "label": "Save 6 months of expenses",
+              "prerequisite": "efund-2"},
+            {
+              "id": "debt-3",
+              "label": "Choose repayment strategy",
+              "prerequisite": "debt-2",
+              "learn": true,
+              "sourceUrl": "https://itools-ioutils.fcac-acfc.gc.ca/BP-PB/budget-planner",
+              "sourceLabel": "FCAC Budget Planner"
+            }
           ]
         }
       ]
@@ -57,41 +157,95 @@
       "id": "maintenance",
       "label": "Maintenance",
       "type": "maintenance",
-      "icon": "↻",
+      "icon": "\u21bb",
       "color": "#7a6e68",
       "half": "bottom",
       "groups": [
         {
           "id": "monthly-pulse",
           "label": "The Monthly Pulse",
-          "icon": "📅",
+          "icon": "\ud83d\udcc5",
           "color": "#a09080",
           "tasks": [
-            { "id": "maint-1", "label": "Track monthly expenses",     "description": "Log your spending as it happens." },
-            { "id": "maint-2", "label": "Review budget monthly",      "description": "Compare what you spent vs. what you planned.",       "prerequisite": "budget-1" },
-            { "id": "maint-3", "label": "Pay balance on time",        "description": "Ensure credit cards and bills are cleared.",         "prerequisite": "credit-2" },
-            { "id": "maint-4", "label": "Keep utilization below 30%", "description": "Monitor your credit card usage relative to your limit.", "prerequisite": "credit-2", "learn": true },
-            { "id": "maint-5", "label": "Pay off credit cards",       "description": "Clear any revolving balances to avoid interest.",    "prerequisite": "credit-2" }
+            {
+              "id": "maint-1",
+              "label": "Track monthly expenses",
+              "description": "Log your spending as it happens.",
+              "sourceLabel": "FCAC Budget Planner",
+              "sourceUrl": "https://itools-ioutils.fcac-acfc.gc.ca/BP-PB/budget-planner"
+            },
+            {
+              "id": "maint-2",
+              "label": "Review budget monthly",
+              "description": "Compare what you spent vs. what you planned.",
+              "prerequisite": "budget-1"},
+            {
+              "id": "maint-3",
+              "label": "Pay balance on time",
+              "description": "Ensure credit cards and bills are cleared.",
+              "prerequisite": "credit-2"
+            },
+            {
+              "id": "maint-4",
+              "label": "Keep utilization below 30%",
+              "description": "Monitor your credit card usage relative to your limit.",
+              "prerequisite": "credit-2",
+              "learn": true
+            },
+            {
+              "id": "maint-5",
+              "label": "Pay off credit cards",
+              "description": "Clear any revolving balances to avoid interest.",
+              "prerequisite": "credit-2"
+            }
           ]
         },
         {
           "id": "quarterly-checkup",
           "label": "The Quarterly / Annual Check-up",
-          "icon": "🔍",
+          "icon": "\ud83d\udd0d",
           "color": "#8a7e78",
           "tasks": [
-            { "id": "maint-6", "label": "Check credit report annually",               "description": "Look for errors or identity theft signs.",     "prerequisite": "credit-2" },
-            { "id": "maint-7", "label": "Update monthly expense calculations yearly", "description": "Adjust for inflation or lifestyle changes.",    "prerequisite": "maint-1" },
-            { "id": "maint-8", "label": "Reduce unnecessary expenses",                "description": "Audit subscriptions and lifestyle creep.",      "prerequisite": "budget-1" }
+            {
+              "id": "maint-6",
+              "label": "Check credit report annually",
+              "description": "Look for errors or identity theft signs.",
+              "prerequisite": "credit-2",
+              "sourceLabel": "Equifax CA",
+              "sourceUrl": "https://www.consumer.equifax.ca/personal/products/credit-report/"
+            },
+            {
+              "id": "maint-7",
+              "label": "Update monthly expense calculations yearly",
+              "description": "Adjust for inflation or lifestyle changes.",
+              "prerequisite": "maint-1",
+              "sourceLabel": "FCAC Budget Planner",
+              "sourceUrl": "https://itools-ioutils.fcac-acfc.gc.ca/BP-PB/budget-planner"
+            },
+            {
+              "id": "maint-8",
+              "label": "Reduce unnecessary expenses",
+              "description": "Audit subscriptions and lifestyle creep.",
+              "prerequisite": "budget-1",
+              "sourceLabel": "Example: Scotiabank Advice+ on Monthly Expenses",
+              "sourceUrl": "https://www.scotiabank.com/ca/en/personal/advice-plus/features/posts.monthly-expenses.html"
+            }
           ]
         },
         {
           "id": "strategic-focus",
           "label": "The Strategic Focus",
-          "icon": "🎯",
+          "icon": "\ud83c\udfaf",
           "color": "#7a7068",
           "tasks": [
-            { "id": "maint-9", "label": "Reduce high-interest debt", "description": "Continually funnel extra cash toward high APR loans until gone.", "prerequisite": "debt-3" }
+            {
+              "id": "maint-9",
+              "label": "Reduce high-interest debt",
+              "description": "Continually funnel extra cash toward high APR loans until gone.",
+              "prerequisite": "debt-3",
+              "sourceLabel": "Example: Scotiabank Advice+ on Getting Out of Debt",
+              "sourceUrl": "https://www.scotiabank.com/ca/en/personal/advice-plus/get-started/get-out-of-debt.html"
+            }
           ]
         }
       ]

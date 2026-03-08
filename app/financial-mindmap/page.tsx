@@ -13,6 +13,8 @@ type RawTask = {
   description?: string;
   prerequisite?: string;
   learn?: boolean;
+  sourceUrl?: string;
+  sourceLabel?: string;
 };
 
 type RawGroup = {
@@ -44,18 +46,18 @@ const roadmap = roadmapRaw as unknown as RoadmapData;
 // ─── Theme ────────────────────────────────────────────────────────────────────
 
 const T = {
-  bg:           "#0c0a09",
-  bgCard:       "#141210",
-  border:       "#2e2824",
+  bg:           "#faf8f6",
+  bgCard:       "#ffffff",
+  border:       "#e2dbd4",
   accent:       "#c82233",
-  textPrime:    "#ffffff",
-  textSub:      "#a09890",
-  textMuted:    "#6a6460",
-  textFaint:    "#3a3530",
-  connector:    "rgba(160,152,144,0.2)",
-  locked:       "#0f0e0d",
-  lockedBorder: "#252220",
-  lockedText:   "#3a3530",
+  textPrime:    "#151311",
+  textSub:      "#5f5953",
+  textMuted:    "#9a7b72",
+  textFaint:    "#c8bdb6",
+  connector:    "rgba(180,168,158,0.35)",
+  locked:       "#f5f2ee",
+  lockedBorder: "#d0c9c1",
+  lockedText:   "#c8bdb6",
 };
 
 // ─── Canvas constants ─────────────────────────────────────────────────────────
@@ -169,9 +171,9 @@ function RootSVGNode({ pos, pct, done, total, onClick, showBack }: {
 }) {
   return (
     <g className={showBack ? "cursor-pointer" : undefined} onClick={showBack ? onClick : undefined}>
-      <circle cx={pos.x} cy={pos.y} r={ROOT_R + 18} fill="none" stroke="#c82233" strokeWidth={1} opacity={showBack ? 0.18 : 0.04} />
+      <circle cx={pos.x} cy={pos.y} r={ROOT_R + 18} fill="none" stroke="#c82233" strokeWidth={1} opacity={showBack ? 0.22 : 0.06} />
       <circle cx={pos.x} cy={pos.y} r={ROOT_R + 9}  fill="none" stroke="#c82233" strokeWidth={showBack ? 1.5 : 1} opacity={showBack ? 0.22 : 0.08} />
-      <circle cx={pos.x} cy={pos.y} r={ROOT_R} fill="#180a0c" stroke="#7a1520" strokeWidth={2} />
+      <circle cx={pos.x} cy={pos.y} r={ROOT_R} fill="#fff1f2" stroke="#c82233" strokeWidth={2} />
       <Ring cx={pos.x} cy={pos.y} r={ROOT_R - 5} pct={pct} color={T.accent} width={3.5} />
       <text x={pos.x} y={pos.y - 11} textAnchor="middle" fontSize={18} fontWeight={800} fill={T.accent}
         style={{ fontFamily: "var(--font-sans)" }}>Financial</text>
@@ -341,6 +343,14 @@ function TaskPanel({ group, section, onClose }: {
                       TAP TO READ →
                     </div>
                   )}
+                  {task.sourceUrl && (
+                    <a href={task.sourceUrl} target="_blank" rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-[10px] mt-0.5 inline-block transition hover:underline hover:text-[#151311]"
+                      style={{ color: T.textMuted, textUnderlineOffset: "3px", textDecoration: "underline" }}>
+                      {task.sourceLabel ?? "Learn more"} ↗
+                    </a>
+                  )}
                 </div>
                 {!unlocked && <span className="text-xs opacity-40 flex-shrink-0 mt-0.5">🔒</span>}
               </Link>
@@ -375,7 +385,25 @@ function TaskPanel({ group, section, onClose }: {
                   </div>
                   {task.description && (
                     <div className="text-[10px] mt-0.5 leading-relaxed" style={{ color: T.textMuted }}>
-                      {task.description}
+                      {task.description}{" "}
+                      {task.sourceUrl && (
+                        <a href={task.sourceUrl} target="_blank" rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="transition hover:underline hover:text-[#151311]"
+                          style={{ color: T.textMuted, textUnderlineOffset: "3px", textDecoration: "underline" }}>
+                          {task.sourceLabel ?? "Learn more"} ↗
+                        </a>
+                      )}
+                    </div>
+                  )}
+                  {!task.description && task.sourceUrl && (
+                    <div className="text-[10px] mt-0.5">
+                      <a href={task.sourceUrl} target="_blank" rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="transition hover:underline hover:text-[#151311]"
+                        style={{ color: T.textMuted, textUnderlineOffset: "3px", textDecoration: "underline" }}>
+                        {task.sourceLabel ?? "Learn more"} ↗
+                      </a>
                     </div>
                   )}
                 </div>
@@ -528,9 +556,12 @@ function MapInner() {
 
       {/* Half labels */}
       <div className="absolute inset-x-0 top-3 flex justify-center pointer-events-none z-10 gap-48">
-        {[["↑ SETUP", "top"], ["↓ MAINTENANCE", "bottom"]].map(([label]) => (
+        {([
+          { label: "↑ SETUP",       bg: "rgba(255,241,242,0.92)", border: "1px solid rgba(200,34,51,0.2)",  color: "#c82233" },
+          { label: "↓ MAINTENANCE", bg: "rgba(250,248,246,0.92)", border: `1px solid ${T.border}`,         color: T.textMuted },
+        ]).map(({ label, bg, border, color }) => (
           <span key={label} className="text-xs font-semibold tracking-[0.18em] px-3 py-1 rounded-full"
-            style={{ background: "rgba(20,18,16,0.75)", border: `1px solid ${T.border}`, color: T.textMuted, backdropFilter: "blur(6px)" }}>
+            style={{ background: bg, border, color, backdropFilter: "blur(6px)" }}>
             {label}
           </span>
         ))}
@@ -540,7 +571,7 @@ function MapInner() {
       {showBack && (
         <button onClick={handleBack}
           className="absolute top-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold hover:opacity-80 transition-opacity"
-          style={{ background: "rgba(20,18,16,0.9)", border: `1px solid ${T.border}`, color: T.textSub, backdropFilter: "blur(8px)" }}>
+          style={{ background: "rgba(250,248,246,0.95)", border: `1px solid ${T.border}`, color: T.textSub, backdropFilter: "blur(8px)" }}>
           ← Back
         </button>
       )}
@@ -559,13 +590,13 @@ function MapInner() {
 
           {/* Divider line */}
           <line x1={120} y1={CY} x2={W - 120} y2={CY}
-            stroke={T.border} strokeWidth={1} strokeDasharray="8 20" opacity={0.2} />
+            stroke={T.border} strokeWidth={1} strokeDasharray="8 20" opacity={0.7} />
 
           {/* Guide rings */}
           <circle cx={CX} cy={CY} r={GROUP_RADIUS}
-            fill="none" stroke="#1c1816" strokeWidth={1} strokeDasharray="4 12" opacity={0.28} />
+            fill="none" stroke="#e2dbd4" strokeWidth={1} strokeDasharray="4 12" opacity={0.6} />
           <circle cx={CX} cy={CY} r={GROUP_RADIUS + GROUP_R + 18}
-            fill="none" stroke="#171412" strokeWidth={1} strokeDasharray="3 16" opacity={0.14} />
+            fill="none" stroke="#e2dbd4" strokeWidth={1} strokeDasharray="3 16" opacity={0.35} />
 
           <Lines layout={layout} sections={sections} focusGroupId={selectedGroup?.group.id ?? null}
             isGroupLocked={isGroupLocked} />
@@ -598,7 +629,7 @@ function MapInner() {
 
       {/* Zoom controls */}
       <div className="absolute bottom-4 left-4 z-20 flex items-center gap-0.5 rounded-lg p-0.5"
-        style={{ border: `1px solid ${T.border}`, background: `${T.bgCard}ee`, backdropFilter: "blur(8px)" }}>
+        style={{ border: `1px solid ${T.border}`, background: T.bgCard, backdropFilter: "blur(8px)" }}>
         {([
           ["−", () => setZoom((z) => Math.max(0.25, +(z - 0.15).toFixed(2)))],
           [`${Math.round(zoom * 100)}%`, () => { setZoom(getHomeZoom()); setPan({ x: 0, y: 0 }); setSelectedGroup(null); }],
@@ -635,7 +666,7 @@ export default function FinancialMindMapPage() {
         style={{ background: T.bg, fontFamily: "'Inter','Avenir Next','Segoe UI',sans-serif" }}
         suppressHydrationWarning>
         <header className="flex items-center justify-between px-6 py-3 z-10 flex-shrink-0"
-          style={{ borderBottom: `1px solid ${T.border}`, background: `${T.bg}cc`, backdropFilter: "blur(12px)" }}>
+          style={{ borderBottom: `1px solid ${T.border}`, background: `${T.bg}f0`, backdropFilter: "blur(12px)" }}>
           <div className="flex items-center gap-4">
             <Link href="/" className="text-sm transition-colors" style={{ color: T.textMuted }}>← Back</Link>
             <span className="font-bold tracking-[0.22em] text-sm" style={{ color: T.textPrime }}>YUTH</span>

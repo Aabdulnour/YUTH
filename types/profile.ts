@@ -17,9 +17,11 @@ export interface UserProfile {
   isIndigenous: boolean;
   hasEmergencySavings: boolean;
   hasDependent: boolean;
+  // Roadmap progress — Record<taskId, completed>
+  roadmapProgress?: Record<string, boolean>;
 }
 
-export type UserProfileFlagKey = Exclude<keyof UserProfile, "age" | "province">;
+export type UserProfileFlagKey = Exclude<keyof UserProfile, "age" | "province" | "roadmapProgress">;
 
 export interface ProfileMatchConditions extends Partial<Record<UserProfileFlagKey, boolean>> {
   ageMin?: number;
@@ -75,4 +77,5 @@ export const PROFILE_FIELD_LABELS: Record<keyof UserProfile, string> = {
   isIndigenous: "Indigenous Identity",
   hasEmergencySavings: "Has Emergency Savings",
   hasDependent: "Has a Dependent",
+  roadmapProgress: "Roadmap Progress",
 };

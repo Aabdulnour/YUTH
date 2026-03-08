@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useEffect, createContext, useContext } from "react";
+import { useState, useEffect, useCallback, useRef, createContext, useContext } from "react";
 import React from "react";
+import { loadPersistedUserProfile, savePersistedUserProfile } from "@/lib/persistence/profile-store";
+import { usePrivateRoute } from "@/lib/auth/usePrivateRoute";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -35,40 +37,78 @@ type ProgressMap = Record<string, boolean>;
 
 const STORAGE_KEY = "maplemind_progress";
 
+// ─── Local storage helpers ────────────────────────────────────────────────────
+
+function readLocal(): ProgressMap {
+  try {
+    const s = localStorage.getItem(STORAGE_KEY);
+    return s ? (JSON.parse(s) as ProgressMap) : {};
+  } catch { return {}; }
+}
+
+function writeLocal(p: ProgressMap) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(p)); } catch {}
+}
+
 // ─── Core Hook ────────────────────────────────────────────────────────────────
 
 export function useProgress() {
+  const { userId } = usePrivateRoute();
   const [progress, setProgress] = useState<ProgressMap>({});
+  const [loaded, setLoaded] = useState(false);
 
-  // Load from localStorage on mount
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) setProgress(JSON.parse(stored));
-    } catch {
-      console.warn("Could not load progress from localStorage");
-    }
+  // Keep a ref to the full cached profile so we never need to re-fetch before saving
+  const profileCacheRef = useRef<Parameters<typeof savePersistedUserProfile>[1] | null>(null);
+  const userIdRef = useRef<string | undefined>(undefined);
+  userIdRef.current = userId ?? undefined;
+
+  // ── Supabase save (uses cached profile — no extra fetch) ──────────────────
+  const persistToSupabase = useCallback((next: ProgressMap) => {
+    const uid = userIdRef.current;
+    if (!uid || !profileCacheRef.current) return;
+    const updated = { ...profileCacheRef.current, roadmapProgress: next } as Parameters<typeof savePersistedUserProfile>[1];
+    profileCacheRef.current = updated;
+    void savePersistedUserProfile(uid, updated);
   }, []);
 
-  // Persist to localStorage whenever progress changes
+  // ── Combined write: localStorage + Supabase ────────────────────────────────
+  const persist = useCallback((next: ProgressMap) => {
+    writeLocal(next);
+    persistToSupabase(next);
+  }, [persistToSupabase]);
+
+  // ── Load on mount ──────────────────────────────────────────────────────────
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
-    } catch {
-      console.warn("Could not save progress to localStorage");
+    if (!userId) {
+      setProgress(readLocal());
+      setLoaded(true);
+      return;
     }
-  }, [progress]);
 
-  // ─── Unlock logic ──────────────────────────────────────────────────────────
+    let cancelled = false;
+    void loadPersistedUserProfile(userId).then((profile) => {
+      if (cancelled) return;
+      // Cache the full profile so future saves can merge without re-fetching
+      profileCacheRef.current = (profile ?? {}) as Parameters<typeof savePersistedUserProfile>[1];
+      const saved = (profile as { roadmapProgress?: ProgressMap })?.roadmapProgress ?? readLocal();
+      setProgress(saved);
+      writeLocal(saved);
+      setLoaded(true);
+    });
 
-  const isTaskUnlocked = (task: Task): boolean => {
+    return () => { cancelled = true; };
+  }, [userId]);
+
+  // ── Unlock logic ──────────────────────────────────────────────────────────
+
+  const isTaskUnlocked = useCallback((task: Task): boolean => {
     if (!task.prerequisite) return true;
     return !!progress[task.prerequisite];
-  };
+  }, [progress]);
 
-  // ─── Toggle ───────────────────────────────────────────────────────────────
+  // ── Toggle ────────────────────────────────────────────────────────────────
 
-  const uncheckWithDependents = (taskId: string, allTasks: Task[]) => {
+  const uncheckWithDependents = useCallback((taskId: string, allTasks: Task[]) => {
     const dependentMap: Record<string, string[]> = {};
     allTasks.forEach((t) => {
       if (t.prerequisite) {
@@ -76,7 +116,6 @@ export function useProgress() {
         dependentMap[t.prerequisite].push(t.id);
       }
     });
-
     const toUncheck = new Set<string>();
     const collect = (id: string) => {
       toUncheck.add(id);
@@ -87,58 +126,58 @@ export function useProgress() {
     setProgress((prev) => {
       const next = { ...prev };
       toUncheck.forEach((id) => { next[id] = false; });
+      persist(next);
       return next;
     });
-  };
+  }, [persist]);
 
-  const smartToggle = (task: Task, allTasks: Task[]) => {
+  const smartToggle = useCallback((task: Task, allTasks: Task[]) => {
     if (!isTaskUnlocked(task)) return;
     if (progress[task.id]) {
       uncheckWithDependents(task.id, allTasks);
     } else {
-      setProgress((prev) => ({ ...prev, [task.id]: true }));
+      setProgress((prev) => {
+        const next = { ...prev, [task.id]: true };
+        persist(next);
+        return next;
+      });
     }
-  };
+  }, [isTaskUnlocked, progress, uncheckWithDependents, persist]);
 
-  // Synchronously writes to localStorage — use before router.back() to avoid
-  // the race condition where navigation fires before the React state flush.
-  const markComplete = (taskId: string) => {
+  // Use before router.back() — writes synchronously inside setState callback
+  // so the save is guaranteed to fire before navigation
+  const markComplete = useCallback((taskId: string) => {
     setProgress((prev) => {
       const next = { ...prev, [taskId]: true };
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch {}
+      persist(next);
       return next;
     });
-  };
+  }, [persist]);
 
-  // ─── Progress calculators ─────────────────────────────────────────────────
+  // ── Progress calculators ──────────────────────────────────────────────────
 
-  const isComplete = (taskId: string): boolean => !!progress[taskId];
+  const isComplete = useCallback((taskId: string): boolean =>
+    !!progress[taskId], [progress]);
 
-  const getNodeProgress = (tasks: Task[]): { done: number; total: number; pct: number } => {
+  const getNodeProgress = useCallback((tasks: Task[]): { done: number; total: number; pct: number } => {
     const total = tasks.length;
-    const done = tasks.filter((t) => progress[t.id]).length;
-    const pct = total === 0 ? 0 : Math.round((done / total) * 100);
+    const done  = tasks.filter((t) => progress[t.id]).length;
+    const pct   = total === 0 ? 0 : Math.round((done / total) * 100);
     return { done, total, pct };
-  };
+  }, [progress]);
 
-  const getBranchProgress = (children: LeafNode[]): { done: number; total: number; pct: number } => {
-    const allTasks = children.flatMap((child) => child.tasks ?? []);
-    return getNodeProgress(allTasks);
-  };
+  const getBranchProgress = useCallback((children: LeafNode[]): { done: number; total: number; pct: number } => {
+    return getNodeProgress(children.flatMap((c) => c.tasks ?? []));
+  }, [getNodeProgress]);
 
-  const getOverallProgress = (branches: BranchNode[]): { done: number; total: number; pct: number } => {
-    const allTasks = branches.flatMap((branch) =>
-      branch.children.flatMap((child) => child.tasks ?? [])
-    );
-    return getNodeProgress(allTasks);
-  };
+  const getOverallProgress = useCallback((branches: BranchNode[]): { done: number; total: number; pct: number } => {
+    return getNodeProgress(branches.flatMap((b) => b.children.flatMap((c) => c.tasks ?? [])));
+  }, [getNodeProgress]);
 
-  // ─── Reset ────────────────────────────────────────────────────────────────
-
-  const resetProgress = () => {
+  const resetProgress = useCallback(() => {
     setProgress({});
-    localStorage.removeItem(STORAGE_KEY);
-  };
+    persist({});
+  }, [persist]);
 
   return {
     progress,
@@ -157,8 +196,6 @@ export function useProgress() {
 
 const ProgressContext = createContext<ReturnType<typeof useProgress> | null>(null);
 
-// ─── Provider ─────────────────────────────────────────────────────────────────
-
 export function ProgressProvider({ children }: { children: React.ReactNode }) {
   const value = useProgress();
   return (
@@ -168,10 +205,8 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-// ─── Context Hook ─────────────────────────────────────────────────────────────
-
 export function useProgressContext() {
-  const context = useContext(ProgressContext);
-  if (!context) throw new Error("useProgressContext must be used inside <ProgressProvider>");
-  return context;
+  const ctx = useContext(ProgressContext);
+  if (!ctx) throw new Error("useProgressContext must be used inside <ProgressProvider>");
+  return ctx;
 }
