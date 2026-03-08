@@ -1,7 +1,7 @@
 (function initializeMapleMindExtensionConfig() {
   const config = {
-    apiBaseUrl: "http://localhost:3000",
-    dashboardUrl: "http://localhost:3000/dashboard",
+    apiBaseUrl: "https://yuthcanada.com",
+    dashboardUrl: "https://yuthcanada.com/dashboard",
     previewMode: true,
     supportedMerchants: ["amazon", "bestbuy", "sephora"],
   };
